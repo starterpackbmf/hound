@@ -1,0 +1,15 @@
+node_modules
+.env
+.env.local
+dist
+
+# Claude Code local settings (may contain secrets in permission rules)
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
