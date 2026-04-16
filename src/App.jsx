@@ -5,8 +5,11 @@ import React, { useState, useEffect, useRef } from 'react'
 // Fullscreen per step, Hound as subtle corner guide
 // ═══════════════════════════════════════════════
 
-const CALENDAR_URL = 'http://localhost:3001/calendar'
-const QUOTES_URL = 'http://localhost:3001/quotes'
+// Relative paths work in both dev (Vite proxies /api → localhost:3001)
+// and prod (Vercel serverless functions under api/)
+const CALENDAR_URL = '/api/calendar'
+const QUOTES_URL = '/api/quotes'
+const OVERNIGHT_URL = '/api/overnight'
 
 // ─── CLASSIFICATION ───
 function classificar(v) {
