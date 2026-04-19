@@ -4,7 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useIsMobile } from '../../lib/useMedia'
 import { getMyProfile } from '../../lib/profile'
 import {
-  ITarget, IUsers, ICalendar, IFile,
+  ITarget, IUsers, ICalendar, IFile, IBook,
   ILogOut, IArrowLeft, IMenu, IX,
 } from '../../components/icons'
 
@@ -13,6 +13,7 @@ const NAV = [
   { to: '/mentor/alunos',          label: 'alunos',          icon: IUsers },
   { to: '/mentor/agenda',          label: 'minha agenda',    icon: ICalendar },
   { to: '/mentor/relatorio',       label: 'relatório',       icon: IFile },
+  { to: '/mentor/conteudos',       label: 'conteúdos',       icon: IBook },
 ]
 
 export default function MonitorLayout() {

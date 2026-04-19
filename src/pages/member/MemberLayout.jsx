@@ -5,6 +5,7 @@ import { useIsMobile } from '../../lib/useMedia'
 import { getMyCoins } from '../../lib/free'
 import { getMyProfile } from '../../lib/profile'
 import RankBadge from '../../components/RankBadge'
+import NotificationsBell from '../../components/NotificationsBell'
 import {
   IHome, IBook, IPlay, IZap, IEye, IPencil, IStar, GYinYang,
   ISearch, ILogOut, IMessage, IGlobe, IUsers, IExternalLink, ITarget,
@@ -266,11 +267,12 @@ export default function MemberLayout() {
               <IStar size={12} stroke={1.8} />
               {coins?.balance ?? '—'} SC
             </NavLink>
+            <NotificationsBell />
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{
                 width: 26, height: 26, borderRadius: 6,
-                background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
-                color: '#0a0a0a', fontSize: 11, fontWeight: 700,
+                background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #00d9ff 100%)',
+                color: '#0a0a0e', fontSize: 11, fontWeight: 700,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>{initial}</div>
               {rank && <RankBadge rank={rank} size="xs" />}

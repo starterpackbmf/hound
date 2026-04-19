@@ -49,6 +49,7 @@ import MonitorAlunos from './pages/monitor/Alunos'
 import MonitorRelatorio from './pages/monitor/Relatorio'
 import AlunoDetail from './pages/monitor/AlunoDetail'
 import MinhaAgenda from './pages/monitor/MinhaAgenda'
+import AdminConteudos from './pages/monitor/AdminConteudos'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -112,6 +113,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="relatorio" element={<MonitorRelatorio />} />
             <Route path="alunos/:id" element={<AlunoDetail />} />
             <Route path="agenda" element={<MinhaAgenda />} />
+            <Route path="conteudos" element={<AdminConteudos />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
