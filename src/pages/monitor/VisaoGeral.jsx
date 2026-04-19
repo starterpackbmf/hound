@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { matilha } from '../../lib/matilha'
 import RankBadge, { computeRank } from '../../components/RankBadge'
 import { PageTitle, ErrorBox, Loading } from '../member/ui'
@@ -197,10 +198,11 @@ function MiniCard({ label, value, color }) {
 function PriorityRow({ row: r }) {
   const meta = STATUS_META[r.status]
   return (
-    <div className="card" style={{
+    <Link to={`/mentor/alunos/${r.id}`} className="card card-hover" style={{
       padding: '10px 14px',
       display: 'flex', alignItems: 'center', gap: 12,
       borderLeft: `3px solid ${meta.color}`,
+      textDecoration: 'none', color: 'var(--text-primary)',
     }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -225,18 +227,18 @@ function PriorityRow({ row: r }) {
           {r.win_rate.toFixed(0)}% WR
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
 function StudentRow({ row: r }) {
   const meta = STATUS_META[r.status]
   return (
-    <div style={{
+    <Link to={`/mentor/alunos/${r.id}`} className="card-hover" style={{
       display: 'flex', alignItems: 'center', gap: 10,
       padding: '7px 10px',
       background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 5,
-      fontSize: 12,
+      fontSize: 12, textDecoration: 'none', color: 'var(--text-primary)',
     }}>
       <span style={{ width: 6, height: 6, borderRadius: 99, background: meta.color, flexShrink: 0 }} />
       <span style={{ flex: 1, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -255,6 +257,6 @@ function StudentRow({ row: r }) {
       }}>
         {r.result > 0 ? '+' : ''}R$ {r.result.toLocaleString('pt-BR')}
       </span>
-    </div>
+    </Link>
   )
 }

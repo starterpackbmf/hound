@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { matilha } from '../../lib/matilha'
 import RankBadge from '../../components/RankBadge'
 import { PageTitle, ErrorBox, Loading } from '../member/ui'
@@ -103,11 +104,11 @@ export default function Alunos() {
 
 function AlunoRow({ student: s }) {
   return (
-    <div style={{
+    <Link to={`/mentor/alunos/${s.id}`} className="card-hover" style={{
       display: 'flex', alignItems: 'center', gap: 12,
       padding: '10px 14px',
       background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 6,
-      fontSize: 12.5,
+      fontSize: 12.5, color: 'var(--text-primary)', textDecoration: 'none',
     }}>
       <div style={{
         width: 26, height: 26, borderRadius: 6, flexShrink: 0,
@@ -133,6 +134,6 @@ function AlunoRow({ student: s }) {
       <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
         desde {new Date(s.created_at).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })}
       </span>
-    </div>
+    </Link>
   )
 }

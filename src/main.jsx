@@ -25,6 +25,7 @@ import Course from './pages/member/Course'
 import Aulas from './pages/member/Aulas'
 import Imersoes from './pages/member/Imersoes'
 import Monitoria from './pages/member/Monitoria'
+import PlanoExecucao from './pages/member/PlanoExecucao'
 import Diario from './pages/member/Diario'
 import Oraculo from './pages/member/Oraculo'
 import Destaques from './pages/member/Destaques'
@@ -44,6 +45,8 @@ import MonitorLayout from './pages/monitor/MonitorLayout'
 import VisaoGeral from './pages/monitor/VisaoGeral'
 import MonitorAlunos from './pages/monitor/Alunos'
 import MonitorRelatorio from './pages/monitor/Relatorio'
+import AlunoDetail from './pages/monitor/AlunoDetail'
+import MinhaAgenda from './pages/monitor/MinhaAgenda'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -70,6 +73,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="minha-ficha" element={<MinhaFicha />} />
             <Route path="novo-trade" element={<NovoTrade />} />
             <Route path="trade/:id" element={<NovoTrade />} />
+            <Route path="plano-execucao" element={<PlanoExecucao />} />
             <Route path="estudo" element={<Estudo />} />
             <Route path="estudo/:slug" element={<Course />} />
             <Route path="aulas" element={<Aulas />} />
@@ -102,6 +106,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="visao-geral" element={<VisaoGeral />} />
             <Route path="alunos" element={<MonitorAlunos />} />
             <Route path="relatorio" element={<MonitorRelatorio />} />
+            <Route path="alunos/:id" element={<AlunoDetail />} />
+            <Route path="agenda" element={<MinhaAgenda />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
