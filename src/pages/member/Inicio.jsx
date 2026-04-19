@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { matilha } from '../../lib/matilha'
 import { getMyProfile } from '../../lib/profile'
+import { isPremium } from '../../lib/gate'
 import { supabase } from '../../lib/supabase'
 import { listEvents, partitionEvents } from '../../lib/events'
 import { getMyCoins } from '../../lib/free'
@@ -98,6 +99,47 @@ export default function Inicio() {
           )}
         </div>
       </section>
+
+      {/* BANNER UPGRADE (free) */}
+      {!isPremium(profile) && (
+        <Link to="/app/upgrade" style={{
+          display: 'block',
+          padding: '20px 22px',
+          borderRadius: 14,
+          background: 'linear-gradient(135deg, rgba(236,72,153,0.12) 0%, rgba(168,85,247,0.10) 50%, rgba(0,217,255,0.12) 100%)',
+          border: '1px solid rgba(168,85,247,0.35)',
+          boxShadow: '0 0 40px rgba(168,85,247,0.18), inset 0 1px 0 rgba(255,255,255,0.06)',
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <div style={{
+                fontSize: 10, letterSpacing: '0.18em', fontWeight: 700,
+                fontFamily: 'var(--font-mono)',
+                background: 'linear-gradient(90deg, #ec4899, #a855f7, #00d9ff)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                marginBottom: 6,
+              }}>✨ PLANO FREE — DESTRAVE A MATILHA</div>
+              <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>
+                Diário, W.O.L.F AI, monitoria ao vivo, oráculo, imersões…
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                você tá vendo só a casca. mentorados viram trader de verdade — com plano, feedback e revisão toda semana.
+              </div>
+            </div>
+            <span style={{
+              padding: '10px 16px', borderRadius: 8,
+              background: 'linear-gradient(135deg, #ec4899, #a855f7, #00d9ff)',
+              color: '#0a0a0e', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em',
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              boxShadow: '0 8px 24px rgba(168,85,247,0.35)',
+              flexShrink: 0,
+            }}>
+              virar mentorado <IArrowRight size={13} stroke={2.4} />
+            </span>
+          </div>
+        </Link>
+      )}
 
       {/* BANNER AO VIVO */}
       {liveEvent && (

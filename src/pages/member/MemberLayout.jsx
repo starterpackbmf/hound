@@ -4,6 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useIsMobile } from '../../lib/useMedia'
 import { getMyCoins } from '../../lib/free'
 import { getMyProfile } from '../../lib/profile'
+import { isPremium, isPremiumRoute } from '../../lib/gate'
 import RankBadge from '../../components/RankBadge'
 import NotificationsBell from '../../components/NotificationsBell'
 import {
@@ -94,6 +95,7 @@ export default function MemberLayout() {
   const initial = (profile?.name?.[0] || emailPrefix[0] || 'm').toUpperCase()
   const rank = profile?.current_badge
   const canBeMonitor = (profile?.roles || []).some(r => ['monitor', 'admin', 'imortal'].includes(r))
+  const premium = isPremium(profile)
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--body)' }}>
@@ -138,6 +140,19 @@ export default function MemberLayout() {
               ↔ trocar para monitor
             </Link>
           )}
+          {!premium && !canBeMonitor && (
+            <Link to="/app/upgrade" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              padding: '8px 10px', borderRadius: 6,
+              background: 'linear-gradient(135deg, rgba(236,72,153,0.15) 0%, rgba(168,85,247,0.15) 50%, rgba(0,217,255,0.15) 100%)',
+              border: '1px solid rgba(168,85,247,0.35)',
+              color: 'var(--text-primary)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em',
+              marginTop: 4,
+              boxShadow: '0 0 16px rgba(168,85,247,0.15)',
+            }}>
+              ✨ VIRAR MENTORADO
+            </Link>
+          )}
           <button
             type="button"
             title="buscar (⌘K)"
@@ -166,36 +181,43 @@ export default function MemberLayout() {
                   letterSpacing: '0.08em',
                 }}>{section.label}</div>
               )}
-              {section.items.map(item => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === '/app/inicio'}
-                  style={({ isActive }) => ({
-                    position: 'relative',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '6px 10px 6px 12px',
-                    borderRadius: 5,
-                    fontSize: 12.5, fontWeight: 450,
-                    color: isActive ? 'var(--amber)' : 'var(--text-secondary)',
-                    background: isActive ? 'var(--amber-dim)' : 'transparent',
-                    transition: 'background 150ms, color 150ms',
-                  })}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <span style={{
-                        position: 'absolute', left: 0, top: 6, bottom: 6, width: 2,
-                        background: isActive ? 'var(--amber)' : 'transparent',
-                        borderRadius: '0 2px 2px 0',
-                      }} />
-                      <item.icon size={15} stroke={1.6} style={{ color: isActive ? 'var(--amber)' : 'var(--text-muted)' }} />
-                      <span>{item.label}</span>
-                      {item.liveDot && <span className="dot dot-live" style={{ marginLeft: 'auto', width: 5, height: 5 }} />}
-                    </>
-                  )}
-                </NavLink>
-              ))}
+              {section.items.map(item => {
+                const locked = !premium && isPremiumRoute(item.to)
+                return (
+                  <NavLink
+                    key={item.to}
+                    to={locked ? `/app/upgrade?from=${encodeURIComponent(item.to)}` : item.to}
+                    end={item.to === '/app/inicio'}
+                    style={({ isActive }) => ({
+                      position: 'relative',
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '6px 10px 6px 12px',
+                      borderRadius: 5,
+                      fontSize: 12.5, fontWeight: 450,
+                      color: isActive && !locked ? 'var(--amber)' : (locked ? 'var(--text-faint)' : 'var(--text-secondary)'),
+                      background: isActive && !locked ? 'var(--amber-dim)' : 'transparent',
+                      transition: 'background 150ms, color 150ms',
+                      opacity: locked ? 0.55 : 1,
+                    })}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <span style={{
+                          position: 'absolute', left: 0, top: 6, bottom: 6, width: 2,
+                          background: isActive && !locked ? 'var(--amber)' : 'transparent',
+                          borderRadius: '0 2px 2px 0',
+                        }} />
+                        <item.icon size={15} stroke={1.6} style={{
+                          color: isActive && !locked ? 'var(--amber)' : (locked ? 'var(--text-faint)' : 'var(--text-muted)'),
+                        }} />
+                        <span>{item.label}</span>
+                        {locked && <span style={{ marginLeft: 'auto', fontSize: 10, opacity: 0.6 }}>🔒</span>}
+                        {!locked && item.liveDot && <span className="dot dot-live" style={{ marginLeft: 'auto', width: 5, height: 5 }} />}
+                      </>
+                    )}
+                  </NavLink>
+                )
+              })}
             </React.Fragment>
           ))}
         </nav>
@@ -214,7 +236,27 @@ export default function MemberLayout() {
               <div style={{
                 fontSize: 12, fontWeight: 500, color: 'var(--text-primary)',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-              }}>{profile?.name?.split(' ')[0]?.toLowerCase() || emailPrefix}</div>
+                display: 'flex', alignItems: 'center', gap: 6,
+              }}>
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {profile?.name?.split(' ')[0]?.toLowerCase() || emailPrefix}
+                </span>
+                {premium ? (
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, letterSpacing: '0.1em',
+                    padding: '2px 5px', borderRadius: 3,
+                    background: 'linear-gradient(135deg, #ec4899, #a855f7, #00d9ff)',
+                    color: '#0a0a0e', flexShrink: 0,
+                  }}>MENTORADO</span>
+                ) : (
+                  <span style={{
+                    fontSize: 8, fontWeight: 700, letterSpacing: '0.1em',
+                    padding: '2px 5px', borderRadius: 3,
+                    background: 'var(--surface-2)', border: '1px solid var(--border)',
+                    color: 'var(--text-muted)', flexShrink: 0,
+                  }}>FREE</span>
+                )}
+              </div>
               <div style={{
                 fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)',
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',

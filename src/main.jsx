@@ -43,6 +43,8 @@ import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
 import Settings from './pages/member/Settings'
+import Upgrade from './pages/member/Upgrade'
+import PremiumGate from './auth/PremiumGate'
 import MonitorGuard from './auth/MonitorGuard'
 import MonitorLayout from './pages/monitor/MonitorLayout'
 import VisaoGeral from './pages/monitor/VisaoGeral'
@@ -69,26 +71,29 @@ createRoot(document.getElementById('root')).render(
           >
             <Route index element={<Navigate to="inicio" replace />} />
 
-            {/* Matilha (premium) */}
+            {/* Sempre acessível */}
             <Route path="inicio" element={<Inicio />} />
-            <Route path="jornada" element={<Jornada />} />
-            <Route path="historico" element={<Historico />} />
-            <Route path="resumo-semanal" element={<ResumoSemanal />} />
             <Route path="minha-ficha" element={<MinhaFicha />} />
             <Route path="config" element={<Settings />} />
-            <Route path="novo-trade" element={<NovoTrade />} />
-            <Route path="trade/:id" element={<NovoTrade />} />
-            <Route path="plano-execucao" element={<PlanoExecucao />} />
-            <Route path="sessoes" element={<Sessoes />} />
             <Route path="desafios" element={<Desafios />} />
-            <Route path="estudo" element={<Estudo />} />
-            <Route path="estudo/:slug" element={<Course />} />
-            <Route path="aulas" element={<Aulas />} />
-            <Route path="imersoes" element={<Imersoes />} />
-            <Route path="monitoria" element={<Monitoria />} />
-            <Route path="diario" element={<Diario />} />
-            <Route path="oraculo" element={<Oraculo />} />
             <Route path="destaques" element={<Destaques />} />
+            <Route path="upgrade" element={<Upgrade />} />
+
+            {/* Premium (mentorado) */}
+            <Route path="jornada" element={<PremiumGate><Jornada /></PremiumGate>} />
+            <Route path="historico" element={<PremiumGate><Historico /></PremiumGate>} />
+            <Route path="resumo-semanal" element={<PremiumGate><ResumoSemanal /></PremiumGate>} />
+            <Route path="novo-trade" element={<PremiumGate><NovoTrade /></PremiumGate>} />
+            <Route path="trade/:id" element={<PremiumGate><NovoTrade /></PremiumGate>} />
+            <Route path="plano-execucao" element={<PremiumGate><PlanoExecucao /></PremiumGate>} />
+            <Route path="sessoes" element={<PremiumGate><Sessoes /></PremiumGate>} />
+            <Route path="estudo" element={<PremiumGate><Estudo /></PremiumGate>} />
+            <Route path="estudo/:slug" element={<PremiumGate><Course /></PremiumGate>} />
+            <Route path="aulas" element={<PremiumGate><Aulas /></PremiumGate>} />
+            <Route path="imersoes" element={<PremiumGate><Imersoes /></PremiumGate>} />
+            <Route path="monitoria" element={<PremiumGate><Monitoria /></PremiumGate>} />
+            <Route path="diario" element={<PremiumGate><Diario /></PremiumGate>} />
+            <Route path="oraculo" element={<PremiumGate><Oraculo /></PremiumGate>} />
 
             {/* Comunidade (free) */}
             <Route path="comunidade" element={<Comunidade />} />
