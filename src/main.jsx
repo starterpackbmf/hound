@@ -39,6 +39,7 @@ import Jornada from './pages/member/Jornada'
 import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
+import NovoTrade from './pages/member/NovoTrade'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -63,6 +64,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="historico" element={<Historico />} />
             <Route path="resumo-semanal" element={<ResumoSemanal />} />
             <Route path="minha-ficha" element={<MinhaFicha />} />
+            <Route path="novo-trade" element={<NovoTrade />} />
+            <Route path="trade/:id" element={<NovoTrade />} />
             <Route path="estudo" element={<Estudo />} />
             <Route path="estudo/:slug" element={<Course />} />
             <Route path="aulas" element={<Aulas />} />
