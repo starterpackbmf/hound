@@ -6,6 +6,8 @@ import { getMyProfile } from '../../lib/profile'
 import { supabase } from '../../lib/supabase'
 import { listEvents, partitionEvents } from '../../lib/events'
 import { getMyCoins } from '../../lib/free'
+import { getRecentFeedbackForMe, getMyMentorshipSessions } from '../../lib/feedback'
+import { listThisWeekChallenges, listMyCompletions } from '../../lib/challenges'
 import RankBadge from '../../components/RankBadge'
 import Hound from '../../components/Hound'
 import {
@@ -19,6 +21,8 @@ export default function Inicio() {
   const [summary, setSummary] = useState(null)
   const [liveEvent, setLiveEvent] = useState(null)
   const [coins, setCoins] = useState(null)
+  const [recentFb, setRecentFb] = useState([])
+  const [openChallenges, setOpenChallenges] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -41,6 +45,16 @@ export default function Inicio() {
       }).catch(() => {})
 
       getMyCoins().catch(() => ({ balance: 0 })).then(c => !cancel && setCoins(c))
+
+      getRecentFeedbackForMe({ limit: 3 }).catch(() => []).then(fb => !cancel && setRecentFb(fb))
+
+      Promise.all([listThisWeekChallenges(), listMyCompletions()])
+        .then(([ch, done]) => {
+          if (cancel) return
+          const doneSet = new Set(done)
+          setOpenChallenges(ch.filter(c => !doneSet.has(c.id)))
+        })
+        .catch(() => {})
 
       if (!cancel) setLoading(false)
     })()
@@ -155,6 +169,54 @@ export default function Inicio() {
           />
         </div>
       </section>
+
+      {/* FEEDBACK RECENTE DO MONITOR */}
+      {recentFb.length > 0 && (
+        <section>
+          <div style={sectionHead}>
+            <span className="label-muted">🧭 feedback recente do monitor</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {recentFb.map(f => (
+              <div key={f.id} className="card leftbar-cyan" style={{ padding: '10px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>
+                    {new Date(f.day_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  </span>
+                  {(f.tags || []).map(t => <span key={t} className="pill pill-cyan" style={{ fontSize: 9 }}>{t}</span>)}
+                </div>
+                <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+                  {f.feedback}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* DESAFIOS DA SEMANA */}
+      {openChallenges.length > 0 && (
+        <section>
+          <div style={sectionHead}>
+            <span className="label-muted">⚡ desafios abertos</span>
+            <Link to="/app/desafios" style={{ fontSize: 11, color: 'var(--pink)' }}>
+              ver todos →
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 8 }}>
+            {openChallenges.slice(0, 3).map(c => (
+              <Link key={c.id} to="/app/desafios" className="card card-hover leftbar-pink" style={{
+                padding: 12, color: 'var(--text-primary)', textDecoration: 'none',
+              }}>
+                <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>{c.title}</div>
+                <div style={{ fontSize: 10, color: 'var(--pink)', fontFamily: 'var(--font-mono)' }}>
+                  +{c.reward_sc} SC
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* PERFIL / MATILHA */}
       <section>

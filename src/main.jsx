@@ -26,6 +26,8 @@ import Aulas from './pages/member/Aulas'
 import Imersoes from './pages/member/Imersoes'
 import Monitoria from './pages/member/Monitoria'
 import PlanoExecucao from './pages/member/PlanoExecucao'
+import Sessoes from './pages/member/Sessoes'
+import Desafios from './pages/member/Desafios'
 import Diario from './pages/member/Diario'
 import Oraculo from './pages/member/Oraculo'
 import Destaques from './pages/member/Destaques'
@@ -74,6 +76,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="novo-trade" element={<NovoTrade />} />
             <Route path="trade/:id" element={<NovoTrade />} />
             <Route path="plano-execucao" element={<PlanoExecucao />} />
+            <Route path="sessoes" element={<Sessoes />} />
+            <Route path="desafios" element={<Desafios />} />
             <Route path="estudo" element={<Estudo />} />
             <Route path="estudo/:slug" element={<Course />} />
             <Route path="aulas" element={<Aulas />} />

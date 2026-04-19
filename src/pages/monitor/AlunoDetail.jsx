@@ -3,6 +3,11 @@ import { useParams, Link } from 'react-router-dom'
 import { matilha } from '../../lib/matilha'
 import { supabase } from '../../lib/supabase'
 import { getStudentPlan, savePlan } from '../../lib/plans'
+import {
+  listDailyFeedback, saveDailyFeedback, FEEDBACK_TAGS,
+  listSessionsFor, saveSession,
+  listTradeFeedbackFor, saveTradeFeedback, TRADE_STATUS_META,
+} from '../../lib/feedback'
 import { PageTitle, Section, ErrorBox, Loading } from '../member/ui'
 import RankBadge from '../../components/RankBadge'
 import { IArrowLeft, IArrowRight, IMessage, IPlus, IX, ICheck } from '../../components/icons'
@@ -193,6 +198,229 @@ export default function AlunoDetail() {
           </div>
         )}
       </Section>
+
+      {profile && <DailyFeedbackSection studentId={profile.id} />}
+      {profile && <TradeFeedbackHistorySection studentId={profile.id} />}
+      {profile && <MentorshipSessionsSection studentId={profile.id} />}
+    </div>
+  )
+}
+
+function TradeFeedbackHistorySection({ studentId }) {
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    listTradeFeedbackFor(studentId, { limit: 20 })
+      .then(setList)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [studentId])
+
+  if (loading) return null
+  if (list.length === 0) return null
+
+  return (
+    <Section title={`feedbacks em trades · ${list.length}`}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {list.slice(0, 10).map(f => {
+          const meta = TRADE_STATUS_META[f.status] || TRADE_STATUS_META.OK
+          return (
+            <Link key={f.id} to={`/app/trade/${f.trade_id}`} className="card card-hover" style={{
+              padding: 12, display: 'flex', alignItems: 'center', gap: 12,
+              borderLeft: `3px solid ${meta.color}`,
+              textDecoration: 'none', color: 'var(--text-primary)',
+            }}>
+              <span style={{
+                width: 26, height: 26, borderRadius: 6, background: meta.bg, color: meta.color,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 14, fontWeight: 700,
+              }}>{meta.icon}</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontSize: 10, letterSpacing: '0.1em', color: meta.color, fontWeight: 600 }}>{meta.label}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                    {new Date(f.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  </span>
+                </div>
+                {f.feedback && <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5, marginTop: 4 }}>{f.feedback.slice(0, 140)}{f.feedback.length > 140 ? '…' : ''}</div>}
+              </div>
+              <IArrowRight size={12} stroke={1.6} style={{ color: 'var(--text-muted)' }} />
+            </Link>
+          )
+        })}
+      </div>
+    </Section>
+  )
+}
+
+function DailyFeedbackSection({ studentId }) {
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [writing, setWriting] = useState(false)
+  const [draft, setDraft] = useState({ day_date: new Date().toISOString().slice(0, 10), feedback: '', tags: [] })
+
+  async function load() {
+    try {
+      const data = await listDailyFeedback(studentId)
+      setList(data)
+    } catch (e) { console.warn(e) } finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [studentId])
+
+  function toggleTag(t) {
+    setDraft(d => ({ ...d, tags: d.tags.includes(t) ? d.tags.filter(x => x !== t) : [...d.tags, t] }))
+  }
+
+  async function submit() {
+    if (!draft.feedback.trim()) return
+    try {
+      await saveDailyFeedback({ student_id: studentId, ...draft })
+      setDraft({ day_date: new Date().toISOString().slice(0, 10), feedback: '', tags: [] })
+      setWriting(false)
+      await load()
+    } catch (e) { alert(e.message) }
+  }
+
+  return (
+    <Section title="feedback diário">
+      {writing ? (
+        <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <input className="input" type="date" value={draft.day_date} onChange={e => setDraft(d => ({ ...d, day_date: e.target.value }))} style={{ width: 160 }} />
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {FEEDBACK_TAGS.map(t => {
+                const sel = draft.tags.includes(t)
+                return (
+                  <button key={t} type="button" onClick={() => toggleTag(t)}
+                    className={sel ? 'pill pill-active' : 'pill'} style={{ cursor: 'pointer', fontSize: 10 }}>
+                    {sel && <ICheck size={10} stroke={2.2} />} {t}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <textarea className="input" rows={3} style={{ resize: 'vertical' }}
+            placeholder="o que viu no dia, o que elogiar, o que ajustar..."
+            value={draft.feedback}
+            onChange={e => setDraft(d => ({ ...d, feedback: e.target.value }))} />
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={submit} disabled={!draft.feedback.trim()} className="btn btn-primary">publicar</button>
+            <button onClick={() => setWriting(false)} className="btn btn-ghost">cancelar</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setWriting(true)} className="btn btn-outline-cyan" style={{ marginBottom: 12 }}>
+          <IPlus size={12} stroke={2} /> escrever feedback
+        </button>
+      )}
+
+      {loading ? <Loading />
+       : list.length === 0 ? <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>sem feedbacks ainda</div>
+       : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {list.map(f => (
+            <div key={f.id} className="card" style={{ padding: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
+                  {new Date(f.day_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
+                </span>
+                {(f.tags || []).map(t => <span key={t} className="pill pill-cyan" style={{ fontSize: 9 }}>{t}</span>)}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+                {f.feedback}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  )
+}
+
+function MentorshipSessionsSection({ studentId }) {
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [writing, setWriting] = useState(false)
+  const [draft, setDraft] = useState({
+    session_date: new Date().toISOString().slice(0, 10),
+    summary: '', technical_adjustments: '', emotional_observations: '',
+    suggested_strategies: '', next_focus: '',
+  })
+
+  async function load() {
+    try { setList(await listSessionsFor(studentId)) } catch (e) {} finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [studentId])
+
+  async function submit() {
+    if (!draft.summary.trim()) return
+    try {
+      await saveSession({ student_id: studentId, ...draft })
+      setDraft({ session_date: new Date().toISOString().slice(0, 10), summary: '', technical_adjustments: '', emotional_observations: '', suggested_strategies: '', next_focus: '' })
+      setWriting(false)
+      await load()
+    } catch (e) { alert(e.message) }
+  }
+
+  return (
+    <Section title="resumos de sessão">
+      {writing ? (
+        <div className="card" style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input className="input" type="date" value={draft.session_date} onChange={e => setDraft(d => ({ ...d, session_date: e.target.value }))} style={{ width: 160 }} />
+          <FieldRow label="resumo da sessão *"><textarea className="input" rows={3} value={draft.summary} onChange={e => setDraft(d => ({ ...d, summary: e.target.value }))} style={{ resize: 'vertical' }} /></FieldRow>
+          <FieldRow label="ajustes técnicos"><textarea className="input" rows={2} value={draft.technical_adjustments} onChange={e => setDraft(d => ({ ...d, technical_adjustments: e.target.value }))} style={{ resize: 'vertical' }} /></FieldRow>
+          <FieldRow label="observações emocionais"><textarea className="input" rows={2} value={draft.emotional_observations} onChange={e => setDraft(d => ({ ...d, emotional_observations: e.target.value }))} style={{ resize: 'vertical' }} /></FieldRow>
+          <FieldRow label="estratégias sugeridas"><textarea className="input" rows={2} value={draft.suggested_strategies} onChange={e => setDraft(d => ({ ...d, suggested_strategies: e.target.value }))} style={{ resize: 'vertical' }} /></FieldRow>
+          <FieldRow label="próximo foco"><input className="input" value={draft.next_focus} onChange={e => setDraft(d => ({ ...d, next_focus: e.target.value }))} /></FieldRow>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={submit} disabled={!draft.summary.trim()} className="btn btn-primary">salvar sessão</button>
+            <button onClick={() => setWriting(false)} className="btn btn-ghost">cancelar</button>
+          </div>
+        </div>
+      ) : (
+        <button onClick={() => setWriting(true)} className="btn btn-outline-cyan" style={{ marginBottom: 12 }}>
+          <IPlus size={12} stroke={2} /> registrar sessão
+        </button>
+      )}
+
+      {loading ? <Loading />
+       : list.length === 0 ? <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>nenhuma sessão registrada</div>
+       : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {list.map(s => (
+            <div key={s.id} className="card" style={{ padding: 14 }}>
+              <div className="label-muted" style={{ marginBottom: 8, fontFamily: 'var(--font-mono)' }}>
+                {new Date(s.session_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' })}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.6, whiteSpace: 'pre-wrap', marginBottom: 10 }}>{s.summary}</div>
+              <SessionField label="ajustes técnicos" value={s.technical_adjustments} />
+              <SessionField label="emocional" value={s.emotional_observations} />
+              <SessionField label="estratégias" value={s.suggested_strategies} />
+              <SessionField label="próximo foco" value={s.next_focus} highlight />
+            </div>
+          ))}
+        </div>
+      )}
+    </Section>
+  )
+}
+
+function FieldRow({ label, children }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span className="label-muted">{label}</span>
+      {children}
+    </div>
+  )
+}
+
+function SessionField({ label, value, highlight }) {
+  if (!value) return null
+  return (
+    <div style={{ marginTop: 6, paddingLeft: 10, borderLeft: `2px solid ${highlight ? 'var(--cyan)' : 'var(--border)'}` }}>
+      <div style={{ fontSize: 9, color: highlight ? 'var(--cyan)' : 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: 2 }}>{label.toUpperCase()}</div>
+      <div style={{ fontSize: 12, color: 'var(--text-secondary)', whiteSpace: 'pre-wrap' }}>{value}</div>
     </div>
   )
 }

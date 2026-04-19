@@ -39,6 +39,8 @@ const SECTIONS = [
     label: 'monitoria',
     items: [
       { to: '/app/monitoria',     label: 'acompanhamento',    icon: ICalendar },
+      { to: '/app/sessoes',       label: 'sessões',           icon: IMessage },
+      { to: '/app/plano-execucao', label: 'plano',            icon: ITarget },
       { to: '/app/aulas',         label: 'ao vivo',           icon: IPlay, liveDot: true },
       { to: '/app/imersoes',      label: 'imersões',          icon: IEye },
     ],
@@ -49,6 +51,7 @@ const SECTIONS = [
       { to: '/app/comunidade',    label: 'comunidade',        icon: IMessage },
       { to: '/app/social',        label: 'social',            icon: IGlobe },
       { to: '/app/destaques',     label: 'destaques',         icon: IStar },
+      { to: '/app/desafios',      label: 'desafios',          icon: IZap },
       { to: '/app/relatorio',     label: 'relatório',         icon: ITarget },
     ],
   },

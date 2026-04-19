@@ -5,6 +5,8 @@ import {
   EMOTIONS, EMOTION_TONES, assetMultiplier,
 } from '../../lib/trades'
 import { earnByRule } from '../../lib/free'
+import { getTradeFeedback, saveTradeFeedback, TRADE_STATUS_META } from '../../lib/feedback'
+import { getMyProfile } from '../../lib/profile'
 import { PageTitle, Section, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IPlus, IX, ICheck, ITarget, IPlay } from '../../components/icons'
 
@@ -29,6 +31,9 @@ export default function NovoTrade() {
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
   const [accounts, setAccounts] = useState([])
+  const [feedback, setFeedback] = useState(null)
+  const [isMonitor, setIsMonitor] = useState(false)
+  const [tradeOwnerId, setTradeOwnerId] = useState(null)
 
   const [form, setForm] = useState({
     account_id: '',
@@ -59,9 +64,15 @@ export default function NovoTrade() {
           setForm(f => ({ ...f, account_id: defaultAcc.id }))
         }
 
+        getMyProfile().then(p => {
+          setIsMonitor((p?.roles || []).some(r => ['monitor', 'admin'].includes(r)))
+        }).catch(() => {})
+
         if (isEdit) {
           const t = await getTrade(id)
           if (t) {
+            setTradeOwnerId(t.user_id)
+            getTradeFeedback(id).then(setFeedback).catch(() => {})
             setForm({
               account_id: t.account_id || '',
               date: t.date,
@@ -195,6 +206,17 @@ export default function NovoTrade() {
       </header>
 
       {err && <div style={{ marginBottom: 16 }}><ErrorBox>{err}</ErrorBox></div>}
+
+      {feedback && <FeedbackBanner feedback={feedback} />}
+
+      {isEdit && isMonitor && tradeOwnerId && (
+        <FeedbackEditor
+          tradeId={id}
+          studentId={tradeOwnerId}
+          existing={feedback}
+          onSaved={fb => setFeedback(fb)}
+        />
+      )}
 
       {/* IDENTIFICAÇÃO */}
       <Section title="identificação">
@@ -378,6 +400,97 @@ export default function NovoTrade() {
           descartar
         </Link>
         {!isEdit && <span style={{ fontSize: 10, color: 'var(--text-muted)', alignSelf: 'center', fontFamily: 'var(--font-mono)' }}>+3 SC ao registrar</span>}
+      </div>
+    </div>
+  )
+}
+
+function FeedbackEditor({ tradeId, studentId, existing, onSaved }) {
+  const [open, setOpen] = useState(false)
+  const [status, setStatus] = useState(existing?.status || 'OK')
+  const [text, setText] = useState(existing?.feedback || '')
+  const [saving, setSaving] = useState(false)
+
+  async function submit() {
+    setSaving(true)
+    try {
+      const fb = await saveTradeFeedback({
+        trade_id: tradeId,
+        student_id: studentId,
+        status,
+        feedback: text.trim() || null,
+      })
+      onSaved?.(fb)
+      setOpen(false)
+    } catch (e) { alert(e.message) } finally { setSaving(false) }
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="btn btn-outline-purple" style={{ marginBottom: 20 }}>
+        {existing ? '✎ editar feedback' : '＋ dar feedback (monitor)'}
+      </button>
+    )
+  }
+
+  return (
+    <div className="card" style={{ padding: 16, marginBottom: 20, borderColor: 'var(--purple-dim-20)' }}>
+      <div className="eyebrow" style={{ color: 'var(--purple)', marginBottom: 10 }}>FEEDBACK DO MONITOR</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+        {Object.entries(TRADE_STATUS_META).map(([key, m]) => (
+          <button key={key} onClick={() => setStatus(key)}
+            className={status === key ? 'pill' : 'pill'}
+            style={{
+              cursor: 'pointer',
+              background: status === key ? m.bg : 'var(--surface-1)',
+              borderColor: status === key ? m.color : 'var(--border)',
+              color: status === key ? m.color : 'var(--text-secondary)',
+            }}>
+            {m.icon} {m.label}
+          </button>
+        ))}
+      </div>
+      <textarea className="input" rows={3} style={{ resize: 'vertical', marginBottom: 10 }}
+        placeholder="feedback técnico / emocional / ajuste pro próximo trade..."
+        value={text} onChange={e => setText(e.target.value)} />
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={submit} disabled={saving} className="btn btn-primary">
+          {saving ? 'salvando...' : 'salvar feedback'}
+        </button>
+        <button onClick={() => setOpen(false)} className="btn btn-ghost">cancelar</button>
+      </div>
+    </div>
+  )
+}
+
+function FeedbackBanner({ feedback: f }) {
+  const meta = TRADE_STATUS_META[f.status] || TRADE_STATUS_META.OK
+  return (
+    <div style={{
+      marginBottom: 20, padding: 14,
+      background: meta.bg, border: `1px solid ${meta.color}44`, borderRadius: 8,
+      display: 'flex', alignItems: 'flex-start', gap: 12,
+    }}>
+      <div style={{
+        width: 30, height: 30, borderRadius: 6,
+        background: meta.color, color: '#0a0a0e',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 16, fontWeight: 700, flexShrink: 0,
+      }}>{meta.icon}</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 10, color: meta.color, fontWeight: 600, letterSpacing: '0.14em' }}>
+            FEEDBACK DO MONITOR · {meta.label}
+          </span>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+            {new Date(f.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+          </span>
+        </div>
+        {f.feedback && (
+          <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+            {f.feedback}
+          </div>
+        )}
       </div>
     </div>
   )
