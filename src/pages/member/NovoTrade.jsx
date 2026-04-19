@@ -7,6 +7,7 @@ import {
 import { earnByRule } from '../../lib/free'
 import { getTradeFeedback, saveTradeFeedback, TRADE_STATUS_META } from '../../lib/feedback'
 import { getMyProfile } from '../../lib/profile'
+import { uploadPrint } from '../../lib/storage'
 import { PageTitle, Section, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IPlus, IX, ICheck, ITarget, IPlay } from '../../components/icons'
 
@@ -379,17 +380,8 @@ export default function NovoTrade() {
       </Section>
 
       {/* PRINT */}
-      <Section title="print da operação (URL)">
-        <input
-          className="input"
-          type="url"
-          placeholder="https://imgur.com/... ou link do Drive"
-          value={form.print_url}
-          onChange={e => set('print_url', e.target.value)}
-        />
-        <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 6 }}>
-          upload direto virá em breve — por enquanto cole o link da imagem.
-        </div>
+      <Section title="print da operação">
+        <PrintUploader value={form.print_url} onChange={v => set('print_url', v)} />
       </Section>
 
       <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
@@ -401,6 +393,53 @@ export default function NovoTrade() {
         </Link>
         {!isEdit && <span style={{ fontSize: 10, color: 'var(--text-muted)', alignSelf: 'center', fontFamily: 'var(--font-mono)' }}>+3 SC ao registrar</span>}
       </div>
+    </div>
+  )
+}
+
+function PrintUploader({ value, onChange }) {
+  const [uploading, setUploading] = useState(false)
+  const [err, setErr] = useState(null)
+
+  async function onFile(e) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setUploading(true); setErr(null)
+    try {
+      const { url } = await uploadPrint(f)
+      onChange(url)
+    } catch (ex) { setErr(ex.message) } finally { setUploading(false); e.target.value = '' }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {value && (
+        <div style={{ position: 'relative' }}>
+          <img src={value} alt="print"
+            style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 8, border: '1px solid var(--border)', objectFit: 'contain', background: 'var(--surface-2)' }}
+            onError={e => { e.currentTarget.style.display = 'none' }} />
+          <button type="button" onClick={() => onChange('')}
+            style={{ position: 'absolute', top: 8, right: 8, background: '#00000099', color: 'white', border: '1px solid #ffffff33', borderRadius: 4, padding: '4px 8px', fontSize: 10 }}>
+            remover
+          </button>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <label className={uploading ? 'btn' : 'btn btn-outline-cyan'} style={{ cursor: uploading ? 'wait' : 'pointer', opacity: uploading ? 0.6 : 1 }}>
+          {uploading ? 'enviando...' : '📷 upload (jpg/png até 5MB)'}
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFile} style={{ display: 'none' }} disabled={uploading} />
+        </label>
+        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>ou cole um link:</span>
+        <input
+          className="input"
+          type="url"
+          placeholder="https://imgur.com/..."
+          value={value?.startsWith('http') ? value : ''}
+          onChange={e => onChange(e.target.value)}
+          style={{ flex: 1, minWidth: 200, fontSize: 11 }}
+        />
+      </div>
+      {err && <div style={{ fontSize: 11, color: 'var(--down)' }}>{err}</div>}
     </div>
   )
 }
