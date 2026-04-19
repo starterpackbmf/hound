@@ -1,115 +1,287 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { listThreads, createThread, fetchAuthorsForUserIds } from '../../lib/free'
+import {
+  POST_CATEGORIES, categoryMeta,
+  listPosts, createPost, deletePost, toggleLike, fetchMyLikes,
+  listComments, postComment, fetchAuthors,
+} from '../../lib/community'
+import { earnByRule } from '../../lib/free'
 import { PageTitle, Placeholder, ErrorBox, Loading } from './ui'
 import RankBadge from '../../components/RankBadge'
-import { IPlus, IX } from '../../components/icons'
+import { IPlus, IX, IMessage, ICheck } from '../../components/icons'
+import { useAuth } from '../../auth/AuthContext'
 
 export default function Comunidade() {
-  const [threads, setThreads] = useState([])
+  const { user } = useAuth()
+  const [filter, setFilter] = useState('all')
+  const [posts, setPosts] = useState([])
   const [authors, setAuthors] = useState({})
+  const [likes, setLikes] = useState(new Set())
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
-  const [showNew, setShowNew] = useState(false)
-  const [newTitle, setNewTitle] = useState('')
-  const [newBody, setNewBody] = useState('')
-  const [newTags, setNewTags] = useState('')
+  const [composer, setComposer] = useState({ body: '', category: 'geral', open: false })
   const [posting, setPosting] = useState(false)
 
   async function reload() {
-    const ts = await listThreads().catch(e => { setErr(e.message); return [] })
-    setThreads(ts)
-    const authorMap = await fetchAuthorsForUserIds(ts.map(t => t.user_id))
-    setAuthors(authorMap)
+    setLoading(true)
+    try {
+      const ps = await listPosts({ category: filter })
+      setPosts(ps)
+      const authorMap = await fetchAuthors(ps.map(p => p.user_id))
+      setAuthors(authorMap)
+      const likeSet = await fetchMyLikes(ps.map(p => p.id))
+      setLikes(likeSet)
+    } catch (e) {
+      setErr(e.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  useEffect(() => { reload().finally(() => setLoading(false)) }, [])
+  useEffect(() => { reload() }, [filter])
 
-  async function onSubmit(e) {
-    e.preventDefault()
-    if (!newTitle.trim()) return
+  async function submit() {
+    if (!composer.body.trim()) return
     setPosting(true)
     try {
-      await createThread({
-        title: newTitle.trim(),
-        body: newBody.trim() || null,
-        tags: newTags.split(',').map(t => t.trim()).filter(Boolean),
-      })
-      setNewTitle(''); setNewBody(''); setNewTags(''); setShowNew(false)
+      await createPost({ body: composer.body, category: composer.category })
+      setComposer({ body: '', category: 'geral', open: false })
+      earnByRule('community_activity', 'post na comunidade').catch(() => {})
       await reload()
-    } catch (e) { alert(e.message) } finally { setPosting(false) }
+    } catch (e) {
+      alert(e.message)
+    } finally {
+      setPosting(false)
+    }
+  }
+
+  async function onLike(p) {
+    try {
+      const { liked } = await toggleLike(p.id)
+      setLikes(s => {
+        const n = new Set(s)
+        if (liked) n.add(p.id); else n.delete(p.id)
+        return n
+      })
+      setPosts(arr => arr.map(x => x.id === p.id ? { ...x, likes_count: x.likes_count + (liked ? 1 : -1) } : x))
+    } catch (e) { alert(e.message) }
+  }
+
+  async function onDelete(id) {
+    if (!confirm('apagar post?')) return
+    try { await deletePost(id); await reload() } catch (e) { alert(e.message) }
   }
 
   return (
-    <div style={{ maxWidth: 1040 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <PageTitle eyebrow="COMUNIDADE">fórum da matilha</PageTitle>
-        <button onClick={() => setShowNew(v => !v)} className={showNew ? 'btn' : 'btn btn-outline-amber'}>
-          {showNew ? <><IX size={12} stroke={2} /> cancelar</> : <><IPlus size={12} stroke={2} /> nova thread</>}
-        </button>
+    <div style={{ maxWidth: 720 }}>
+      <PageTitle eyebrow="SOCIAL" sub="feed da matilha — onde a comunidade fala sobre os trades do dia.">
+        comunidade
+      </PageTitle>
+
+      {err ? <ErrorBox>erro: {err} — rode <code>0009_community_feed.sql</code>.</ErrorBox> : null}
+
+      {/* Composer */}
+      <div className="card" style={{ padding: 14, marginBottom: 16 }}>
+        {!composer.open ? (
+          <button onClick={() => setComposer(c => ({ ...c, open: true }))} style={{
+            width: '100%', textAlign: 'left',
+            padding: '10px 12px',
+            background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 6,
+            color: 'var(--text-muted)', fontSize: 13,
+          }}>
+            o que rolou com você no mercado hoje?
+          </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <textarea
+              className="input"
+              rows={3}
+              style={{ resize: 'vertical', minHeight: 70 }}
+              placeholder="compartilha com a matilha..."
+              value={composer.body}
+              onChange={e => setComposer(c => ({ ...c, body: e.target.value }))}
+              autoFocus
+            />
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+              {POST_CATEGORIES.map(c => (
+                <button key={c.code}
+                  onClick={() => setComposer(x => ({ ...x, category: c.code }))}
+                  className={composer.category === c.code ? 'pill pill-active' : 'pill'}
+                  style={{ cursor: 'pointer' }}>
+                  {c.emoji} {c.label}
+                </button>
+              ))}
+              <div style={{ flex: 1 }} />
+              <button onClick={() => setComposer({ body: '', category: 'geral', open: false })} className="btn btn-ghost" style={{ fontSize: 11 }}>
+                cancelar
+              </button>
+              <button onClick={submit} disabled={posting || !composer.body.trim()} className="btn btn-primary" style={{ fontSize: 11 }}>
+                {posting ? '...' : 'publicar'}
+              </button>
+            </div>
+            <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              ⎈ +10 SC por atividade diária na comunidade
+            </div>
+          </div>
+        )}
       </div>
 
-      {showNew && (
-        <form onSubmit={onSubmit} style={{
-          display: 'flex', flexDirection: 'column', gap: 12,
-          padding: 16, marginBottom: 20,
-          background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 'var(--r-8)',
-        }}>
-          <input className="input" placeholder="título" value={newTitle} onChange={e => setNewTitle(e.target.value)} required />
-          <textarea className="input" style={{ resize: 'vertical', minHeight: 100 }} placeholder="corpo (opcional)" value={newBody} onChange={e => setNewBody(e.target.value)} />
-          <input className="input" placeholder="tags (ex: dúvida, fibo, gestão)" value={newTags} onChange={e => setNewTags(e.target.value)} />
-          <button type="submit" disabled={posting || !newTitle.trim()} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
-            {posting ? 'publicando...' : 'publicar'}
+      {/* Category filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button onClick={() => setFilter('all')} className={filter === 'all' ? 'pill pill-active' : 'pill'} style={{ cursor: 'pointer' }}>
+          tudo
+        </button>
+        {POST_CATEGORIES.map(c => (
+          <button key={c.code} onClick={() => setFilter(c.code)}
+            className={filter === c.code ? 'pill pill-active' : 'pill'} style={{ cursor: 'pointer' }}>
+            {c.emoji} {c.label}
           </button>
-        </form>
-      )}
+        ))}
+      </div>
 
-      {err ? <ErrorBox>erro: {err} — rode <code>0005_free.sql</code>.</ErrorBox>
-       : loading ? <Loading />
-       : threads.length === 0 ? (
-          <Placeholder title="ainda sem discussões" subtitle="começa a primeira thread." />
-       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {threads.map(t => {
-            const a = authors[t.user_id]
-            return (
-              <Link key={t.id} to={`/app/comunidade/${t.id}`} className="card card-hover" style={{
-                padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
-                color: 'var(--text-primary)',
-              }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
-                    {t.status === 'pinned' && <span style={{ fontSize: 11, color: 'var(--amber)' }}>📌</span>}
-                    {t.status === 'closed' && <span style={{ fontSize: 11, color: 'var(--down)' }}>🔒</span>}
-                    <span style={{ fontSize: 13.5, fontWeight: 500 }}>{t.title}</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', fontSize: 10.5, color: 'var(--text-muted)' }}>
-                    <span>por {a?.name?.trim() || 'anônimo'}</span>
-                    {a?.current_badge && <RankBadge rank={a.current_badge} size="xs" />}
-                    <span>· {fmtRel(t.last_reply_at || t.created_at)}</span>
-                    {t.tags?.length > 0 && (
-                      <span style={{ display: 'flex', gap: 4 }}>
-                        {t.tags.slice(0, 3).map(tag => (
-                          <span key={tag} style={{ color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>#{tag}</span>
-                        ))}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right', paddingLeft: 12, whiteSpace: 'nowrap' }}>
-                  <div style={{
-                    fontSize: 14, fontWeight: 500, fontFamily: 'var(--font-mono)',
-                    color: t.reply_count > 0 ? 'var(--text-primary)' : 'var(--text-faint)',
-                  }}>
-                    {t.reply_count}
-                  </div>
-                  <div style={{ fontSize: 9, color: 'var(--text-muted)' }}>respostas</div>
-                </div>
-              </Link>
-            )
-          })}
+      {loading ? <Loading />
+       : posts.length === 0 ? <Placeholder title="sem posts ainda" subtitle="sê o primeiro a postar." />
+       : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {posts.map(p => (
+            <PostCard
+              key={p.id}
+              post={p}
+              author={authors[p.user_id]}
+              liked={likes.has(p.id)}
+              isOwn={p.user_id === user?.id}
+              onLike={() => onLike(p)}
+              onDelete={() => onDelete(p.id)}
+            />
+          ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function PostCard({ post: p, author, liked, isOwn, onLike, onDelete }) {
+  const [open, setOpen] = useState(false)
+  const cat = categoryMeta(p.category)
+  const isMonitor = (author?.roles || []).some(r => ['monitor', 'admin', 'imortal'].includes(r))
+  const initial = (author?.name?.[0] || '?').toUpperCase()
+
+  return (
+    <div className="card" style={{ padding: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+          background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
+          color: '#0a0a0a', fontSize: 12, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>{initial}</div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 500, color: 'var(--text-primary)' }}>
+              {author?.name?.trim() || 'mentorado'}
+            </span>
+            {author?.current_badge && <RankBadge rank={author.current_badge} size="xs" />}
+            {isMonitor && <span className="pill pill-amber" style={{ fontSize: 9 }}>MONITOR</span>}
+            <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>·</span>
+            <span className="pill" style={{ fontSize: 10 }}>{cat.emoji} {cat.label}</span>
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>
+              {fmtRel(p.created_at)}
+            </span>
+            {isOwn && (
+              <button onClick={onDelete} className="btn btn-ghost" style={{ padding: 3 }}>
+                <IX size={11} stroke={1.8} />
+              </button>
+            )}
+          </div>
+
+          <div style={{ fontSize: 13.5, color: 'var(--text-primary)', lineHeight: 1.55, whiteSpace: 'pre-wrap', marginBottom: 10 }}>
+            {p.body}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button onClick={onLike} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, color: liked ? 'var(--amber)' : 'var(--text-muted)',
+              fontFamily: 'var(--font-mono)',
+            }}>
+              {liked ? '❤' : '♡'} {p.likes_count}
+            </button>
+            <button onClick={() => setOpen(o => !o)} style={{
+              display: 'flex', alignItems: 'center', gap: 4,
+              fontSize: 11, color: open ? 'var(--amber)' : 'var(--text-muted)',
+            }}>
+              <IMessage size={11} stroke={1.6} /> {p.comments_count}
+            </button>
+          </div>
+
+          {open && <Comments postId={p.id} />}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Comments({ postId }) {
+  const [comments, setComments] = useState([])
+  const [authors, setAuthors] = useState({})
+  const [text, setText] = useState('')
+  const [posting, setPosting] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  async function reload() {
+    const cs = await listComments(postId).catch(() => [])
+    setComments(cs)
+    setAuthors(await fetchAuthors(cs.map(c => c.user_id)))
+  }
+  useEffect(() => { reload().finally(() => setLoading(false)) }, [postId])
+
+  async function submit() {
+    if (!text.trim()) return
+    setPosting(true)
+    try { await postComment(postId, text); setText(''); await reload() }
+    catch (e) { alert(e.message) } finally { setPosting(false) }
+  }
+
+  return (
+    <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+      {loading ? <Loading /> :
+        comments.length === 0 ? (
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>sem comentários ainda</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+            {comments.map(c => {
+              const a = authors[c.user_id]
+              return (
+                <div key={c.id} style={{ display: 'flex', gap: 8, fontSize: 12 }}>
+                  <div style={{
+                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                    background: 'linear-gradient(135deg, #f97316, #e4b528)',
+                    color: '#0a0a0a', fontSize: 10, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{(a?.name?.[0] || '?').toUpperCase()}</div>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{a?.name?.trim() || 'mentorado'}</span>
+                    <span style={{ color: 'var(--text-muted)', marginLeft: 6, fontSize: 10, fontFamily: 'var(--font-mono)' }}>{fmtRel(c.created_at)}</span>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: 2, whiteSpace: 'pre-wrap' }}>{c.body}</div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )
+      }
+      <form onSubmit={e => { e.preventDefault(); submit() }} style={{ display: 'flex', gap: 6 }}>
+        <input
+          className="input"
+          placeholder="comentar..."
+          value={text}
+          onChange={e => setText(e.target.value)}
+          style={{ fontSize: 12 }}
+        />
+        <button disabled={posting || !text.trim()} className="btn btn-primary" style={{ fontSize: 11 }}>
+          enviar
+        </button>
+      </form>
     </div>
   )
 }
@@ -118,8 +290,8 @@ function fmtRel(iso) {
   const d = new Date(iso)
   const diff = (Date.now() - d.getTime()) / 1000
   if (diff < 60) return 'agora'
-  if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)}d atrás`
+  if (diff < 3600) return `${Math.floor(diff / 60)}min`
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`
+  if (diff < 86400 * 7) return `há ${Math.floor(diff / 86400)}d`
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }

@@ -29,7 +29,6 @@ import Diario from './pages/member/Diario'
 import Oraculo from './pages/member/Oraculo'
 import Destaques from './pages/member/Destaques'
 import Comunidade from './pages/member/Comunidade'
-import Thread from './pages/member/Thread'
 import Social from './pages/member/Social'
 import CursosGratis from './pages/member/CursosGratis'
 import Relatorio from './pages/member/Relatorio'
@@ -77,7 +76,6 @@ createRoot(document.getElementById('root')).render(
 
             {/* Comunidade (free) */}
             <Route path="comunidade" element={<Comunidade />} />
-            <Route path="comunidade/:id" element={<Thread />} />
             <Route path="social" element={<Social />} />
             <Route path="cursos-gratis" element={<CursosGratis />} />
             <Route path="relatorio" element={<Relatorio />} />
