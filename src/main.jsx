@@ -1,5 +1,81 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 
-createRoot(document.getElementById('root')).render(<App />)
+// Fonts
+import '@fontsource/inter/400.css'
+import '@fontsource/inter/500.css'
+import '@fontsource/inter/600.css'
+import '@fontsource/inter/700.css'
+import '@fontsource/jetbrains-mono/400.css'
+import '@fontsource/jetbrains-mono/500.css'
+import '@fontsource/jetbrains-mono/600.css'
+
+// Design tokens (must come after fonts)
+import './styles/tokens.css'
+
+import App from './App.jsx'
+import { AuthProvider } from './auth/AuthContext'
+import ProtectedRoute from './auth/ProtectedRoute'
+import Login from './pages/Login'
+import MemberLayout from './pages/member/MemberLayout'
+import Inicio from './pages/member/Inicio'
+import Estudo from './pages/member/Estudo'
+import Course from './pages/member/Course'
+import Aulas from './pages/member/Aulas'
+import Imersoes from './pages/member/Imersoes'
+import Monitoria from './pages/member/Monitoria'
+import Diario from './pages/member/Diario'
+import Oraculo from './pages/member/Oraculo'
+import Destaques from './pages/member/Destaques'
+import Comunidade from './pages/member/Comunidade'
+import Thread from './pages/member/Thread'
+import Social from './pages/member/Social'
+import CursosGratis from './pages/member/CursosGratis'
+import Relatorio from './pages/member/Relatorio'
+import Packstore from './pages/member/Packstore'
+import Parcerias from './pages/member/Parcerias'
+
+createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/app"
+            element={
+              <ProtectedRoute>
+                <MemberLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="inicio" replace />} />
+
+            {/* Matilha (premium) */}
+            <Route path="inicio" element={<Inicio />} />
+            <Route path="estudo" element={<Estudo />} />
+            <Route path="estudo/:slug" element={<Course />} />
+            <Route path="aulas" element={<Aulas />} />
+            <Route path="imersoes" element={<Imersoes />} />
+            <Route path="monitoria" element={<Monitoria />} />
+            <Route path="diario" element={<Diario />} />
+            <Route path="oraculo" element={<Oraculo />} />
+            <Route path="destaques" element={<Destaques />} />
+
+            {/* Comunidade (free) */}
+            <Route path="comunidade" element={<Comunidade />} />
+            <Route path="comunidade/:id" element={<Thread />} />
+            <Route path="social" element={<Social />} />
+            <Route path="cursos-gratis" element={<CursosGratis />} />
+            <Route path="relatorio" element={<Relatorio />} />
+            <Route path="packstore" element={<Packstore />} />
+            <Route path="parcerias" element={<Parcerias />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+)

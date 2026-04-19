@@ -6,6 +6,12 @@ dist
 # Claude Code local settings (may contain secrets in permission rules)
 .claude/
 
+# Claude Code memory (notas locais, podem conter credenciais)
+memory/
+
+# Handoff de design (transitório, extraído de zip)
+.design-import/
+
 # OS
 .DS_Store
 Thumbs.db

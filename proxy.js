@@ -19,12 +19,16 @@ loadEnv()
 
 const API_KEY = process.env.ANTHROPIC_API_KEY
 const FINNHUB_KEY = process.env.FINNHUB_API_KEY
+const MATILHA_API_KEY = process.env.MATILHA_API_KEY
+const PANDA_API_KEY = process.env.PANDA_API_KEY
 if (!API_KEY) {
   console.error('❌ ANTHROPIC_API_KEY not set in environment!')
   process.exit(1)
 }
 console.log('✓ Anthropic key loaded:', API_KEY.slice(0, 10) + '...')
 console.log(FINNHUB_KEY ? '✓ Finnhub key loaded' : '⚠ FINNHUB_API_KEY not set (calendar will fallback)')
+console.log(MATILHA_API_KEY ? '✓ Matilha key loaded' : '⚠ MATILHA_API_KEY not set (diário API disabled)')
+console.log(PANDA_API_KEY ? '✓ Panda key loaded' : '⚠ PANDA_API_KEY not set (Panda API disabled)')
 
 app.use(express.json({ limit: '1mb' }))
 
@@ -256,6 +260,81 @@ app.get('/overnight', async (req, res) => {
   } catch (err) {
     console.error('✗ Overnight error:', err.message)
     res.status(500).json({ error: err.message })
+  }
+})
+
+// ─── MATILHA DIÁRIO PROXY ───
+// Forwards all query params to the Lovable Supabase edge function
+app.get('/matilha', async (req, res) => {
+  if (!MATILHA_API_KEY) return res.status(500).json({ error: 'MATILHA_API_KEY not configured' })
+  const UPSTREAM = 'https://buxrzygoiuodloekgwly.supabase.co/functions/v1/api-data'
+  const qs = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : ''
+  try {
+    const r = await fetch(UPSTREAM + qs, { headers: { 'x-api-key': MATILHA_API_KEY } })
+    const text = await r.text()
+    res.status(r.status)
+    res.setHeader('content-type', r.headers.get('content-type') || 'application/json')
+    res.send(text)
+  } catch (e) {
+    console.error('✗ Matilha proxy error:', e.message)
+    res.status(502).json({ error: e.message })
+  }
+})
+
+// ─── ORÁCULO (stub em dev) ───
+app.post('/oraculo', async (req, res) => {
+  const enabled = process.env.ORACULO_ENABLED === 'true'
+  const messages = req.body?.messages || []
+  const userMsg = messages[messages.length - 1]?.content || ''
+
+  if (!enabled) {
+    return res.json({ role: 'assistant', content: oraculoStub(userMsg), sources: [], _mode: 'stub' })
+  }
+  return res.status(501).json({ error: 'RAG pipeline em construção.' })
+})
+
+function oraculoStub(q) {
+  q = (q || '').toLowerCase().trim()
+  if (!q) return '⚠ Oráculo em modo stub — envie uma pergunta.'
+  const fixtures = [
+    { keys: ['fq', 'fibo quebra'], r: 'O **FQ** (Fibo Quebra) é uma das 4 estratégias base do Tradesystem. Opera em pullbacks na retração de Fibonacci quando há quebra de nível relevante.\n\n_(modo stub — RAG real virá quando ORACULO_ENABLED=true)_' },
+    { keys: ['trm'], r: 'O **TRM** é uma das 4 estratégias — Tendência com Retração na Média.\n\n_(modo stub)_' },
+    { keys: ['tc', 'tendencia consolidada'], r: 'O **TC** (Tendência Consolidada) é a estratégia de continuação de tendência após consolidação lateral.\n\n_(modo stub)_' },
+    { keys: ['ta'], r: 'O **TA** (Tendência Acumulada) — estratégia que busca pontos de reversão combinando Fibo + médias + volume.\n\n_(modo stub)_' },
+    { keys: ['vwap'], r: 'A **VWAP** é um dos indicadores centrais do Tradesystem — fair value intraday e viés direcional.\n\n_(modo stub)_' },
+    { keys: ['gerenciamento', 'risco', 'stop'], r: 'O gerenciamento starter usa stops diários, mensais e por trade. "Melhor de 3" e "melhor de 5" protegem de revenge trading.\n\n_(modo stub)_' },
+  ]
+  for (const f of fixtures) if (f.keys.some(k => q.includes(k))) return f.r
+  return `🟡 **Oráculo em modo stub** — pipeline RAG ainda não está ativa.\n\nSua pergunta: "_${q}_"\n\nExperimente: FQ, TRM, TC, TA, VWAP, gerenciamento.`
+}
+
+// ─── PANDA VIDEO PROXY ───
+// GET /panda?resource=folders|videos|video[&...params]
+app.get('/panda', async (req, res) => {
+  if (!PANDA_API_KEY) return res.status(500).json({ error: 'PANDA_API_KEY not configured' })
+  const BASE = 'https://api-v2.pandavideo.com.br'
+  const resource = req.query.resource
+  const qs = new URLSearchParams({ ...req.query })
+  qs.delete('resource')
+  const suffix = qs.toString() ? `?${qs.toString()}` : ''
+
+  let path
+  if (resource === 'folders') path = `/folders${suffix}`
+  else if (resource === 'videos') path = `/videos${suffix}`
+  else if (resource === 'video') {
+    if (!req.query.id) return res.status(400).json({ error: 'missing id' })
+    path = `/videos/${req.query.id}`
+  } else return res.status(400).json({ error: 'invalid resource' })
+
+  try {
+    const r = await fetch(BASE + path, { headers: { Authorization: PANDA_API_KEY } })
+    const text = await r.text()
+    res.status(r.status)
+    res.setHeader('content-type', r.headers.get('content-type') || 'application/json')
+    res.send(text)
+  } catch (e) {
+    console.error('✗ Panda proxy error:', e.message)
+    res.status(502).json({ error: e.message })
   }
 })
 

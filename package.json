@@ -11,10 +11,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@supabase/supabase-js": "^2.103.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",
