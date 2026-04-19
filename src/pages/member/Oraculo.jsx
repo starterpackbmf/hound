@@ -88,8 +88,8 @@ export default function Oraculo() {
 
   if (schemaMissing) {
     return (
-      <div style={{ padding: 20, background: '#f9731611', border: '1px solid #f9731644', borderRadius: 8 }}>
-        <div style={{ color: '#f97316', fontSize: 13, marginBottom: 8 }}>⚠ schema do oráculo ainda não aplicado</div>
+      <div style={{ padding: 20, background: 'var(--pink-dim)', border: '1px solid var(--pink-dim-20)', borderRadius: 8 }}>
+        <div style={{ color: 'var(--pink)', fontSize: 13, marginBottom: 8 }}>⚠ schema do oráculo ainda não aplicado</div>
         <div style={{ color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.6 }}>
           Rode <code style={{ background: 'var(--surface-2)', padding: '2px 6px', borderRadius: 3 }}>supabase/migrations/0004_oraculo.sql</code> no Supabase.
           <br />Habilite a extensão <strong>vector</strong> em Database → Extensions antes.

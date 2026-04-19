@@ -21,7 +21,7 @@ const HOUND_PIXELS = [
 ]
 const HOUND_PALETTE = {
   1: '#1a1a1a', 2: '#5a5a62', 3: '#7a7a82',
-  4: '#4a4a52', 5: '#e4b528', 6: '#3a3a3e', 7: '#ef4444',
+  4: '#4a4a52', 5: '#00d9ff', 6: '#3a3a3e', 7: '#ec4899',
 }
 
 export default function Hound({ size = 32, style = {} }) {

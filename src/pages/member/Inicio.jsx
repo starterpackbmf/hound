@@ -59,8 +59,9 @@ export default function Inicio() {
       <section>
         <div className="eyebrow" style={{ marginBottom: 10 }}>SEJA BEM-VINDO</div>
         <h1 className="display" style={{
-          fontSize: 36, fontWeight: 400, margin: '0 0 14px',
+          fontSize: 40, fontWeight: 400, margin: '0 0 14px',
           color: 'var(--text-primary)', letterSpacing: '-0.025em',
+          textShadow: '0 0 30px rgba(0,217,255,0.25), 0 0 60px rgba(168,85,247,0.15)',
         }}>
           {firstName}
         </h1>
@@ -89,18 +90,19 @@ export default function Inicio() {
         <Link to="/app/aulas" style={{
           display: 'flex', alignItems: 'center', gap: 16,
           padding: '14px 18px',
-          background: 'linear-gradient(90deg, #ef444410 0%, var(--surface-2) 40%)',
-          border: '1px solid #ef444428',
+          background: 'linear-gradient(90deg, #ec489914 0%, var(--surface-2) 40%)',
+          border: '1px solid #ec489944',
           borderRadius: 10,
           transition: 'all 150ms',
+          boxShadow: '0 0 30px #ec489922',
         }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = '#ef444458'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = '#ef444428'}
+        onMouseEnter={e => e.currentTarget.style.borderColor = '#ec489988'}
+        onMouseLeave={e => e.currentTarget.style.borderColor = '#ec489944'}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span className="dot dot-live" style={{ width: 8, height: 8 }} />
-            <span style={{
-              fontSize: 10, letterSpacing: '0.14em', color: 'var(--live)',
+            <span className="glow-pink" style={{
+              fontSize: 10, letterSpacing: '0.14em', color: 'var(--pink)',
               fontWeight: 600, fontFamily: 'var(--font-mono)',
             }}>AO VIVO AGORA</span>
           </div>
@@ -160,10 +162,10 @@ export default function Inicio() {
           <span className="label-muted">sua matilha</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
-          <StatCard label="STATUS" value={status || 'pendente'} mono={false} />
-          <StatCard label="BADGE" value={badge ? badge.replace(/_/g, ' ') : '—'} mono={false} />
-          <StatCard label="MOEDAS" value={coins?.balance ?? '—'} mono />
-          <StatCard label="DIÁRIO" value={profile?.lovable_student_id ? 'ligado' : '—'} mono={false} />
+          <StatCard label="STATUS" value={status || 'pendente'} mono={false} accent="cyan" />
+          <StatCard label="BADGE" value={badge ? badge.replace(/_/g, ' ') : '—'} mono={false} accent="purple" />
+          <StatCard label="MOEDAS" value={coins?.balance ?? '—'} mono accent="pink" />
+          <StatCard label="DIÁRIO" value={profile?.lovable_student_id ? 'ligado' : '—'} mono={false} accent="cyan" />
         </div>
       </section>
 
@@ -177,11 +179,11 @@ export default function Inicio() {
             </Link>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-            <StatCard label="TRADES" value={summary.total_trades} mono />
-            <StatCard label="WIN RATE" value={`${summary.win_rate}%`} mono />
-            <StatCard label="R:R MÉDIO" value={summary.risk_reward ? `${summary.risk_reward.toFixed(1)}x` : '—'} mono />
-            <StatCard label="RESULTADO" value={`R$ ${Number(summary.total_result_brl).toLocaleString('pt-BR')}`} mono valueColor={summary.total_result_brl >= 0 ? 'var(--up)' : 'var(--down)'} />
-            <StatCard label="SEGUIU PLANO" value={`${summary.followed_plan_rate}%`} mono />
+            <StatCard label="TRADES" value={summary.total_trades} mono accent="cyan" />
+            <StatCard label="WIN RATE" value={`${summary.win_rate}%`} mono accent="pink" />
+            <StatCard label="R:R MÉDIO" value={summary.risk_reward ? `${summary.risk_reward.toFixed(1)}x` : '—'} mono accent="purple" />
+            <StatCard label="RESULTADO" value={`R$ ${Number(summary.total_result_brl).toLocaleString('pt-BR')}`} mono valueColor={summary.total_result_brl >= 0 ? 'var(--up)' : 'var(--down)'} accent={summary.total_result_brl >= 0 ? 'up' : 'down'} />
+            <StatCard label="SEGUIU PLANO" value={`${summary.followed_plan_rate}%`} mono accent="cyan" />
           </div>
         </section>
       )}
@@ -247,9 +249,9 @@ function ShortcutCard({ icon: Ico, title, sub, cta, to, meta, progress }) {
   )
 }
 
-function StatCard({ label, value, sub, mono = true, delta, deltaUp, dotLive, valueColor }) {
+function StatCard({ label, value, sub, mono = true, delta, deltaUp, dotLive, valueColor, accent }) {
   return (
-    <div className="card" style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+    <div className={`card ${accent ? `leftbar-${accent}` : ''}`} style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span className="label-muted" style={{ fontSize: 9.5 }}>{label}</span>
         {dotLive && <span className="dot dot-live" style={{ width: 5, height: 5 }} />}

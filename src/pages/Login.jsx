@@ -47,13 +47,13 @@ export default function Login() {
   return (
     <div style={{
       minHeight: '100vh', background: 'var(--body)',
-      backgroundImage: 'radial-gradient(ellipse at 50% 0%, #e4b52808 0%, transparent 55%)',
+      backgroundImage: 'radial-gradient(ellipse 600px 400px at 30% 10%, #00d9ff14 0%, transparent 55%), radial-gradient(ellipse 500px 400px at 70% 80%, #a855f714 0%, transparent 55%)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       padding: 20, position: 'relative',
     }}>
       {/* Logo topo */}
       <div style={{ position: 'absolute', top: 32, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <svg width="16" height="16" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--amber)' }}>
+        <svg width="16" height="16" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--cyan)', filter: 'drop-shadow(0 0 8px var(--cyan))' }}>
           <polygon points="7 1 13 12 1 12" fill="currentColor" />
         </svg>
         <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.24em', color: 'var(--text-primary)' }}>MATILHA</span>

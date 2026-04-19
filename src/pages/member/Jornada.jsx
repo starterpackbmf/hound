@@ -282,7 +282,7 @@ function DificuldadesTab() {
 function TreeItem({ node, depth, onAdd, onRemove, onToggle }) {
   const KIND_META = {
     dificuldade: { emoji: '🌳', label: 'dificuldade', color: '#ef4444' },
-    causa:       { emoji: '🌱', label: 'causa',       color: '#f97316' },
+    causa:       { emoji: '🌱', label: 'causa',       color: '#ec4899' },
     solucao:     { emoji: '💡', label: 'solução',     color: '#22c55e' },
   }
   const k = KIND_META[node.kind] || KIND_META.dificuldade

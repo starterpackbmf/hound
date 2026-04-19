@@ -55,12 +55,12 @@ export default function MonitorLayout() {
       }}>
         <div style={{ padding: '16px 12px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px' }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--amber)' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--purple)', filter: 'drop-shadow(0 0 6px var(--purple))' }}>
               <polygon points="7 1 13 12 1 12" fill="currentColor" />
             </svg>
             <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', color: 'var(--text-primary)' }}>MATILHA</span>
           </div>
-          <div style={{ fontSize: 9, color: 'var(--amber)', padding: '0 6px', letterSpacing: '0.14em', fontWeight: 600 }}>
+          <div style={{ fontSize: 9, color: 'var(--purple)', padding: '0 6px', letterSpacing: '0.14em', fontWeight: 600 }}>
             ÁREA DO MONITOR
           </div>
         </div>
@@ -112,15 +112,15 @@ export default function MonitorLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 8px', borderRadius: 6 }}>
             <div style={{
               width: 24, height: 24, borderRadius: 6,
-              background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
-              color: '#0a0a0a', fontSize: 11, fontWeight: 700,
+              background: 'linear-gradient(135deg, #a855f7 0%, #00d9ff 100%)',
+              color: '#0a0a0e', fontSize: 11, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>{initial}</div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {profile?.name?.split(' ')[0]?.toLowerCase() || 'monitor'}
               </div>
-              <div style={{ fontSize: 10, color: 'var(--amber)', fontFamily: 'var(--font-mono)' }}>monitor</div>
+              <div style={{ fontSize: 10, color: 'var(--purple)', fontFamily: 'var(--font-mono)' }}>monitor</div>
             </div>
             <button onClick={onLogout} title="sair" style={{ color: 'var(--text-muted)', padding: 4 }}>
               <ILogOut size={14} stroke={1.5} />

@@ -46,8 +46,8 @@ function classify(r) {
 
 const STATUS_META = {
   critico:     { label: 'CRÍTICO',     color: '#ef4444' },
-  atencao:     { label: 'ATENÇÃO',     color: '#f97316' },
-  estavel:     { label: 'ESTÁVEL',     color: '#3b82f6' },
+  atencao:     { label: 'ATENÇÃO',     color: '#ec4899' },
+  estavel:     { label: 'ESTÁVEL',     color: '#00d9ff' },
   consistente: { label: 'CONSISTENTE', color: '#22c55e' },
   inativo:     { label: 'INATIVO',     color: '#71717a' },
 }

@@ -1,18 +1,19 @@
 import React from 'react'
 
-// 6 níveis oficiais do Lovable, thresholds em resultado acumulado (R$)
+// 6 níveis neon distintos — cada rank tem sua cor identitária
 export const RANKS = {
-  primeiro_instinto: { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
-  predador:          { label: 'PREDADOR',          color: '#f97316', bg: '#f9731618', threshold: 1000 },
-  aprendiz_cacador:  { label: 'APRENDIZ DE CAÇADOR', color: '#22c55e', bg: '#22c55e18', threshold: 5000 },
-  cacador:           { label: 'CAÇADOR',           color: '#3b82f6', bg: '#3b82f618', threshold: 10000 },
-  killer:            { label: 'KILLER',            color: '#ef4444', bg: '#ef444418', threshold: 20000 },
-  alpha:             { label: 'ALPHA',             color: '#e4b528', bg: '#e4b52818', threshold: 50000 },
-  // aliases legados
-  primeiro:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
-  aprendiz:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
-  cacadoria:         { label: 'CAÇADOR',           color: '#3b82f6', bg: '#3b82f618', threshold: 10000 },
-  alfa:              { label: 'ALPHA',             color: '#e4b528', bg: '#e4b52818', threshold: 50000 },
+  primeiro_instinto: { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a22', threshold: 0,     glow: '#71717a44' },
+  predador:          { label: 'PREDADOR',          color: '#ec4899', bg: '#ec489922', threshold: 1000,  glow: '#ec489966' },
+  aprendiz_cacador:  { label: 'APRENDIZ DE CAÇADOR', color: '#00d9ff', bg: '#00d9ff22', threshold: 5000, glow: '#00d9ff66' },
+  cacador:           { label: 'CAÇADOR',           color: '#a855f7', bg: '#a855f722', threshold: 10000, glow: '#a855f766' },
+  killer:            { label: 'KILLER',            color: '#ef4444', bg: '#ef444422', threshold: 20000, glow: '#ef444466' },
+  alpha:             { label: 'ALPHA',             color: '#f59e0b', bg: '#f59e0b22', threshold: 50000, glow: '#f59e0b88' },
+
+  // aliases legados (profiles/API do Lovable)
+  primeiro:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a22', threshold: 0 },
+  aprendiz:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a22', threshold: 0 },
+  cacadoria:         { label: 'CAÇADOR',           color: '#a855f7', bg: '#a855f722', threshold: 10000 },
+  alfa:              { label: 'ALPHA',             color: '#f59e0b', bg: '#f59e0b22', threshold: 50000 },
 }
 
 export const RANK_ORDER = [
@@ -25,7 +26,6 @@ export const RANK_ORDER = [
 ]
 
 export function computeRank(resultBrl = 0) {
-  // retorna o rank mais alto cujo threshold <= resultado acumulado
   let current = 'primeiro_instinto'
   for (const r of RANK_ORDER) {
     if ((RANKS[r].threshold ?? 0) <= resultBrl) current = r
@@ -39,7 +39,7 @@ export function nextRank(currentRank) {
   return RANK_ORDER[idx + 1]
 }
 
-export default function RankBadge({ rank, size = 'sm' }) {
+export default function RankBadge({ rank, size = 'sm', glow = false }) {
   const r = RANKS[rank] || RANKS.primeiro_instinto
   const sizes = {
     xs: { fontSize: 9,  padding: '2px 6px',  dot: 4 },
@@ -54,8 +54,12 @@ export default function RankBadge({ rank, size = 'sm' }) {
       padding: s.padding, borderRadius: 99,
       fontSize: s.fontSize, fontWeight: 600, letterSpacing: '0.08em',
       lineHeight: 1, fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap',
+      ...(glow && r.glow ? { boxShadow: `0 0 12px ${r.glow}` } : {}),
     }}>
-      <span style={{ width: s.dot, height: s.dot, borderRadius: 99, background: r.color }} />
+      <span style={{
+        width: s.dot, height: s.dot, borderRadius: 99, background: r.color,
+        ...(glow && r.glow ? { boxShadow: `0 0 6px ${r.color}` } : {}),
+      }} />
       {r.label}
     </span>
   )

@@ -112,7 +112,7 @@ export default function MemberLayout() {
         {/* Logo + search */}
         <div style={{ padding: '16px 12px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '2px 6px' }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--amber)' }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: 'var(--cyan)', filter: 'drop-shadow(0 0 6px var(--cyan))' }}>
               <polygon points="7 1 13 12 1 12" fill="currentColor" />
             </svg>
             <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.22em', color: 'var(--text-primary)' }}>MATILHA</span>
@@ -198,8 +198,8 @@ export default function MemberLayout() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '6px 8px', borderRadius: 6 }}>
             <div style={{
               width: 24, height: 24, borderRadius: 6,
-              background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
-              color: '#0a0a0a', fontSize: 11, fontWeight: 700,
+              background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #00d9ff 100%)',
+              color: '#0a0a0e', fontSize: 11, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}>{initial}</div>

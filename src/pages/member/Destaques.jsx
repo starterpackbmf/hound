@@ -126,15 +126,15 @@ export default function Destaques() {
           data={[...rows].sort((a, b) => b.result - a.result).slice(0, 10).map(r => ({ ...r, value: `R$ ${r.result.toLocaleString('pt-BR')}` }))}
         />
         <Ranking
-          icon="◎" color="var(--amber)" title="maior win rate"
+          icon="◎" color="var(--cyan)" title="maior win rate"
           data={[...rows].filter(r => r.total_trades >= 5).sort((a, b) => b.win_rate - a.win_rate).slice(0, 10).map(r => ({ ...r, value: `${r.win_rate.toFixed(1)}%` }))}
         />
         <Ranking
-          icon="✦" color="#a855f7" title="mais consistente"
+          icon="✦" color="var(--purple)" title="mais consistente"
           data={[...rows].sort((a, b) => b.days - a.days).slice(0, 10).map(r => ({ ...r, value: `${r.days} dias` }))}
         />
         <Ranking
-          icon="◆" color="var(--info)" title="mais seguiu o plano"
+          icon="◆" color="var(--pink)" title="mais seguiu o plano"
           data={[...rows].filter(r => r.total_trades >= 5).sort((a, b) => b.followed_plan - a.followed_plan).slice(0, 10).map(r => ({ ...r, value: `${r.followed_plan.toFixed(1)}%` }))}
         />
       </section>

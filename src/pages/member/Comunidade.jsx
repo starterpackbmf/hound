@@ -170,8 +170,8 @@ function PostCard({ post: p, author, liked, isOwn, onLike, onDelete }) {
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
         <div style={{
           width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-          background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
-          color: '#0a0a0a', fontSize: 12, fontWeight: 700,
+          background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #00d9ff 100%)',
+          color: '#0a0a0e', fontSize: 12, fontWeight: 700,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>{initial}</div>
 
@@ -255,8 +255,8 @@ function Comments({ postId }) {
                 <div key={c.id} style={{ display: 'flex', gap: 8, fontSize: 12 }}>
                   <div style={{
                     width: 22, height: 22, borderRadius: 6, flexShrink: 0,
-                    background: 'linear-gradient(135deg, #f97316, #e4b528)',
-                    color: '#0a0a0a', fontSize: 10, fontWeight: 700,
+                    background: 'linear-gradient(135deg, #ec4899, #a855f7)',
+                    color: '#0a0a0e', fontSize: 10, fontWeight: 700,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}>{(a?.name?.[0] || '?').toUpperCase()}</div>
                   <div style={{ flex: 1 }}>

@@ -111,8 +111,8 @@ function AlunoRow({ student: s }) {
     }}>
       <div style={{
         width: 26, height: 26, borderRadius: 6, flexShrink: 0,
-        background: 'linear-gradient(135deg, #f97316 0%, #e4b528 100%)',
-        color: '#0a0a0a', fontSize: 11, fontWeight: 700,
+        background: 'linear-gradient(135deg, #a855f7 0%, #00d9ff 100%)',
+        color: '#0a0a0e', fontSize: 11, fontWeight: 700,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>{(s.name[0] || '?').toUpperCase()}</div>
 
