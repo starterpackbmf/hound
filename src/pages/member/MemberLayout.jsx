@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { useIsMobile } from '../../lib/useMedia'
 import { getMyCoins } from '../../lib/free'
@@ -88,6 +88,7 @@ export default function MemberLayout() {
   const emailPrefix = user?.email?.split('@')[0] || 'mentorado'
   const initial = (profile?.name?.[0] || emailPrefix[0] || 'm').toUpperCase()
   const rank = profile?.current_badge
+  const canBeMonitor = (profile?.roles || []).some(r => ['monitor', 'admin', 'imortal'].includes(r))
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--body)' }}>
@@ -119,6 +120,17 @@ export default function MemberLayout() {
           <div style={{ fontSize: 9, color: 'var(--text-faint)', padding: '0 6px', letterSpacing: '0.08em' }}>
             Jornada do Trader
           </div>
+          {canBeMonitor && (
+            <Link to="/mentor/visao-geral" style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '6px 9px', borderRadius: 6,
+              background: 'var(--amber-dim-15)', border: '1px solid var(--amber-dim-25)',
+              color: 'var(--amber)', fontSize: 11, fontWeight: 500,
+              marginTop: 4,
+            }}>
+              ↔ trocar para monitor
+            </Link>
+          )}
           <button
             type="button"
             title="buscar (⌘K)"

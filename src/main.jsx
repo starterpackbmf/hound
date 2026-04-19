@@ -39,6 +39,11 @@ import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
+import MonitorGuard from './auth/MonitorGuard'
+import MonitorLayout from './pages/monitor/MonitorLayout'
+import VisaoGeral from './pages/monitor/VisaoGeral'
+import MonitorAlunos from './pages/monitor/Alunos'
+import MonitorRelatorio from './pages/monitor/Relatorio'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -82,6 +87,23 @@ createRoot(document.getElementById('root')).render(
             <Route path="packstore" element={<Packstore />} />
             <Route path="parcerias" element={<Parcerias />} />
           </Route>
+          {/* Área do Monitor — gated por role */}
+          <Route
+            path="/mentor"
+            element={
+              <ProtectedRoute>
+                <MonitorGuard>
+                  <MonitorLayout />
+                </MonitorGuard>
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="visao-geral" replace />} />
+            <Route path="visao-geral" element={<VisaoGeral />} />
+            <Route path="alunos" element={<MonitorAlunos />} />
+            <Route path="relatorio" element={<MonitorRelatorio />} />
+          </Route>
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
