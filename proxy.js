@@ -263,6 +263,79 @@ app.get('/overnight', async (req, res) => {
   }
 })
 
+// ─── W.O.L.F AI PROXY ───
+app.post('/wolf', async (req, res) => {
+  const s = req.body?.snapshot
+  if (!s) return res.status(400).json({ error: 'missing snapshot' })
+
+  const enabled = process.env.WOLF_ENABLED === 'true'
+  if (!enabled) {
+    return res.json({ ...wolfStub(s), model: 'stub', _mode: 'stub' })
+  }
+
+  if (!API_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY missing' })
+
+  try {
+    const { systemMsg, userMsg } = wolfBuildPrompts(s)
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6', max_tokens: 1024,
+        system: systemMsg,
+        messages: [{ role: 'user', content: userMsg }],
+      }),
+    })
+    const j = await r.json()
+    if (!r.ok) return res.status(502).json({ error: j.error?.message || 'claude error' })
+    const text = j.content?.[0]?.text || ''
+    const match = text.match(/\{[\s\S]+\}/)
+    if (!match) return res.status(502).json({ error: 'claude returned non-JSON', raw: text })
+    const parsed = JSON.parse(match[0])
+    return res.json({ ...parsed, model: j.model || 'claude-sonnet-4-6' })
+  } catch (e) {
+    return res.status(500).json({ error: e.message })
+  }
+})
+
+function wolfBuildPrompts(s) {
+  const setupsStr = Object.entries(s.by_setup || {}).map(([k, v]) => `${k}: ${v.count}ops ${v.wins}W R$${v.result.toFixed(0)}`).join('\n')
+  const emotionsStr = Object.entries(s.emotion_counts || {}).map(([e, n]) => `${e}(${n})`).join(', ')
+  const systemMsg = `Você é o W.O.L.F AI, mentor de trading da Matilha. Retorne APENAS JSON { "summary": "...", "tips": ["..."], "actions": ["..."] }. Tom direto em pt-BR. Valoriza disciplina sobre resultado.`
+  const userMsg = `Semana ${s.week_start}→${s.week_end}\nTrades:${s.total_trades}(${s.wins}W/${s.losses}L) WR:${s.win_rate}% Resultado:R$${s.total_result_brl} Plano:${s.followed_plan_rate}%\nSetups:\n${setupsStr || 'nenhum'}\nEmoções:${emotionsStr}\nFeedback monitor:${(s.mentor_feedbacks || []).map(f => `${f.date}[${(f.tags || []).join(',')}]:${f.text}`).join(';') || 'nenhum'}\n\nRetorne SÓ o JSON.`
+  return { systemMsg, userMsg }
+}
+
+function wolfStub(s) {
+  const pos = s.total_result_brl > 0
+  const disciplined = s.followed_plan_rate >= 80
+  const lowTrades = s.total_trades < 5
+  let summary = ''
+  if (lowTrades) summary = `Semana de pouca atividade — ${s.total_trades} trades. ${disciplined ? 'Boa filtragem.' : 'Revise bloqueios.'} ${pos ? 'Positivo.' : 'Negativo.'} WR ${s.win_rate}%, disciplina ${s.followed_plan_rate}%.`
+  else if (pos && disciplined) summary = `Semana consistente: ${s.total_trades} trades, ${s.win_rate}% acerto, +R$${s.total_result_brl}. Disciplina ${s.followed_plan_rate}% — essa é a base.`
+  else if (pos && !disciplined) summary = `+R$${s.total_result_brl} mas disciplina em ${s.followed_plan_rate}%. Atenção: sorte > processo. Revisa.`
+  else if (!pos && disciplined) summary = `R$${s.total_result_brl} negativo mas disciplina ${s.followed_plan_rate}%. Sinal operacional OK, semana ruim do mercado.`
+  else summary = `R$${s.total_result_brl} com ${s.followed_plan_rate}% disciplina. Foco agora: voltar ao plano, não recuperar.`
+
+  const tips = []
+  if (s.followed_plan_rate < 70) tips.push('Foco #1: seguir o plano. Relê a regra antes de cada clique.')
+  if (s.days_operated > 4) tips.push('Operando 5+ dias/sem — testa 1 dia de pausa forçada.')
+  const worstSetup = Object.entries(s.by_setup || {}).sort((a, b) => a[1].result - b[1].result)[0]
+  if (worstSetup && worstSetup[1].result < 0) tips.push(`Setup ${worstSetup[0]}: R$${worstSetup[1].result.toFixed(0)}. Revisa ou para.`)
+  if (s.emotion_counts?.Impulsivo > 2) tips.push('Impulsivo em várias entradas. Cronometra 30s antes de clicar.')
+  if (s.emotion_counts?.Vingativo > 1) tips.push('Vingativo após loss. Regra: 1 loss = 5min pausa obrigatória.')
+  while (tips.length < 3) tips.push('Registra todos os trades, mesmo os não executados.')
+
+  const actions = []
+  if (s.total_trades > 0) actions.push(`Revisita ${Math.min(3, s.total_trades)} trades da semana e nota 1 coisa a mudar.`)
+  actions.push('Escreve 3 linhas sobre como quer começar segunda.')
+  if (s.followed_plan_rate < 90) actions.push('Imprime o plano e cola na mesa.')
+  if (!disciplined) actions.push('Semana 100% simulada se não voltar a >80% de disciplina até quarta.')
+  while (actions.length < 3) actions.push('Marca sessão com monitor pra discutir próximos passos.')
+
+  return { summary, tips: tips.slice(0, 5), actions: actions.slice(0, 5) }
+}
+
 // ─── MATILHA DIÁRIO PROXY ───
 // Forwards all query params to the Lovable Supabase edge function
 app.get('/matilha', async (req, res) => {
