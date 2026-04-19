@@ -134,5 +134,23 @@ export async function earnCoins(actionKey, amount, reason) {
   return data
 }
 
+// Regras reais de ganho de SC (mesmas do Lovable)
+export const COIN_RULES = {
+  trade_registered:     { amount: 3,   reason: 'registrar trade',            cadence: 'por trade' },
+  day_finalized:        { amount: 5,   reason: 'finalizar o dia',            cadence: 'por dia' },
+  community_activity:   { amount: 10,  reason: 'atividade na comunidade',    cadence: '1x/dia' },
+  positive_week:        { amount: 30,  reason: 'semana positiva',            cadence: 'semanal' },
+  plan_streak_5:        { amount: 20,  reason: 'streak 5 dias no plano',     cadence: 'por streak' },
+  rank_up:              { amount: 100, reason: 'evolução de rank',           cadence: 'por mudança' },
+  diagnostic_complete:  { amount: 10,  reason: 'diagnóstico completado',     cadence: 'por diagnóstico' },
+  ficha_complete:       { amount: 20,  reason: 'ficha de acompanhamento completa', cadence: 'única' },
+}
+
+export function earnByRule(ruleKey, extraReason) {
+  const r = COIN_RULES[ruleKey]
+  if (!r) throw new Error(`coin rule desconhecida: ${ruleKey}`)
+  return earnCoins(ruleKey, r.amount, extraReason || r.reason)
+}
+
 // ───── RELATÓRIO DA COMUNIDADE (derivado do diário) ─────
 // Retorna métricas agregadas por período (reutiliza a API Matilha).

@@ -35,6 +35,10 @@ import CursosGratis from './pages/member/CursosGratis'
 import Relatorio from './pages/member/Relatorio'
 import Packstore from './pages/member/Packstore'
 import Parcerias from './pages/member/Parcerias'
+import Jornada from './pages/member/Jornada'
+import Historico from './pages/member/Historico'
+import ResumoSemanal from './pages/member/ResumoSemanal'
+import MinhaFicha from './pages/member/MinhaFicha'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -55,6 +59,10 @@ createRoot(document.getElementById('root')).render(
 
             {/* Matilha (premium) */}
             <Route path="inicio" element={<Inicio />} />
+            <Route path="jornada" element={<Jornada />} />
+            <Route path="historico" element={<Historico />} />
+            <Route path="resumo-semanal" element={<ResumoSemanal />} />
+            <Route path="minha-ficha" element={<MinhaFicha />} />
             <Route path="estudo" element={<Estudo />} />
             <Route path="estudo/:slug" element={<Course />} />
             <Route path="aulas" element={<Aulas />} />

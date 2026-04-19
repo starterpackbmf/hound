@@ -1,15 +1,42 @@
 import React from 'react'
 
+// 6 níveis oficiais do Lovable, thresholds em resultado acumulado (R$)
 export const RANKS = {
-  primeiro_instinto: { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20' },
-  predador:          { label: 'PREDADOR',          color: '#f97316', bg: '#f9731618' },
-  alfa:              { label: 'ALFA',              color: '#e4b528', bg: '#e4b52818' },
-  imortal:           { label: 'IMORTAL',           color: '#a855f7', bg: '#a855f718' },
-  // aliases vindos do diário Lovable
-  primeiro:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20' },
-  cacador:           { label: 'CAÇADOR',           color: '#f97316', bg: '#f9731618' },
-  aprendiz:          { label: 'APRENDIZ',          color: '#71717a', bg: '#71717a20' },
-  alpha:             { label: 'ALPHA',             color: '#e4b528', bg: '#e4b52818' },
+  primeiro_instinto: { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
+  predador:          { label: 'PREDADOR',          color: '#f97316', bg: '#f9731618', threshold: 1000 },
+  aprendiz_cacador:  { label: 'APRENDIZ DE CAÇADOR', color: '#22c55e', bg: '#22c55e18', threshold: 5000 },
+  cacador:           { label: 'CAÇADOR',           color: '#3b82f6', bg: '#3b82f618', threshold: 10000 },
+  killer:            { label: 'KILLER',            color: '#ef4444', bg: '#ef444418', threshold: 20000 },
+  alpha:             { label: 'ALPHA',             color: '#e4b528', bg: '#e4b52818', threshold: 50000 },
+  // aliases legados
+  primeiro:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
+  aprendiz:          { label: 'PRIMEIRO INSTINTO', color: '#71717a', bg: '#71717a20', threshold: 0 },
+  cacadoria:         { label: 'CAÇADOR',           color: '#3b82f6', bg: '#3b82f618', threshold: 10000 },
+  alfa:              { label: 'ALPHA',             color: '#e4b528', bg: '#e4b52818', threshold: 50000 },
+}
+
+export const RANK_ORDER = [
+  'primeiro_instinto',
+  'predador',
+  'aprendiz_cacador',
+  'cacador',
+  'killer',
+  'alpha',
+]
+
+export function computeRank(resultBrl = 0) {
+  // retorna o rank mais alto cujo threshold <= resultado acumulado
+  let current = 'primeiro_instinto'
+  for (const r of RANK_ORDER) {
+    if ((RANKS[r].threshold ?? 0) <= resultBrl) current = r
+  }
+  return current
+}
+
+export function nextRank(currentRank) {
+  const idx = RANK_ORDER.indexOf(currentRank)
+  if (idx === -1 || idx === RANK_ORDER.length - 1) return null
+  return RANK_ORDER[idx + 1]
 }
 
 export default function RankBadge({ rank, size = 'sm' }) {
