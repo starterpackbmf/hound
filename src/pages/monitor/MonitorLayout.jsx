@@ -44,8 +44,10 @@ export default function MonitorLayout() {
 
       <aside style={{
         width: 220, minWidth: 220,
-        background: 'var(--surface-1)',
-        borderRight: '1px solid var(--border)',
+        background: 'rgba(14, 14, 20, 0.65)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.06)',
         display: 'flex', flexDirection: 'column',
         ...(isMobile ? {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 20,

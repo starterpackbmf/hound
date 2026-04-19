@@ -42,6 +42,7 @@ import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
+import Settings from './pages/member/Settings'
 import MonitorGuard from './auth/MonitorGuard'
 import MonitorLayout from './pages/monitor/MonitorLayout'
 import VisaoGeral from './pages/monitor/VisaoGeral'
@@ -74,6 +75,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="historico" element={<Historico />} />
             <Route path="resumo-semanal" element={<ResumoSemanal />} />
             <Route path="minha-ficha" element={<MinhaFicha />} />
+            <Route path="config" element={<Settings />} />
             <Route path="novo-trade" element={<NovoTrade />} />
             <Route path="trade/:id" element={<NovoTrade />} />
             <Route path="plano-execucao" element={<PlanoExecucao />} />

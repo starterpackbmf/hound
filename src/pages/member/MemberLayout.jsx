@@ -9,7 +9,7 @@ import NotificationsBell from '../../components/NotificationsBell'
 import {
   IHome, IBook, IPlay, IZap, IEye, IPencil, IStar, GYinYang,
   ISearch, ILogOut, IMessage, IGlobe, IUsers, IExternalLink, ITarget,
-  IMenu, IX, IClock, ICalendar, ISparkles,
+  IMenu, IX, IClock, ICalendar, ISparkles, ISettings,
 } from '../../components/icons'
 
 // Organização da sidebar seguindo o Lovable (seções nomeadas)
@@ -63,6 +63,7 @@ const SECTIONS = [
       { to: '/app/parcerias',     label: 'parcerias',         icon: IExternalLink },
       { to: '/app/packstore',     label: 'pack store',        icon: IStar },
       { to: '/app/minha-ficha',   label: 'minha ficha',       icon: IUsers },
+      { to: '/app/config',        label: 'configurações',     icon: ISettings },
     ],
   },
 ]
@@ -102,8 +103,10 @@ export default function MemberLayout() {
 
       <aside style={{
         width: 220, minWidth: 220,
-        background: 'var(--surface-1)',
-        borderRight: '1px solid var(--border)',
+        background: 'rgba(14, 14, 20, 0.65)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.06)',
         display: 'flex', flexDirection: 'column',
         ...(isMobile ? {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 20,
@@ -252,8 +255,10 @@ export default function MemberLayout() {
           <header style={{
             display: 'flex', alignItems: 'center', gap: 12,
             padding: '10px 24px',
-            borderBottom: '1px solid var(--border)',
-            background: 'var(--body)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            background: 'rgba(10, 10, 14, 0.55)',
+            backdropFilter: 'blur(20px) saturate(140%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(140%)',
             position: 'sticky', top: 0, zIndex: 5,
           }}>
             <div style={{ flex: 1 }} />

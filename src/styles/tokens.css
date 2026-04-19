@@ -92,7 +92,6 @@
 html, body, #root { margin: 0; padding: 0; }
 
 body {
-  background: var(--body);
   color: var(--text-primary);
   font-family: var(--font-ui);
   font-size: 13px;
@@ -100,9 +99,49 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv11', 'ss01', 'ss03';
+  /* Fundo em camadas: gradiente base + 3 orbs neon + noise fixo */
+  background-color: #08080c;
+  background-image:
+    radial-gradient(ellipse 1200px 900px at 15% 10%, rgba(0, 217, 255, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 1100px 800px at 85% 30%, rgba(168, 85, 247, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 900px 700px at 50% 90%, rgba(236, 72, 153, 0.05) 0%, transparent 55%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
 }
 
-#root { min-height: 100vh; }
+/* Camada de grain/noise sutil — ajuda a quebrar o "chapado" */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 0.05  0 0 0 0 0.05  0 0 0 0 0.08  0 0 0 1 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+/* Camada secundária com orbs que "flutuam" bem devagar */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle 300px at 70% 80%, rgba(0, 217, 255, 0.04), transparent 70%),
+    radial-gradient(circle 260px at 20% 60%, rgba(236, 72, 153, 0.035), transparent 70%);
+  animation: orb-drift 24s ease-in-out infinite alternate;
+}
+
+@keyframes orb-drift {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-30px, 20px, 0); }
+  100% { transform: translate3d(40px, -15px, 0); }
+}
+
+#root { min-height: 100vh; position: relative; z-index: 2; }
 
 button {
   font-family: inherit; color: inherit;
@@ -202,16 +241,37 @@ a { color: inherit; text-decoration: none; }
   100% { box-shadow: 0 0 0 0 #ec489900; }
 }
 
-/* card */
+/* card — glassmorphism */
 .card {
-  background: var(--surface-1);
-  border: 1px solid var(--border);
+  background: rgba(17, 17, 23, 0.55);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--r-8);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.03) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.2);
 }
-.card-hover { transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+.card-hover { transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
 .card-hover:hover {
-  background: var(--surface-2);
-  border-color: var(--border-strong);
+  background: rgba(24, 24, 31, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.05) inset,
+    0 4px 20px 0 rgba(0, 0, 0, 0.3),
+    0 0 30px 0 rgba(0, 217, 255, 0.04);
+}
+
+/* variantes específicas pra superfícies diferentes */
+.glass-strong {
+  background: rgba(17, 17, 23, 0.75);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+.glass-soft {
+  background: rgba(17, 17, 23, 0.35);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
 }
 
 /* btn */

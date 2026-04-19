@@ -88,16 +88,22 @@ export default function NotificationsBell() {
         <div style={{
           position: 'absolute', top: 'calc(100% + 6px)', right: 0,
           width: 360, maxHeight: 460, overflow: 'auto',
-          background: 'var(--surface-1)', border: '1px solid var(--border-strong)',
-          borderRadius: 8, boxShadow: '0 10px 40px #00000088, 0 0 0 1px var(--cyan-dim-20)',
+          background: 'rgba(17, 17, 23, 0.85)',
+          backdropFilter: 'blur(28px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 10,
+          boxShadow: '0 20px 60px #000000aa, 0 0 0 1px var(--cyan-dim-20), 0 0 40px rgba(0, 217, 255, 0.06)',
           zIndex: 100,
         }}>
           <div style={{
             position: 'sticky', top: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             padding: '10px 14px',
-            background: 'var(--surface-1)',
-            borderBottom: '1px solid var(--border)',
+            background: 'rgba(17, 17, 23, 0.9)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
           }}>
             <span style={{ fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.14em', fontWeight: 600 }}>
               NOTIFICAÇÕES {unread > 0 && `· ${unread} não lidas`}
