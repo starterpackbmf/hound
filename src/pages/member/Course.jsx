@@ -254,17 +254,86 @@ function ModulesGrid({ course, tree, parentNode, onEnterGroup, onBackGroup, onSe
           {subtitle}
         </p>
       )}
-      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+      <ModulesCarousel>
         {tree.map(node => (
           <ModuleCard key={node.id} node={node} onEnterGroup={onEnterGroup} onSelectVideo={onSelectVideo} />
         ))}
-      </div>
+      </ModulesCarousel>
       {tree.length === 0 && parentNode && (
         <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 20 }}>
           sem submódulos ainda.
         </div>
       )}
     </div>
+  )
+}
+
+function ModulesCarousel({ children }) {
+  const scrollRef = React.useRef(null)
+  const [canLeft, setCanLeft] = useState(false)
+  const [canRight, setCanRight] = useState(false)
+
+  function update() {
+    const el = scrollRef.current
+    if (!el) return
+    setCanLeft(el.scrollLeft > 4)
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4)
+  }
+
+  useEffect(() => { update() }, [children])
+
+  function scroll(dir) {
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollBy({ left: dir * (el.clientWidth * 0.85), behavior: 'smooth' })
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {canLeft && (
+        <CarouselArrow dir="left" onClick={() => scroll(-1)} />
+      )}
+      {canRight && (
+        <CarouselArrow dir="right" onClick={() => scroll(1)} />
+      )}
+      <div
+        ref={scrollRef}
+        onScroll={update}
+        style={{
+          display: 'flex', gap: 14,
+          overflowX: 'auto', overflowY: 'hidden',
+          scrollBehavior: 'smooth',
+          paddingBottom: 8,
+          scrollbarWidth: 'thin',
+        }}
+      >
+        {React.Children.map(children, child => (
+          <div style={{ flex: '0 0 180px', minWidth: 180 }}>{child}</div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CarouselArrow({ dir, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'absolute', top: '50%', [dir]: -14,
+        transform: 'translateY(-50%)',
+        zIndex: 2,
+        width: 34, height: 34, borderRadius: '50%',
+        background: 'var(--surface-2)',
+        border: '1px solid var(--border)',
+        color: 'var(--text-primary)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: '0 4px 14px rgba(0,0,0,0.4)',
+      }}
+    >
+      {dir === 'left' ? <IArrowLeft size={16} stroke={2} /> : <IArrowRight size={16} stroke={2} />}
+    </button>
   )
 }
 
