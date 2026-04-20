@@ -6,7 +6,8 @@ import {
   listDiagnostics, saveDiagnostic, QUESTIONS, computeResult,
 } from '../../lib/diagnostic'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from './ui'
-import RankBadge, { RANKS, RANK_ORDER, nextRank } from '../../components/RankBadge'
+import RankBadge, { RANKS, RANK_ORDER, nextRank, currentRankFromResult } from '../../components/RankBadge'
+import { useAuth } from '../../auth/AuthContext'
 import { ISparkles, ITarget, IPlus, IX, ICheck } from '../../components/icons'
 
 const TABS = ['matilha', 'metas', 'dificuldades', 'diagnostico']
@@ -42,19 +43,42 @@ export default function Jornada() {
 }
 
 function MatilhaTab() {
+  const { user } = useAuth()
   const [profile, setProfile] = useState(null)
+  const [accumulatedResult, setAccumulatedResult] = useState(0)
+  const [totalTrades, setTotalTrades] = useState(0)
   const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    getMyProfile().then(setProfile).finally(() => setLoading(false))
-  }, [])
+    if (!user) return
+    ;(async () => {
+      try {
+        const [p, trades] = await Promise.all([
+          getMyProfile(),
+          supabase.from('trades').select('resultado_brl').eq('user_id', user.id),
+        ])
+        setProfile(p)
+        const list = trades.data || []
+        setTotalTrades(list.length)
+        setAccumulatedResult(list.reduce((s, t) => s + (t.resultado_brl || 0), 0))
+      } finally { setLoading(false) }
+    })()
+  }, [user])
 
   if (loading) return <Loading />
 
-  const currentRank = profile?.current_badge || 'primeiro_instinto'
+  // Calcula rank baseado no resultado real (não só no que tá no profile)
+  const computedRank = currentRankFromResult(accumulatedResult)
+  const currentRank = profile?.current_badge || computedRank
   const current = RANKS[currentRank]
   const next = nextRank(currentRank)
   const nextData = next ? RANKS[next] : null
-  const accumulatedResult = 0 // TODO: puxar do diário real
+  // progresso entre rank atual e próximo (0-100%)
+  const currentThreshold = current?.threshold ?? 0
+  const nextThreshold = nextData?.threshold ?? currentThreshold
+  const rangeSize = Math.max(1, nextThreshold - currentThreshold)
+  const rangeDone = Math.max(0, Math.min(accumulatedResult - currentThreshold, rangeSize))
+  const progress = nextData ? Math.round((rangeDone / rangeSize) * 100) : 100
   const progress = nextData
     ? Math.min(100, Math.round((accumulatedResult / nextData.threshold) * 100))
     : 100
@@ -63,11 +87,24 @@ function MatilhaTab() {
     <>
       <Section title="nível atual">
         <div className="card" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
             <RankBadge rank={currentRank} size="md" />
+            <div style={{ flex: 1 }} />
+            <div style={{ display: 'flex', gap: 14, fontSize: 11 }}>
+              <div>
+                <div style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>RESULTADO</div>
+                <div style={{ color: accumulatedResult >= 0 ? 'var(--up)' : 'var(--down)', fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500 }}>
+                  R$ {accumulatedResult.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                </div>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-muted)', letterSpacing: '0.08em' }}>TRADES</div>
+                <div style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 500 }}>{totalTrades}</div>
+              </div>
+            </div>
           </div>
           <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
-            R$ {accumulatedResult.toLocaleString('pt-BR')} / R$ {nextData ? nextData.threshold.toLocaleString('pt-BR') : '—'}
+            progresso: R$ {rangeDone.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} / R$ {rangeSize.toLocaleString('pt-BR', { maximumFractionDigits: 0 })} pro próximo rank
           </div>
           <div style={{ height: 6, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden', marginBottom: 8 }}>
             <div style={{ height: '100%', width: `${progress}%`, background: 'var(--amber)', transition: 'width 300ms' }} />
@@ -77,6 +114,46 @@ function MatilhaTab() {
               ? <>Próxima evolução: <strong style={{ color: nextData.color }}>{nextData.label}</strong></>
               : 'Você está entre os traders mais evoluídos da matilha.'}
           </div>
+        </div>
+      </Section>
+
+      <Section title="conquistas">
+        <div style={{ display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+          <Achievement
+            emoji="🐺" title="entrou na matilha"
+            unlocked={true}
+            detail="você tá aqui"
+          />
+          <Achievement
+            emoji="📓" title="primeiro trade registrado"
+            unlocked={totalTrades >= 1}
+            detail={totalTrades >= 1 ? 'desbloqueada' : 'registre seu primeiro trade'}
+          />
+          <Achievement
+            emoji="💯" title="100 trades"
+            unlocked={totalTrades >= 100}
+            detail={`${Math.min(totalTrades, 100)}/100`}
+          />
+          <Achievement
+            emoji="🎯" title="500 trades"
+            unlocked={totalTrades >= 500}
+            detail={`${Math.min(totalTrades, 500)}/500`}
+          />
+          <Achievement
+            emoji="💰" title="primeiro R$ 1.000 acumulado"
+            unlocked={accumulatedResult >= 1000}
+            detail={`R$ ${Math.max(0, accumulatedResult).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/1.000`}
+          />
+          <Achievement
+            emoji="🔥" title="cruzou R$ 10.000"
+            unlocked={accumulatedResult >= 10000}
+            detail={`R$ ${Math.max(0, accumulatedResult).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}/10.000`}
+          />
+          <Achievement
+            emoji="👑" title="chegou no Alpha"
+            unlocked={accumulatedResult >= 50000}
+            detail={accumulatedResult >= 50000 ? 'desbloqueada' : 'R$ 50.000 pra desbloquear'}
+          />
         </div>
       </Section>
 
@@ -111,6 +188,26 @@ function MatilhaTab() {
         </div>
       </Section>
     </>
+  )
+}
+
+function Achievement({ emoji, title, detail, unlocked }) {
+  return (
+    <div className="card" style={{
+      padding: 12,
+      display: 'flex', alignItems: 'center', gap: 10,
+      opacity: unlocked ? 1 : 0.5,
+      background: unlocked ? 'rgba(34,197,94,0.06)' : 'var(--surface-1)',
+      borderColor: unlocked ? 'rgba(34,197,94,0.25)' : 'var(--border)',
+    }}>
+      <span style={{ fontSize: 22, filter: unlocked ? 'none' : 'grayscale(1)' }}>{emoji}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>{title}</div>
+        <div style={{ fontSize: 10, color: unlocked ? 'var(--up)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+          {unlocked && '✓ '}{detail}
+        </div>
+      </div>
+    </div>
   )
 }
 
