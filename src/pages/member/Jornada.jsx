@@ -6,7 +6,7 @@ import {
   listDiagnostics, saveDiagnostic, QUESTIONS, computeResult,
 } from '../../lib/diagnostic'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from './ui'
-import RankBadge, { RANKS, RANK_ORDER, nextRank, currentRankFromResult } from '../../components/RankBadge'
+import RankBadge, { RANKS, RANK_ORDER, nextRank, computeRank } from '../../components/RankBadge'
 import { useAuth } from '../../auth/AuthContext'
 import { ISparkles, ITarget, IPlus, IX, ICheck } from '../../components/icons'
 
@@ -68,7 +68,7 @@ function MatilhaTab() {
   if (loading) return <Loading />
 
   // Calcula rank baseado no resultado real (não só no que tá no profile)
-  const computedRank = currentRankFromResult(accumulatedResult)
+  const computedRank = computeRank(accumulatedResult)
   const currentRank = profile?.current_badge || computedRank
   const current = RANKS[currentRank]
   const next = nextRank(currentRank)
