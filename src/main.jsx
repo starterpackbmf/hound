@@ -44,6 +44,9 @@ import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
+import FinalizarDia from './pages/member/FinalizarDia'
+import Feedback from './pages/member/Feedback'
+import Operacional from './pages/member/Operacional'
 import Settings from './pages/member/Settings'
 import Upgrade from './pages/member/Upgrade'
 import PremiumGate from './auth/PremiumGate'
@@ -88,6 +91,9 @@ createRoot(document.getElementById('root')).render(
             <Route path="historico" element={<PremiumGate><Historico /></PremiumGate>} />
             <Route path="resumo-semanal" element={<PremiumGate><ResumoSemanal /></PremiumGate>} />
             <Route path="novo-trade" element={<PremiumGate><NovoTrade /></PremiumGate>} />
+            <Route path="finalizar-dia" element={<PremiumGate><FinalizarDia /></PremiumGate>} />
+            <Route path="feedback" element={<PremiumGate><Feedback /></PremiumGate>} />
+            <Route path="operacional" element={<PremiumGate><Operacional /></PremiumGate>} />
             <Route path="trade/:id" element={<PremiumGate><NovoTrade /></PremiumGate>} />
             <Route path="plano-execucao" element={<PremiumGate><PlanoExecucao /></PremiumGate>} />
             <Route path="sessoes" element={<PremiumGate><Sessoes /></PremiumGate>} />

@@ -8,6 +8,8 @@ import { earnByRule } from '../../lib/free'
 import { getTradeFeedback, saveTradeFeedback, TRADE_STATUS_META } from '../../lib/feedback'
 import { getMyProfile } from '../../lib/profile'
 import { uploadPrint } from '../../lib/storage'
+import { calculateEntryQuality, QUALITY_TO_INT, INT_TO_QUALITY } from '../../lib/tradeCalculations'
+import { RulesSelector, FiltersSelector, QualityDisplay, ResultsPreview } from '../../components/TradeSelectors'
 import { PageTitle, Section, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IPlus, IX, ICheck, ITarget, IPlay } from '../../components/icons'
 
@@ -53,7 +55,10 @@ export default function NovoTrade() {
     followed_plan: null,
     leitura_tecnica: '',
     print_url: '',
+    selected_rules: [],
+    selected_filters: [],
   })
+  const [uploadingPrint, setUploadingPrint] = useState(false)
 
   useEffect(() => {
     (async () => {
@@ -91,6 +96,8 @@ export default function NovoTrade() {
               followed_plan: t.followed_plan,
               leitura_tecnica: t.leitura_tecnica || '',
               print_url: t.print_url || '',
+              selected_rules: t.selected_rules || [],
+              selected_filters: t.selected_filters || [],
             })
           }
         }
@@ -115,6 +122,10 @@ export default function NovoTrade() {
   const resultadoBrl = useMemo(() => {
     return calcResultadoBrl(mediaPonderada, form.contratos_iniciais, form.ativo)
   }, [mediaPonderada, form.contratos_iniciais, form.ativo])
+
+  const entryQuality = useMemo(() => {
+    return calculateEntryQuality(form.selected_rules, form.selected_filters, form.setup)
+  }, [form.selected_rules, form.selected_filters, form.setup])
 
   function set(key, val) {
     setForm(f => ({ ...f, [key]: val }))
@@ -166,9 +177,12 @@ export default function NovoTrade() {
         media_ponderada: mediaPonderada,
         resultado_brl: resultadoBrl,
         emotions: form.emotions,
-        followed_plan: form.followed_plan,
+        followed_plan: form.followed_plan ?? entryQuality.followedPlan,
         leitura_tecnica: form.leitura_tecnica || null,
         print_url: form.print_url || null,
+        selected_rules: form.selected_rules,
+        selected_filters: form.selected_filters,
+        entry_quality: QUALITY_TO_INT[entryQuality.quality] ?? null,
       }
       const saved = await upsertTrade(payload)
       if (!isEdit) {
@@ -263,6 +277,27 @@ export default function NovoTrade() {
         </div>
       </Section>
 
+      {/* REGRAS + FILTROS + QUALIDADE */}
+      <Section title="protocolo de entrada">
+        <div style={{ display: 'grid', gap: 12 }}>
+          <RulesSelector
+            operational={form.setup}
+            selectedRules={form.selected_rules}
+            onChange={rules => set('selected_rules', rules)}
+          />
+          <FiltersSelector
+            operational={form.setup}
+            selectedFilters={form.selected_filters}
+            onChange={filters => set('selected_filters', filters)}
+          />
+          <QualityDisplay
+            quality={entryQuality.quality}
+            score={entryQuality.score}
+            followedPlan={entryQuality.followedPlan}
+          />
+        </div>
+      </Section>
+
       {/* EXECUÇÃO */}
       <Section title="execução e métricas">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 }}>
@@ -329,6 +364,14 @@ export default function NovoTrade() {
         </div>
         <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
           multiplicador {form.ativo}: R$ {assetMultiplier(form.ativo).toFixed(2)}/pt
+        </div>
+        <div style={{ marginTop: 14 }}>
+          <ResultsPreview
+            totalPoints={mediaPonderada}
+            resultBrl={resultadoBrl}
+            initialContracts={Number(form.contratos_iniciais) || 0}
+            asset={form.ativo}
+          />
         </div>
       </Section>
 

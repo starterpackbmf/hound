@@ -19,12 +19,12 @@ export function isAdmin(profile) {
 
 // Rotas premium (só mentorado ativo). Rotas não listadas = free.
 export const PREMIUM_ROUTES = new Set([
-  '/app/diario', '/app/historico', '/app/novo-trade',
+  '/app/diario', '/app/historico', '/app/novo-trade', '/app/finalizar-dia',
   '/app/estudo',
   '/app/aulas', '/app/imersoes',
   '/app/monitoria', '/app/sessoes', '/app/plano-execucao',
   '/app/oraculo', '/app/resumo-semanal',
-  '/app/jornada',
+  '/app/jornada', '/app/operacional', '/app/feedback',
 ])
 
 export function isPremiumRoute(path) {

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { listAccounts, listTrades, getDefaultAccount } from '../../lib/trades'
 import { PageTitle, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IArrowRight, ICalendar } from '../../components/icons'
+import { WeekdayHeatmap, MapaOperacional, DiagnosticoPeriodo, FocoDoPeriodo } from '../../components/HistoryInsights'
 
 const DIAS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
@@ -178,6 +179,16 @@ export default function Historico() {
               )
             })}
           </div>
+        </div>
+      )}
+
+      {/* Insights do período */}
+      {!loading && filteredTrades.length > 0 && (
+        <div style={{ marginTop: 24, display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          <WeekdayHeatmap trades={filteredTrades} />
+          <DiagnosticoPeriodo trades={filteredTrades} />
+          <MapaOperacional trades={filteredTrades} />
+          <FocoDoPeriodo trades={filteredTrades} />
         </div>
       )}
     </div>

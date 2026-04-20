@@ -35,6 +35,20 @@ async function lovableGet(params) {
   return res.json()
 }
 
+function mapEntryQuality(v) {
+  if (v === null || v === undefined || v === '') return null
+  if (typeof v === 'number') return v >= 1 && v <= 5 ? v : null
+  const s = String(v).toUpperCase().trim()
+  const map = {
+    'EXCELENTE': 5, 'OTIMA': 5, 'ÓTIMA': 5, 'OTIMO': 5, 'ÓTIMO': 5,
+    'BOM': 4, 'BOA': 4, 'BOM+': 4,
+    'OK': 3, 'NEUTRO': 3, 'NEUTRA': 3, 'MEDIO': 3, 'MÉDIO': 3, 'REGULAR': 3,
+    'RUIM': 2, 'RUIM+': 2, 'FRACA': 2, 'FRACO': 2,
+    'PESSIMO': 1, 'PÉSSIMO': 1, 'PESSIMA': 1, 'PÉSSIMA': 1, 'TERRIVEL': 1, 'TERRÍVEL': 1,
+  }
+  return map[s] ?? null
+}
+
 async function main() {
   const SB_URL = process.env.VITE_SUPABASE_URL
   const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -142,7 +156,7 @@ async function main() {
           print_url: t.screenshot_url,
           selected_rules: t.selected_rules || [],
           selected_filters: t.selected_filters || [],
-          entry_quality: t.entry_quality,
+          entry_quality: mapEntryQuality(t.entry_quality),
           escora_tag: t.escora_tag,
         }))
 

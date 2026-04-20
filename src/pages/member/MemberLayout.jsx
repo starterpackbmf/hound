@@ -11,7 +11,7 @@ import OnboardingModal from '../../components/OnboardingModal'
 import {
   IHome, IBook, IPlay, IZap, IEye, IPencil, IStar, GYinYang,
   ISearch, ILogOut, IMessage, IGlobe, IUsers, IExternalLink, ITarget,
-  IMenu, IX, IClock, ICalendar, ISparkles, ISettings,
+  IMenu, IX, IClock, ICalendar, ISparkles, ISettings, ICheck,
 } from '../../components/icons'
 
 // Organização da sidebar seguindo o Lovable (seções nomeadas)
@@ -28,6 +28,8 @@ const SECTIONS = [
     items: [
       { to: '/app/diario',        label: 'diário',            icon: IPencil },
       { to: '/app/historico',     label: 'histórico',         icon: IClock },
+      { to: '/app/operacional',   label: 'raio-x setups',     icon: ITarget },
+      { to: '/app/finalizar-dia', label: 'finalizar dia',     icon: ICheck },
     ],
   },
   {
@@ -42,6 +44,7 @@ const SECTIONS = [
     label: 'monitoria',
     items: [
       { to: '/app/monitoria',     label: 'acompanhamento',    icon: ICalendar },
+      { to: '/app/feedback',      label: 'feedback',          icon: IMessage },
       { to: '/app/sessoes',       label: 'sessões',           icon: IMessage },
       { to: '/app/plano-execucao', label: 'plano',            icon: ITarget },
       { to: '/app/aulas',         label: 'ao vivo',           icon: IPlay, liveDot: true },
