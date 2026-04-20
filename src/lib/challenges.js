@@ -66,3 +66,23 @@ export async function deleteChallenge(id) {
   const { error } = await supabase.from('sc_weekly_challenges').update({ is_active: false }).eq('id', id)
   if (error) throw error
 }
+
+// Leaderboard — contagem total de desafios completados por aluno
+export async function challengeLeaderboard(limit = 10) {
+  const { data, error } = await supabase
+    .from('sc_challenge_completions')
+    .select('user_id')
+  if (error) return []
+  const counts = {}
+  ;(data || []).forEach(r => { counts[r.user_id] = (counts[r.user_id] || 0) + 1 })
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, limit)
+  if (top.length === 0) return []
+  const ids = top.map(([id]) => id)
+  const { data: profs } = await supabase
+    .from('profiles')
+    .select('id, name, current_badge, avatar_url')
+    .in('id', ids)
+  const map = {}
+  ;(profs || []).forEach(p => { map[p.id] = p })
+  return top.map(([id, count]) => ({ id, count, profile: map[id] }))
+}

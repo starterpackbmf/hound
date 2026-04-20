@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { listStoreItems, getMyCoins, listMyTransactions, purchaseItem } from '../../lib/free'
+import { matilha } from '../../lib/matilha'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from './ui'
 import { IStar, ITrendingUp } from '../../components/icons'
 
@@ -12,6 +13,8 @@ const KIND_LABELS = {
 
 export default function Packstore() {
   const [items, setItems] = useState([])
+  const [mirrorItems, setMirrorItems] = useState([])
+  const [mirrorImages, setMirrorImages] = useState({})
   const [coins, setCoins] = useState({ balance: 0, total_earned: 0 })
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,12 +23,20 @@ export default function Packstore() {
   const [buying, setBuying] = useState(null)
 
   async function reload() {
-    const [i, c, t] = await Promise.all([
+    const [i, c, t, lovable, lovableImgs] = await Promise.all([
       listStoreItems().catch(() => []),
       getMyCoins().catch(() => ({ balance: 0, total_earned: 0 })),
       listMyTransactions().catch(() => []),
+      matilha.storeItems().catch(() => []),
+      matilha.storeItemImages().catch(() => []),
     ])
     setItems(i); setCoins(c); setTransactions(t)
+    setMirrorItems((lovable || []).filter(x => x.active !== false))
+    const imgMap = {}
+    ;(lovableImgs || []).forEach(img => {
+      if (!imgMap[img.item_id]) imgMap[img.item_id] = img.url || img.image_url
+    })
+    setMirrorImages(imgMap)
   }
 
   useEffect(() => { reload().catch(e => setErr(e.message)).finally(() => setLoading(false)) }, [])
@@ -131,6 +142,54 @@ export default function Packstore() {
                 </div>
               )
             })}
+          </div>
+        </Section>
+      )}
+
+      {/* Espelho do catálogo Matilha (Lovable) */}
+      {mirrorItems.length > 0 && (
+        <Section title="matilha · catálogo oficial">
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12, lineHeight: 1.5 }}>
+            itens do catálogo matilha — resgate pelo painel do monitor ou whatsapp.
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+            {mirrorItems.map(it => (
+              <div key={it.id} className="card" style={{
+                padding: 14, display: 'flex', flexDirection: 'column', gap: 10,
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(135deg, rgba(168,85,247,0.05), transparent 70%)',
+                  pointerEvents: 'none',
+                }} />
+                {mirrorImages[it.id] ? (
+                  <img src={mirrorImages[it.id]} alt="" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 6 }} />
+                ) : (
+                  <div style={{
+                    width: '100%', aspectRatio: '1', borderRadius: 6,
+                    background: 'linear-gradient(135deg, #0d0d12, #1a1a20)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: 'var(--purple)', opacity: 0.6,
+                  }}>
+                    <IStar size={40} stroke={1.2} />
+                  </div>
+                )}
+                <span className="pill" style={{
+                  alignSelf: 'flex-start', fontSize: 9,
+                  color: 'var(--purple)', borderColor: 'rgba(168,85,247,0.3)',
+                }}>ESPELHO</span>
+                <div style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>{it.name || it.title}</div>
+                {it.description && (
+                  <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {it.description.slice(0, 100)}{it.description.length > 100 ? '…' : ''}
+                  </div>
+                )}
+                <div style={{ fontSize: 13, color: 'var(--amber)', fontFamily: 'var(--font-mono)', fontWeight: 500, marginTop: 'auto' }}>
+                  ⎈ {it.cost_coins ?? it.price_coins ?? '—'}
+                </div>
+              </div>
+            ))}
           </div>
         </Section>
       )}

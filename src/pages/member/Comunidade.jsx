@@ -4,6 +4,7 @@ import {
   listPosts, createPost, deletePost, toggleLike, fetchMyLikes,
   listComments, postComment, fetchAuthors,
 } from '../../lib/community'
+import { matilha } from '../../lib/matilha'
 import { earnByRule } from '../../lib/free'
 import { PageTitle, Placeholder, ErrorBox, Loading } from './ui'
 import RankBadge from '../../components/RankBadge'
@@ -24,11 +25,32 @@ export default function Comunidade() {
   async function reload() {
     setLoading(true)
     try {
-      const ps = await listPosts({ category: filter })
-      setPosts(ps)
-      const authorMap = await fetchAuthors(ps.map(p => p.user_id))
-      setAuthors(authorMap)
-      const likeSet = await fetchMyLikes(ps.map(p => p.id))
+      const [localPs, lovablePs, lovableProfiles] = await Promise.all([
+        listPosts({ category: filter }).catch(() => []),
+        matilha.communityPosts(30).catch(() => []),
+        matilha.profiles().catch(() => []),
+      ])
+
+      // marca posts do lovable como read-only espelho
+      const lovableTagged = (lovablePs || [])
+        .filter(p => filter === 'all' || p.category === filter)
+        .map(p => ({ ...p, _mirror: true }))
+
+      // merge + dedup por id, ordena por created_at desc
+      const byId = new Map()
+      ;[...localPs, ...lovableTagged].forEach(p => { if (!byId.has(p.id)) byId.set(p.id, p) })
+      const merged = Array.from(byId.values()).sort((a, b) =>
+        new Date(b.created_at) - new Date(a.created_at)
+      )
+      setPosts(merged)
+
+      // autores: local do supabase + espelho do lovable
+      const localAuthors = await fetchAuthors(localPs.map(p => p.user_id))
+      const lovableAuthorMap = {}
+      ;(lovableProfiles || []).forEach(p => { lovableAuthorMap[p.id] = p })
+      setAuthors({ ...lovableAuthorMap, ...localAuthors })
+
+      const likeSet = await fetchMyLikes(localPs.map(p => p.id))
       setLikes(likeSet)
     } catch (e) {
       setErr(e.message)
@@ -144,12 +166,13 @@ export default function Comunidade() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {posts.map(p => (
             <PostCard
-              key={p.id}
+              key={p.id + (p._mirror ? '-mirror' : '')}
               post={p}
               author={authors[p.user_id]}
               liked={likes.has(p.id)}
-              isOwn={p.user_id === user?.id}
-              onLike={() => onLike(p)}
+              isOwn={!p._mirror && p.user_id === user?.id}
+              mirror={p._mirror}
+              onLike={() => !p._mirror && onLike(p)}
               onDelete={() => onDelete(p.id)}
             />
           ))}
@@ -159,7 +182,7 @@ export default function Comunidade() {
   )
 }
 
-function PostCard({ post: p, author, liked, isOwn, onLike, onDelete }) {
+function PostCard({ post: p, author, liked, isOwn, mirror, onLike, onDelete }) {
   const [open, setOpen] = useState(false)
   const cat = categoryMeta(p.category)
   const isMonitor = (author?.roles || []).some(r => ['monitor', 'admin', 'imortal'].includes(r))
@@ -182,6 +205,7 @@ function PostCard({ post: p, author, liked, isOwn, onLike, onDelete }) {
             </span>
             {author?.current_badge && <RankBadge rank={author.current_badge} size="xs" />}
             {isMonitor && <span className="pill pill-amber" style={{ fontSize: 9 }}>MONITOR</span>}
+            {mirror && <span className="pill" style={{ fontSize: 9, color: '#a855f7', borderColor: 'rgba(168,85,247,0.3)' }}>ESPELHO</span>}
             <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>·</span>
             <span className="pill" style={{ fontSize: 10 }}>{cat.emoji} {cat.label}</span>
             <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>

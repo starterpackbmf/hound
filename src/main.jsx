@@ -15,6 +15,8 @@ import '@fontsource/jetbrains-mono/600.css'
 import './styles/tokens.css'
 
 import App from './App.jsx'
+import Vitrine from './pages/Vitrine'
+import Perfil from './pages/Perfil'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
 import Login from './pages/Login'
@@ -60,6 +62,8 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <Routes>
           <Route path="/" element={<App />} />
+          <Route path="/matilha" element={<Vitrine />} />
+          <Route path="/p/:id" element={<Perfil />} />
           <Route path="/login" element={<Login />} />
           <Route
             path="/app"

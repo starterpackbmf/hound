@@ -7,6 +7,7 @@ import { getMyProfile } from '../../lib/profile'
 import { isPremium, isPremiumRoute } from '../../lib/gate'
 import RankBadge from '../../components/RankBadge'
 import NotificationsBell from '../../components/NotificationsBell'
+import OnboardingModal from '../../components/OnboardingModal'
 import {
   IHome, IBook, IPlay, IZap, IEye, IPencil, IStar, GYinYang,
   ISearch, ILogOut, IMessage, IGlobe, IUsers, IExternalLink, ITarget,
@@ -99,6 +100,7 @@ export default function MemberLayout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--body)' }}>
+      <OnboardingModal />
       {isMobile && open && (
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: '#00000099', zIndex: 19 }} />
       )}
