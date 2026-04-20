@@ -25,6 +25,29 @@ export async function uploadPrint(file) {
   return { url: publicUrl, path }
 }
 
+// Upload de capa de curso
+export async function uploadCourseCover(file, slug) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('not authenticated')
+  if (!file) throw new Error('nenhum arquivo')
+  if (file.size > 5 * 1024 * 1024) throw new Error('máximo 5 MB')
+  if (!/^image\/(jpeg|png|webp|gif)$/.test(file.type)) throw new Error('tipo inválido (jpg/png/webp/gif)')
+
+  const ext = (file.name.split('.').pop() || 'png').toLowerCase()
+  const safeSlug = (slug || 'curso').replace(/[^a-z0-9-]/gi, '-').toLowerCase()
+  const path = `${safeSlug}_${Date.now()}.${ext}`
+
+  const { error } = await supabase.storage.from('course-covers').upload(path, file, {
+    cacheControl: '3600',
+    upsert: true,
+    contentType: file.type,
+  })
+  if (error) throw error
+
+  const { data: { publicUrl } } = supabase.storage.from('course-covers').getPublicUrl(path)
+  return { url: publicUrl, path }
+}
+
 // Upload de avatar
 export async function uploadAvatar(file) {
   const { data: { user } } = await supabase.auth.getUser()

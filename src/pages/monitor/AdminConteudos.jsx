@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { panda } from '../../lib/panda'
+import { uploadCourseCover } from '../../lib/storage'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from '../member/ui'
 import { IPlus, IX, IArrowRight, IArrowLeft, IBook, IChevronRight, IChevronDown } from '../../components/icons'
 
@@ -62,11 +63,16 @@ function CursosTab() {
       published: !!draft.published,
     }
     try {
-      if (editing) await supabase.from('courses').update(payload).eq('id', editing)
-      else await supabase.from('courses').insert(payload)
+      const { error } = editing
+        ? await supabase.from('courses').update(payload).eq('id', editing)
+        : await supabase.from('courses').insert(payload)
+      if (error) throw error
       setCreating(false); setEditing(null)
       await load()
-    } catch (e) { alert(e.message) }
+    } catch (e) {
+      alert('erro: ' + (e.message || e))
+      console.error('course save error:', e)
+    }
   }
   async function remove(id) {
     if (!confirm('apagar curso (junto com módulos)?')) return
@@ -92,8 +98,8 @@ function CursosTab() {
               <Field label="título *">
                 <input className="input" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} />
               </Field>
-              <Field label="capa (url)">
-                <input className="input" value={draft.cover_url} onChange={e => setDraft({ ...draft, cover_url: e.target.value })} />
+              <Field label="capa">
+                <CoverPicker value={draft.cover_url} slug={draft.slug} onChange={url => setDraft({ ...draft, cover_url: url })} />
               </Field>
             </div>
             <Field label="descrição">
@@ -383,6 +389,51 @@ function PandaTab() {
       </div>
       <div>{roots.map(r => renderNode(r))}</div>
     </>
+  )
+}
+
+function CoverPicker({ value, slug, onChange }) {
+  const [uploading, setUploading] = useState(false)
+  const [err, setErr] = useState(null)
+  const inputRef = React.useRef(null)
+
+  async function onFile(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true); setErr(null)
+    try {
+      const { url } = await uploadCourseCover(file, slug)
+      onChange(url)
+    } catch (er) {
+      setErr(er.message)
+    } finally {
+      setUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {value && (
+        <div style={{
+          width: '100%', aspectRatio: '16/9',
+          background: `url(${value}) center/cover, var(--surface-2)`,
+          borderRadius: 6, border: '1px solid var(--border)',
+        }} />
+      )}
+      <div style={{ display: 'flex', gap: 6 }}>
+        <input className="input" style={{ flex: 1, fontSize: 11 }}
+          value={value || ''} onChange={e => onChange(e.target.value)}
+          placeholder="cole URL OU clica em escolher →" />
+        <button type="button" onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="btn btn-ghost" style={{ fontSize: 11, whiteSpace: 'nowrap' }}>
+          {uploading ? 'subindo...' : '📁 escolher'}
+        </button>
+        <input ref={inputRef} type="file" accept="image/*" onChange={onFile} style={{ display: 'none' }} />
+      </div>
+      {err && <div style={{ fontSize: 10, color: 'var(--down)' }}>⚠ {err}</div>}
+    </div>
   )
 }
 
