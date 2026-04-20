@@ -301,7 +301,7 @@ function ModuleNode({ node, depth, onAddChild, onEdit, onRemove }) {
           </button>
         ) : <span style={{ width: 11 }}></span>}
         {node.cover_url && (
-          <div style={{ width: 32, height: 20, borderRadius: 3, background: `url(${node.cover_url}) center/cover, var(--surface-2)`, flexShrink: 0 }} />
+          <div style={{ width: 18, height: 32, borderRadius: 3, background: `url(${node.cover_url}) center/cover, var(--surface-2)`, flexShrink: 0 }} />
         )}
         <span style={{ flex: 1, fontSize: 12.5, color: 'var(--text-primary)' }}>{node.title}</span>
         {node.panda_folder_id && <span className="pill pill-cyan" style={{ fontSize: 9 }}>PANDA</span>}
@@ -436,7 +436,7 @@ function CoverPicker({ value, slug, onChange }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {value && (
         <div style={{
-          width: '100%', aspectRatio: '16/9',
+          width: 160, aspectRatio: '9/16',
           background: `url(${value}) center/cover, var(--surface-2)`,
           borderRadius: 6, border: '1px solid var(--border)',
         }} />

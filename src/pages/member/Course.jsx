@@ -32,8 +32,6 @@ export default function Course() {
         setCourse(c)
         const mods = await listModules(c.id)
         setModules(mods)
-        const first = mods.find(m => m.panda_folder_id)
-        if (first) setSelectedId(first.id)
       } catch (e) { setErr(e.message) } finally { setLoading(false) }
     })()
   }, [slug])
@@ -116,7 +114,9 @@ export default function Course() {
           ...(selected ? [{ label: selected.title }] : []),
         ]} />
 
-        <ModuleContent module={selected} />
+        {selected
+          ? <ModuleContent module={selected} />
+          : <ModulesGrid course={course} tree={tree} onSelect={id => setSelectedId(id)} />}
       </div>
     </div>
   )
@@ -199,6 +199,82 @@ function containsSelected(node, id) {
   return (node.children || []).some(c => containsSelected(c, id))
 }
 
+function ModulesGrid({ course, tree, onSelect }) {
+  if (tree.length === 0) {
+    return <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>sem módulos ainda.</div>
+  }
+  return (
+    <div>
+      <h1 className="display" style={{ fontSize: 24, fontWeight: 500, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+        {course.title}
+      </h1>
+      {course.description && (
+        <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 20px', maxWidth: 640, lineHeight: 1.55 }}>
+          {course.description}
+        </p>
+      )}
+      <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
+        {tree.map(node => <ModuleCard key={node.id} node={node} onSelect={onSelect} />)}
+      </div>
+    </div>
+  )
+}
+
+function ModuleCard({ node, onSelect }) {
+  // escolhe o primeiro descendente com panda_folder_id (incluindo ele mesmo)
+  function firstPlayable(n) {
+    if (n.panda_folder_id) return n
+    for (const c of n.children || []) {
+      const found = firstPlayable(c)
+      if (found) return found
+    }
+    return null
+  }
+  const target = firstPlayable(node)
+  return (
+    <button
+      onClick={() => target && onSelect(target.id)}
+      disabled={!target}
+      style={{
+        display: 'flex', flexDirection: 'column', gap: 8,
+        padding: 0, background: 'transparent', border: 'none',
+        cursor: target ? 'pointer' : 'default',
+        textAlign: 'left', color: 'inherit',
+        opacity: target ? 1 : 0.55,
+      }}
+    >
+      <div style={{
+        width: '100%', aspectRatio: '9/16',
+        borderRadius: 10, overflow: 'hidden',
+        background: node.cover_url
+          ? `linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6)), url(${node.cover_url}) center/cover`
+          : 'linear-gradient(135deg, #0d0d0f, #18181b)',
+        border: '1px solid var(--border)',
+        display: 'flex', alignItems: 'flex-end', padding: 10,
+        transition: 'transform 200ms, border-color 200ms',
+        position: 'relative',
+      }}
+      onMouseEnter={(e) => { if (target) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'var(--amber)' } }}
+      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)' }}
+      >
+        {!node.cover_url && (
+          <IPlay size={36} stroke={1.2} style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: 'var(--amber)', opacity: 0.35,
+          }} />
+        )}
+        <div style={{ color: '#fff', fontSize: 12.5, fontWeight: 500, lineHeight: 1.3, width: '100%' }}>
+          {node.title}
+        </div>
+      </div>
+      <div style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        {node.children?.length > 0 ? `${node.children.length} submódulo${node.children.length !== 1 ? 's' : ''}` : target ? 'aulas' : 'em breve'}
+      </div>
+    </button>
+  )
+}
+
 function ModuleContent({ module: mod }) {
   const [videos, setVideos] = useState([])
   const [metaMap, setMetaMap] = useState({})
@@ -254,7 +330,7 @@ function ModuleContent({ module: mod }) {
       <>
         {mod.cover_url && (
           <div style={{
-            width: '100%', aspectRatio: '21/9',
+            width: 180, aspectRatio: '9/16',
             background: `url(${mod.cover_url}) center/cover, var(--surface-2)`,
             borderRadius: 10, marginBottom: 16,
             border: '1px solid var(--border)',
