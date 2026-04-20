@@ -38,6 +38,27 @@ export default function Course() {
 
   const tree = useMemo(() => buildModuleTree(modules), [modules])
   const selected = useMemo(() => modules.find(m => m.id === selectedId), [modules, selectedId])
+  const [gridParent, setGridParent] = useState(null) // id do módulo cujos filhos estão sendo mostrados no grid
+
+  const gridNodes = useMemo(() => {
+    if (gridParent) {
+      const parent = modules.find(m => m.id === gridParent)
+      if (!parent) return tree
+      // re-monta só os filhos deste parent como "tree" local
+      const children = modules.filter(m => m.parent_id === gridParent)
+      const flatByParent = {}
+      modules.forEach(m => {
+        if (!flatByParent[m.parent_id]) flatByParent[m.parent_id] = []
+        flatByParent[m.parent_id].push(m)
+      })
+      function attach(n) {
+        return { ...n, children: (flatByParent[n.id] || []).map(attach) }
+      }
+      return children.map(attach)
+    }
+    return tree
+  }, [tree, gridParent, modules])
+  const gridParentNode = useMemo(() => modules.find(m => m.id === gridParent), [modules, gridParent])
 
   if (loading) return <Loading />
   if (err) return <ErrorBox>{err}</ErrorBox>
@@ -116,7 +137,14 @@ export default function Course() {
 
         {selected
           ? <ModuleContent module={selected} />
-          : <ModulesGrid course={course} tree={tree} onSelect={id => setSelectedId(id)} />}
+          : <ModulesGrid
+              course={course}
+              tree={gridNodes}
+              parentNode={gridParentNode}
+              onEnterGroup={id => setGridParent(id)}
+              onBackGroup={() => setGridParent(gridParentNode?.parent_id || null)}
+              onSelectVideo={id => setSelectedId(id)}
+            />}
       </div>
     </div>
   )
@@ -199,48 +227,70 @@ function containsSelected(node, id) {
   return (node.children || []).some(c => containsSelected(c, id))
 }
 
-function ModulesGrid({ course, tree, onSelect }) {
-  if (tree.length === 0) {
+function ModulesGrid({ course, tree, parentNode, onEnterGroup, onBackGroup, onSelectVideo }) {
+  if (tree.length === 0 && !parentNode) {
     return <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>sem módulos ainda.</div>
   }
+  const heading = parentNode ? parentNode.title : course.title
+  const subtitle = parentNode
+    ? (parentNode.description || null)
+    : course.description
+
   return (
     <div>
+      {parentNode && (
+        <button onClick={onBackGroup} style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11,
+          color: 'var(--text-muted)', marginBottom: 10, padding: '4px 0',
+        }}>
+          <IArrowLeft size={12} stroke={1.6} /> voltar
+        </button>
+      )}
       <h1 className="display" style={{ fontSize: 24, fontWeight: 500, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
-        {course.title}
+        {heading}
       </h1>
-      {course.description && (
+      {subtitle && (
         <p style={{ fontSize: 12.5, color: 'var(--text-secondary)', margin: '0 0 20px', maxWidth: 640, lineHeight: 1.55 }}>
-          {course.description}
+          {subtitle}
         </p>
       )}
       <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))' }}>
-        {tree.map(node => <ModuleCard key={node.id} node={node} onSelect={onSelect} />)}
+        {tree.map(node => (
+          <ModuleCard key={node.id} node={node} onEnterGroup={onEnterGroup} onSelectVideo={onSelectVideo} />
+        ))}
       </div>
+      {tree.length === 0 && parentNode && (
+        <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 20 }}>
+          sem submódulos ainda.
+        </div>
+      )}
     </div>
   )
 }
 
-function ModuleCard({ node, onSelect }) {
-  // escolhe o primeiro descendente com panda_folder_id (incluindo ele mesmo)
-  function firstPlayable(n) {
-    if (n.panda_folder_id) return n
-    for (const c of n.children || []) {
-      const found = firstPlayable(c)
-      if (found) return found
-    }
-    return null
+function ModuleCard({ node, onEnterGroup, onSelectVideo }) {
+  const hasChildren = (node.children?.length || 0) > 0
+  const hasVideos = !!node.panda_folder_id
+  function handleClick() {
+    // Prioriza navegar pros filhos se tiver. Se for leaf com panda, vai pro player.
+    if (hasChildren) onEnterGroup(node.id)
+    else if (hasVideos) onSelectVideo(node.id)
   }
-  const target = firstPlayable(node)
+  const clickable = hasChildren || hasVideos
+  const label = hasChildren && hasVideos ? `${node.children.length} submódulo${node.children.length !== 1 ? 's' : ''} + aulas`
+    : hasChildren ? `${node.children.length} submódulo${node.children.length !== 1 ? 's' : ''}`
+    : hasVideos ? 'ver aulas'
+    : 'em breve'
   return (
     <button
-      onClick={() => target && onSelect(target.id)}
-      disabled={!target}
+      onClick={handleClick}
+      disabled={!clickable}
       style={{
         display: 'flex', flexDirection: 'column', gap: 8,
         padding: 0, background: 'transparent', border: 'none',
-        cursor: target ? 'pointer' : 'default',
+        cursor: clickable ? 'pointer' : 'default',
         textAlign: 'left', color: 'inherit',
-        opacity: target ? 1 : 0.55,
+        opacity: clickable ? 1 : 0.55,
       }}
     >
       <div style={{
@@ -254,7 +304,7 @@ function ModuleCard({ node, onSelect }) {
         transition: 'transform 200ms, border-color 200ms',
         position: 'relative',
       }}
-      onMouseEnter={(e) => { if (target) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'var(--amber)' } }}
+      onMouseEnter={(e) => { if (clickable) { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.borderColor = 'var(--amber)' } }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'var(--border)' }}
       >
         {!node.cover_url && (
@@ -269,7 +319,7 @@ function ModuleCard({ node, onSelect }) {
         </div>
       </div>
       <div style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-        {node.children?.length > 0 ? `${node.children.length} submódulo${node.children.length !== 1 ? 's' : ''}` : target ? 'aulas' : 'em breve'}
+        {label}
       </div>
     </button>
   )
