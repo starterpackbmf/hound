@@ -4,7 +4,7 @@ import { useAuth } from '../../auth/AuthContext'
 import { useIsMobile } from '../../lib/useMedia'
 import { getMyProfile } from '../../lib/profile'
 import {
-  ITarget, IUsers, ICalendar, IFile, IBook,
+  ITarget, IUsers, ICalendar, IFile, IBook, IPlay,
   ILogOut, IArrowLeft, IMenu, IX,
 } from '../../components/icons'
 
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/mentor/visao-geral',     label: 'visão geral',     icon: ITarget },
   { to: '/mentor/alunos',          label: 'alunos',          icon: IUsers },
   { to: '/mentor/agenda',          label: 'minha agenda',    icon: ICalendar },
+  { to: '/mentor/aulas/nova',      label: 'agendar aula',    icon: IPlay },
   { to: '/mentor/relatorio',       label: 'relatório',       icon: IFile },
   { to: '/mentor/conteudos',       label: 'conteúdos',       icon: IBook },
 ]
