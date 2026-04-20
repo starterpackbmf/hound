@@ -79,9 +79,6 @@ function MatilhaTab() {
   const rangeSize = Math.max(1, nextThreshold - currentThreshold)
   const rangeDone = Math.max(0, Math.min(accumulatedResult - currentThreshold, rangeSize))
   const progress = nextData ? Math.round((rangeDone / rangeSize) * 100) : 100
-  const progress = nextData
-    ? Math.min(100, Math.round((accumulatedResult / nextData.threshold) * 100))
-    : 100
 
   return (
     <>

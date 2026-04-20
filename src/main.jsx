@@ -46,6 +46,7 @@ import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
 import AulaAoVivo from './pages/member/AulaAoVivo'
 import NovaAula from './pages/monitor/NovaAula'
+import AulaAttendance from './pages/monitor/AulaAttendance'
 import FinalizarDia from './pages/member/FinalizarDia'
 import Feedback from './pages/member/Feedback'
 import Operacional from './pages/member/Operacional'
@@ -135,6 +136,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="agenda" element={<MinhaAgenda />} />
             <Route path="conteudos" element={<AdminConteudos />} />
             <Route path="aulas/nova" element={<NovaAula />} />
+            <Route path="aulas/relatorio/:id" element={<AulaAttendance />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
