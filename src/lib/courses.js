@@ -75,6 +75,47 @@ export async function getMyProgress(pandaVideoIds) {
   return map
 }
 
+// Retorna mapa { courseId: { total, completed } }
+export async function getCoursesProgress(courseIds) {
+  if (!courseIds?.length) return {}
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return {}
+
+  const { data: modules } = await supabase
+    .from('course_modules').select('id, course_id').in('course_id', courseIds)
+  if (!modules?.length) return {}
+  const moduleIds = modules.map(m => m.id)
+  const modToCourse = {}
+  modules.forEach(m => { modToCourse[m.id] = m.course_id })
+
+  const { data: lessons } = await supabase
+    .from('lesson_meta').select('id, module_id, panda_video_id').in('module_id', moduleIds)
+
+  const byCourse = {}
+  courseIds.forEach(cid => { byCourse[cid] = { total: 0, completed: 0 } })
+  ;(lessons || []).forEach(l => {
+    const cid = modToCourse[l.module_id]
+    if (cid) byCourse[cid].total++
+  })
+
+  const pvIds = (lessons || []).map(l => l.panda_video_id).filter(Boolean)
+  if (pvIds.length > 0) {
+    const { data: progress } = await supabase
+      .from('lesson_progress')
+      .select('panda_video_id, watched_percent, completed_at')
+      .eq('user_id', user.id)
+      .in('panda_video_id', pvIds)
+    const done = new Set((progress || []).filter(p => p.completed_at || p.watched_percent >= 90).map(p => p.panda_video_id))
+    ;(lessons || []).forEach(l => {
+      if (done.has(l.panda_video_id)) {
+        const cid = modToCourse[l.module_id]
+        if (cid) byCourse[cid].completed++
+      }
+    })
+  }
+  return byCourse
+}
+
 export async function markWatched(pandaVideoId, watchedPercent = 100) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
