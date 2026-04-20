@@ -6,6 +6,7 @@ import { getMyProfile } from '../../lib/profile'
 import { isPremium } from '../../lib/gate'
 import { supabase } from '../../lib/supabase'
 import { listEvents, partitionEvents } from '../../lib/events'
+import { listLiveSessions } from '../../lib/liveSessions'
 import { getMyCoins } from '../../lib/free'
 import { getRecentFeedbackForMe, getMyMentorshipSessions } from '../../lib/feedback'
 import { listThisWeekChallenges, listMyCompletions } from '../../lib/challenges'
@@ -21,6 +22,7 @@ export default function Inicio() {
   const [profile, setProfile] = useState(null)
   const [summary, setSummary] = useState(null)
   const [liveEvent, setLiveEvent] = useState(null)
+  const [nextSession, setNextSession] = useState(null)
   const [coins, setCoins] = useState(null)
   const [recentFb, setRecentFb] = useState([])
   const [openChallenges, setOpenChallenges] = useState([])
@@ -43,6 +45,23 @@ export default function Inicio() {
         if (cancel) return
         const { live } = partitionEvents(events)
         setLiveEvent(live[0] || null)
+      }).catch(() => {})
+
+      listLiveSessions({ upcoming: true, limit: 5 }).then(sessions => {
+        if (cancel) return
+        const now = Date.now()
+        // sessão ao vivo = janela starts_at-10min até ends_at
+        const liveZoom = (sessions || []).find(s => {
+          const starts = new Date(s.starts_at).getTime()
+          const ends = s.ends_at ? new Date(s.ends_at).getTime() : starts + 2 * 3600 * 1000
+          return now >= starts - 10 * 60 * 1000 && now <= ends
+        })
+        if (liveZoom) {
+          setNextSession({ ...liveZoom, live: true })
+        } else {
+          const upcoming = (sessions || []).find(s => new Date(s.starts_at).getTime() > now)
+          setNextSession(upcoming || null)
+        }
       }).catch(() => {})
 
       getMyCoins().catch(() => ({ balance: 0 })).then(c => !cancel && setCoins(c))
@@ -141,7 +160,50 @@ export default function Inicio() {
         </Link>
       )}
 
-      {/* BANNER AO VIVO */}
+      {/* BANNER ZOOM AO VIVO (novo sistema) */}
+      {nextSession && nextSession.live && (
+        <Link to={`/app/aulas/ao-vivo/${nextSession.id}`} style={{
+          display: 'flex', alignItems: 'center', gap: 16,
+          padding: '14px 18px',
+          background: 'linear-gradient(90deg, rgba(236,72,153,0.12) 0%, var(--surface-2) 50%)',
+          border: '1px solid rgba(236,72,153,0.4)',
+          borderRadius: 10,
+          boxShadow: '0 0 30px rgba(236,72,153,0.18)',
+          color: 'inherit', textDecoration: 'none',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="dot dot-live" style={{ width: 8, height: 8 }} />
+            <span className="glow-pink" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--pink)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>ZOOM AO VIVO</span>
+          </div>
+          <div style={{ height: 20, width: 1, background: 'var(--border)' }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)' }}>{nextSession.title}</div>
+            {nextSession.host_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>com {nextSession.host_name}</div>}
+          </div>
+          <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
+            entrar <IArrowRight size={12} stroke={2} />
+          </span>
+        </Link>
+      )}
+
+      {nextSession && !nextSession.live && (
+        <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12, borderColor: 'rgba(0,217,255,0.25)' }}>
+          <div style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.14em', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+            PRÓXIMA AULA
+          </div>
+          <div style={{ height: 16, width: 1, background: 'var(--border)' }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{nextSession.title}</div>
+            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+              {new Date(nextSession.starts_at).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              {nextSession.host_name ? ` · ${nextSession.host_name}` : ''}
+            </div>
+          </div>
+          <Link to="/app/aulas" className="btn btn-ghost" style={{ fontSize: 11 }}>ver agenda</Link>
+        </div>
+      )}
+
+      {/* BANNER AO VIVO (sistema events legacy) */}
       {liveEvent && (
         <Link to="/app/aulas" style={{
           display: 'flex', alignItems: 'center', gap: 16,
