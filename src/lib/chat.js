@@ -51,6 +51,42 @@ export async function pinMessage(id, pinned = true) {
   if (error) throw error
 }
 
+// Reactions
+export async function listReactions(messageIds) {
+  if (!messageIds?.length) return {}
+  const { data, error } = await supabase
+    .from('chat_reactions')
+    .select('*')
+    .in('message_id', messageIds)
+  if (error) return {}
+  const map = {}
+  ;(data || []).forEach(r => {
+    if (!map[r.message_id]) map[r.message_id] = {}
+    if (!map[r.message_id][r.emoji]) map[r.message_id][r.emoji] = []
+    map[r.message_id][r.emoji].push(r.user_id)
+  })
+  return map
+}
+
+export async function toggleReaction(messageId, emoji) {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('not authenticated')
+  const { data: existing } = await supabase
+    .from('chat_reactions')
+    .select('*')
+    .eq('message_id', messageId)
+    .eq('user_id', user.id)
+    .eq('emoji', emoji)
+    .maybeSingle()
+  if (existing) {
+    await supabase.from('chat_reactions').delete()
+      .eq('message_id', messageId).eq('user_id', user.id).eq('emoji', emoji)
+    return { added: false }
+  }
+  await supabase.from('chat_reactions').insert({ message_id: messageId, user_id: user.id, emoji })
+  return { added: true }
+}
+
 export async function markJoined(roomId) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return

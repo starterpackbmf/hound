@@ -4,6 +4,7 @@ import { getMyProfile } from '../lib/profile'
 import {
   listMessages, sendMessage, deleteMessage, pinMessage,
   subscribeMessages, subscribePresence, fetchAuthors, markJoined, userTag,
+  listReactions, toggleReaction,
 } from '../lib/chat'
 import RankBadge from './RankBadge'
 
@@ -12,6 +13,7 @@ export default function ChatRoom({ roomId, title = 'chat da aula', height = 560 
   const [messages, setMessages] = useState([])
   const [authors, setAuthors] = useState({})
   const [online, setOnline] = useState([])
+  const [reactions, setReactions] = useState({})
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [me, setMe] = useState(null)
@@ -31,6 +33,8 @@ export default function ChatRoom({ roomId, title = 'chat da aula', height = 560 
       const ids = [...new Set(msgs.map(m => m.user_id))]
       const authorMap = await fetchAuthors(ids)
       setAuthors(authorMap)
+      const rx = await listReactions(msgs.map(m => m.id))
+      setReactions(rx)
       markJoined(roomId).catch(() => {})
 
       unsubMsgs = subscribeMessages(
@@ -167,8 +171,17 @@ export default function ChatRoom({ roomId, title = 'chat da aula', height = 560 
             key={m.id}
             msg={m}
             author={authors[m.user_id]}
+            reactions={reactions[m.id] || {}}
             isOwn={m.user_id === user?.id}
             isMonitor={isMonitor}
+            myUserId={user?.id}
+            onReact={async (emoji) => {
+              try {
+                await toggleReaction(m.id, emoji)
+                const rx = await listReactions([m.id])
+                setReactions(prev => ({ ...prev, ...rx }))
+              } catch (e) { alert(e.message) }
+            }}
           />
         ))}
       </div>
@@ -201,10 +214,13 @@ export default function ChatRoom({ roomId, title = 'chat da aula', height = 560 
   )
 }
 
-function Message({ msg, author, isOwn, isMonitor }) {
+const QUICK_EMOJIS = ['🔥', '🐺', '👏', '❤️', '💯', '😂']
+
+function Message({ msg, author, isOwn, isMonitor, reactions = {}, onReact, myUserId }) {
   const tag = userTag(author)
   const time = new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   const initial = (author?.name?.[0] || '?').toUpperCase()
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   async function doPin() {
     try { await pinMessage(msg.id, !msg.pinned) } catch (e) { alert(e.message) }
@@ -237,20 +253,62 @@ function Message({ msg, author, isOwn, isMonitor }) {
           }}>{tag.label}</span>
           {author?.current_badge && <RankBadge rank={author.current_badge} size="xs" />}
           <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginLeft: 'auto' }}>{time}</span>
-          {(isMonitor || isOwn) && (
-            <div style={{ display: 'flex', gap: 4 }}>
-              {isMonitor && (
-                <button onClick={doPin} style={{ fontSize: 10, color: 'var(--text-muted)', padding: 2 }} title="fixar">
-                  {msg.pinned ? '📌' : '📍'}
-                </button>
-              )}
+          <div style={{ display: 'flex', gap: 4, position: 'relative' }}>
+            <button onClick={() => setPickerOpen(v => !v)} style={{ fontSize: 10, color: 'var(--text-muted)', padding: 2 }} title="reagir">
+              😊
+            </button>
+            {pickerOpen && (
+              <div style={{
+                position: 'absolute', bottom: '100%', right: 0, zIndex: 5,
+                display: 'flex', gap: 2, padding: 4,
+                background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+              }}>
+                {QUICK_EMOJIS.map(e => (
+                  <button key={e} onClick={() => { onReact?.(e); setPickerOpen(false) }}
+                    style={{ padding: '4px 6px', fontSize: 14, cursor: 'pointer' }}>
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
+            {isMonitor && (
+              <button onClick={doPin} style={{ fontSize: 10, color: 'var(--text-muted)', padding: 2 }} title="fixar">
+                {msg.pinned ? '📌' : '📍'}
+              </button>
+            )}
+            {(isMonitor || isOwn) && (
               <button onClick={doDelete} style={{ fontSize: 10, color: 'var(--text-muted)', padding: 2 }} title="apagar">✕</button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-primary)', lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
           {msg.body}
         </div>
+        {Object.keys(reactions).length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 5 }}>
+            {Object.entries(reactions).map(([emoji, userIds]) => {
+              const mine = userIds.includes(myUserId)
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => onReact?.(emoji)}
+                  style={{
+                    padding: '2px 7px', borderRadius: 99,
+                    background: mine ? 'rgba(0,217,255,0.15)' : 'var(--surface-2)',
+                    border: `1px solid ${mine ? 'var(--cyan)' : 'var(--border)'}`,
+                    color: 'var(--text-primary)',
+                    fontSize: 11, cursor: 'pointer',
+                    display: 'inline-flex', alignItems: 'center', gap: 4,
+                  }}
+                >
+                  <span>{emoji}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{userIds.length}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
