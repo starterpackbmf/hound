@@ -17,6 +17,8 @@ import './styles/tokens.css'
 import App from './App.jsx'
 import Vitrine from './pages/Vitrine'
 import Perfil from './pages/Perfil'
+import DiaryLayout from './pages/diary/DiaryLayout'
+import Evolucao from './pages/diary/Evolucao'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
 import Login from './pages/Login'
@@ -69,6 +71,28 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/matilha" element={<Vitrine />} />
+
+          {/* Ambiente Diário — sub-app com layout próprio */}
+          <Route
+            path="/diary"
+            element={
+              <ProtectedRoute>
+                <PremiumGate>
+                  <DiaryLayout />
+                </PremiumGate>
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="evolucao" replace />} />
+            <Route path="evolucao" element={<Evolucao />} />
+            <Route path="diario" element={<Diario />} />
+            <Route path="historico" element={<Historico />} />
+            <Route path="finalizar-dia" element={<FinalizarDia />} />
+            <Route path="operacional" element={<Operacional />} />
+            <Route path="plano" element={<PlanoExecucao />} />
+            <Route path="jornada" element={<Jornada />} />
+          </Route>
+
           <Route path="/p/:id" element={<Perfil />} />
           <Route path="/login" element={<Login />} />
           <Route

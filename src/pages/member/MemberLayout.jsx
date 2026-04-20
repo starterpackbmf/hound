@@ -26,10 +26,7 @@ const SECTIONS = [
   {
     label: 'operacional',
     items: [
-      { to: '/app/diario',        label: 'diário',            icon: IPencil },
-      { to: '/app/historico',     label: 'histórico',         icon: IClock },
-      { to: '/app/operacional',   label: 'raio-x setups',     icon: ITarget },
-      { to: '/app/finalizar-dia', label: 'finalizar dia',     icon: ICheck },
+      { to: '/diary/evolucao',    label: '🟢 abrir diário',   icon: IPencil, external: true },
     ],
   },
   {
