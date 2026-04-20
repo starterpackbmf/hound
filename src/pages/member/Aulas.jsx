@@ -1,19 +1,31 @@
 import React, { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { listEvents, partitionEvents, EVENT_KIND_LABELS, isYoutubeUrl, youtubeEmbedUrl } from '../../lib/events'
+import { listLiveSessions } from '../../lib/liveSessions'
+import { getMyProfile } from '../../lib/profile'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from './ui'
-import { IArrowRight, IPlay, ICalendar, IX } from '../../components/icons'
+import { IArrowRight, IPlay, ICalendar, IX, IPlus } from '../../components/icons'
 
 export default function Aulas() {
   const [events, setEvents] = useState([])
+  const [liveSessions, setLiveSessions] = useState([])
+  const [isMonitor, setIsMonitor] = useState(false)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
   const [replay, setReplay] = useState(null)
 
   useEffect(() => {
-    listEvents({ limit: 100 })
-      .then(setEvents)
-      .catch(e => setErr(e.message))
-      .finally(() => setLoading(false))
+    Promise.all([
+      listEvents({ limit: 100 }).catch(() => []),
+      listLiveSessions({ upcoming: true, limit: 50 }).catch(() => []),
+      getMyProfile().catch(() => null),
+    ]).then(([ev, ls, p]) => {
+      setEvents(ev)
+      setLiveSessions(ls)
+      setIsMonitor((p?.roles || []).some(r => ['admin', 'monitor', 'imortal'].includes(r)))
+    })
+    .catch(e => setErr(e.message))
+    .finally(() => setLoading(false))
   }, [])
 
   const { live, upcoming, past } = partitionEvents(events)
@@ -21,7 +33,23 @@ export default function Aulas() {
 
   return (
     <div style={{ maxWidth: 1040 }}>
-      <PageTitle eyebrow="A MATILHA" sub="aulas ao vivo, open class, sala diária e todos os replays.">ao vivo</PageTitle>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14, flexWrap: 'wrap' }}>
+        <PageTitle eyebrow="A MATILHA" sub="aulas ao vivo, open class, sala diária e todos os replays.">ao vivo</PageTitle>
+        {isMonitor && (
+          <Link to="/mentor/aulas/nova" className="btn btn-primary" style={{ fontSize: 12 }}>
+            <IPlus size={12} stroke={2} /> agendar aula
+          </Link>
+        )}
+      </div>
+
+      {/* Sessões Zoom (sala embutida) */}
+      {liveSessions.length > 0 && (
+        <Section title="🎥 sala zoom ao vivo">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {liveSessions.map(s => <ZoomSessionCard key={s.id} session={s} />)}
+          </div>
+        </Section>
+      )}
 
       {err ? <ErrorBox>erro: {err} — rode <code>supabase/migrations/0003_events.sql</code> se ainda não rodou.</ErrorBox>
        : loading ? <Loading />
@@ -78,6 +106,49 @@ export default function Aulas() {
         </>
       )}
     </div>
+  )
+}
+
+function ZoomSessionCard({ session: s }) {
+  const now = Date.now()
+  const starts = new Date(s.starts_at).getTime()
+  const ends = s.ends_at ? new Date(s.ends_at).getTime() : starts + 2 * 3600 * 1000
+  const isLive = now >= starts - 10 * 60 * 1000 && now <= ends
+  const minutesToStart = Math.round((starts - now) / 60000)
+
+  return (
+    <Link to={`/app/aulas/ao-vivo/${s.id}`} className="card card-hover" style={{
+      padding: 16, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+      color: 'var(--text-primary)', textDecoration: 'none',
+      background: isLive ? 'linear-gradient(90deg, rgba(236,72,153,0.08), var(--surface-1))' : undefined,
+      borderColor: isLive ? 'rgba(236,72,153,0.4)' : 'var(--border)',
+    }}>
+      <div style={{
+        width: 42, height: 42, borderRadius: 10, flexShrink: 0,
+        background: isLive ? 'rgba(236,72,153,0.2)' : 'var(--surface-2)',
+        color: isLive ? 'var(--pink)' : 'var(--text-muted)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        {isLive ? <span className="dot dot-live" style={{ width: 10, height: 10 }} /> : <IPlay size={18} stroke={1.6} />}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+          {isLive && (
+            <span className="pill" style={{ fontSize: 9, color: 'var(--pink)', borderColor: 'var(--pink)', fontWeight: 700 }}>
+              AO VIVO AGORA
+            </span>
+          )}
+          <span style={{ fontSize: 14, fontWeight: 500 }}>{s.title}</span>
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          {s.host_name ? `${s.host_name} · ` : ''}
+          {isLive ? 'entre agora' : minutesToStart > 0 ? `em ${minutesToStart}min` : fmtDate(s.starts_at)}
+        </div>
+      </div>
+      <span className="btn btn-primary" style={{ pointerEvents: 'none', fontSize: 11 }}>
+        entrar <IArrowRight size={11} stroke={2} />
+      </span>
+    </Link>
   )
 }
 

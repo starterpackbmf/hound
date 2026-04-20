@@ -44,6 +44,8 @@ import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
+import AulaAoVivo from './pages/member/AulaAoVivo'
+import NovaAula from './pages/monitor/NovaAula'
 import FinalizarDia from './pages/member/FinalizarDia'
 import Feedback from './pages/member/Feedback'
 import Operacional from './pages/member/Operacional'
@@ -100,6 +102,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="estudo" element={<PremiumGate><Estudo /></PremiumGate>} />
             <Route path="estudo/:slug" element={<PremiumGate><Course /></PremiumGate>} />
             <Route path="aulas" element={<PremiumGate><Aulas /></PremiumGate>} />
+            <Route path="aulas/ao-vivo/:id" element={<PremiumGate><AulaAoVivo /></PremiumGate>} />
             <Route path="imersoes" element={<PremiumGate><Imersoes /></PremiumGate>} />
             <Route path="monitoria" element={<PremiumGate><Monitoria /></PremiumGate>} />
             <Route path="diario" element={<PremiumGate><Diario /></PremiumGate>} />
@@ -131,6 +134,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="alunos/:id" element={<AlunoDetail />} />
             <Route path="agenda" element={<MinhaAgenda />} />
             <Route path="conteudos" element={<AdminConteudos />} />
+            <Route path="aulas/nova" element={<NovaAula />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

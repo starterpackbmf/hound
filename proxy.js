@@ -411,6 +411,26 @@ app.get('/panda', async (req, res) => {
   }
 })
 
+// Zoom Meeting SDK signature generator
+const crypto = require('crypto')
+app.use(express.json())
+app.post('/zoom-signature', (req, res) => {
+  const { meetingNumber, role = 0 } = req.body || {}
+  if (!meetingNumber) return res.status(400).json({ error: 'meetingNumber required' })
+  const sdkKey = process.env.VITE_ZOOM_SDK_KEY
+  const sdkSecret = process.env.ZOOM_SDK_SECRET
+  if (!sdkKey || !sdkSecret) return res.status(500).json({ error: 'Zoom not configured' })
+
+  const iat = Math.floor(Date.now() / 1000) - 30
+  const exp = iat + 60 * 60 * 2
+  const header = { alg: 'HS256', typ: 'JWT' }
+  const payload = { appKey: sdkKey, sdkKey, mn: String(meetingNumber), role: Number(role), iat, exp, tokenExp: exp }
+  const b64 = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url')
+  const unsigned = `${b64(header)}.${b64(payload)}`
+  const signature = crypto.createHmac('sha256', sdkSecret).update(unsigned).digest('base64url')
+  res.json({ signature: `${unsigned}.${signature}`, sdkKey })
+})
+
 const PORT = 3001
 app.listen(PORT, () => {
   console.log(`🐕 Hound proxy running on http://localhost:${PORT}`)
