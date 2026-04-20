@@ -252,6 +252,14 @@ function ModuleContent({ module: mod }) {
   if (!mod.panda_folder_id) {
     return (
       <>
+        {mod.cover_url && (
+          <div style={{
+            width: '100%', aspectRatio: '21/9',
+            background: `url(${mod.cover_url}) center/cover, var(--surface-2)`,
+            borderRadius: 10, marginBottom: 16,
+            border: '1px solid var(--border)',
+          }} />
+        )}
         <h1 className="display" style={{ fontSize: 24, fontWeight: 500, margin: '0 0 8px', letterSpacing: '-0.02em' }}>
           {mod.title}
         </h1>

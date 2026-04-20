@@ -157,7 +157,7 @@ function ModulosTab() {
   const [pandaFolders, setPandaFolders] = useState([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
-  const [creating, setCreating] = useState(null) // { parent_id }
+  const [creating, setCreating] = useState(null) // { parent_id } or { editing: id }
   const [draft, setDraft] = useState({})
 
   useEffect(() => {
@@ -189,22 +189,32 @@ function ModulosTab() {
     return roots
   }
 
-  async function createModule() {
+  async function saveModule() {
     if (!draft.title?.trim()) return
     const payload = {
-      course_id: selectedCourse,
-      parent_id: creating.parent_id || null,
       title: draft.title.trim(),
       description: draft.description?.trim() || null,
       panda_folder_id: draft.panda_folder_id || null,
-      order_index: modules.filter(m => m.parent_id === (creating.parent_id || null)).length,
+      cover_url: draft.cover_url?.trim() || null,
     }
     try {
-      await supabase.from('modules').insert(payload)
+      let error
+      if (creating.editing) {
+        ({ error } = await supabase.from('modules').update(payload).eq('id', creating.editing))
+      } else {
+        payload.course_id = selectedCourse
+        payload.parent_id = creating.parent_id || null
+        payload.order_index = modules.filter(m => m.parent_id === (creating.parent_id || null)).length
+        ;({ error } = await supabase.from('modules').insert(payload))
+      }
+      if (error) throw error
       setCreating(null); setDraft({})
       const { data } = await supabase.from('modules').select('*').eq('course_id', selectedCourse).order('order_index')
       setModules(data || [])
-    } catch (e) { alert(e.message) }
+    } catch (e) {
+      alert('erro: ' + (e.message || e))
+      console.error(e)
+    }
   }
 
   async function remove(id) {
@@ -235,13 +245,16 @@ function ModulosTab() {
       {creating && (
         <div className="card" style={{ padding: 16, marginBottom: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ fontSize: 11, color: 'var(--cyan)', letterSpacing: '0.14em', fontWeight: 600 }}>
-            NOVO MÓDULO {creating.parent_id ? 'FILHO' : 'RAIZ'}
+            {creating.editing ? 'EDITAR MÓDULO' : `NOVO MÓDULO ${creating.parent_id ? 'FILHO' : 'RAIZ'}`}
           </div>
           <Field label="título *">
             <input className="input" value={draft.title || ''} onChange={e => setDraft({ ...draft, title: e.target.value })} autoFocus />
           </Field>
           <Field label="descrição">
             <textarea className="input" rows={2} style={{ resize: 'vertical' }} value={draft.description || ''} onChange={e => setDraft({ ...draft, description: e.target.value })} />
+          </Field>
+          <Field label="capa">
+            <CoverPicker value={draft.cover_url} slug={`modulo-${(draft.title || 'novo').toLowerCase().replace(/[^a-z0-9-]/gi, '-').slice(0, 30)}`} onChange={url => setDraft({ ...draft, cover_url: url })} />
           </Field>
           <Field label="pasta do Panda (opcional — pega vídeos de lá)">
             <select className="input" value={draft.panda_folder_id || ''} onChange={e => setDraft({ ...draft, panda_folder_id: e.target.value || null })}>
@@ -252,8 +265,8 @@ function ModulosTab() {
             </select>
           </Field>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={createModule} className="btn btn-primary">criar</button>
-            <button onClick={() => setCreating(null)} className="btn btn-ghost">cancelar</button>
+            <button onClick={saveModule} className="btn btn-primary">{creating.editing ? 'salvar' : 'criar'}</button>
+            <button onClick={() => { setCreating(null); setDraft({}) }} className="btn btn-ghost">cancelar</button>
           </div>
         </div>
       )}
@@ -264,6 +277,7 @@ function ModulosTab() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           {tree.map(n => <ModuleNode key={n.id} node={n} depth={0}
             onAddChild={(parentId) => { setCreating({ parent_id: parentId }); setDraft({}) }}
+            onEdit={(node) => { setCreating({ editing: node.id, parent_id: node.parent_id }); setDraft({ title: node.title, description: node.description, cover_url: node.cover_url, panda_folder_id: node.panda_folder_id }) }}
             onRemove={remove} />)}
         </div>
       )}
@@ -271,7 +285,7 @@ function ModulosTab() {
   )
 }
 
-function ModuleNode({ node, depth, onAddChild, onRemove }) {
+function ModuleNode({ node, depth, onAddChild, onEdit, onRemove }) {
   const [open, setOpen] = useState(true)
   const hasChildren = node.children.length > 0
   return (
@@ -286,8 +300,14 @@ function ModuleNode({ node, depth, onAddChild, onRemove }) {
             {open ? <IChevronDown size={11} stroke={1.8} /> : <IChevronRight size={11} stroke={1.8} />}
           </button>
         ) : <span style={{ width: 11 }}></span>}
+        {node.cover_url && (
+          <div style={{ width: 32, height: 20, borderRadius: 3, background: `url(${node.cover_url}) center/cover, var(--surface-2)`, flexShrink: 0 }} />
+        )}
         <span style={{ flex: 1, fontSize: 12.5, color: 'var(--text-primary)' }}>{node.title}</span>
         {node.panda_folder_id && <span className="pill pill-cyan" style={{ fontSize: 9 }}>PANDA</span>}
+        <button onClick={() => onEdit(node)} className="btn btn-ghost" style={{ fontSize: 10 }}>
+          editar
+        </button>
         <button onClick={() => onAddChild(node.id)} className="btn btn-ghost" style={{ fontSize: 10 }}>
           <IPlus size={10} stroke={2} /> filho
         </button>
@@ -296,7 +316,7 @@ function ModuleNode({ node, depth, onAddChild, onRemove }) {
         </button>
       </div>
       {hasChildren && open && node.children.map(c => (
-        <ModuleNode key={c.id} node={c} depth={depth + 1} onAddChild={onAddChild} onRemove={onRemove} />
+        <ModuleNode key={c.id} node={c} depth={depth + 1} onAddChild={onAddChild} onEdit={onEdit} onRemove={onRemove} />
       ))}
     </div>
   )
