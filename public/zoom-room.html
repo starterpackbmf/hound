@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Matilha · sala ao vivo</title>
+<!-- Zoom SDK CSS from CDN -->
+<link type="text/css" rel="stylesheet" href="https://source.zoom.us/3.14.0/css/bootstrap.css" />
+<link type="text/css" rel="stylesheet" href="https://source.zoom.us/3.14.0/css/react-select.css" />
+<style>
+  html, body { margin:0; padding:0; background:#0a0a0e; color:#fff; font-family:Inter,system-ui,sans-serif; height:100%; overflow:hidden; }
+  #status { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px; z-index:9999; background:#0a0a0e; }
+  #status.hidden { display:none; }
+  .spinner { width:32px; height:32px; border:3px solid rgba(0,217,255,0.2); border-top-color:#00d9ff; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .msg { font-size:13px; color:rgba(255,255,255,0.7); }
+  .err { color:#ef4444; font-size:14px; max-width:400px; text-align:center; padding:0 20px; }
+</style>
+</head>
+<body>
+<div id="status">
+  <div class="spinner"></div>
+  <div class="msg" id="status-msg">carregando zoom…</div>
+</div>
+
+<!-- React 18 isolado aqui, não conflita com o React 19 do app pai -->
+<script src="https://source.zoom.us/3.14.0/lib/vendor/react.min.js"></script>
+<script src="https://source.zoom.us/3.14.0/lib/vendor/react-dom.min.js"></script>
+<script src="https://source.zoom.us/3.14.0/lib/vendor/redux.min.js"></script>
+<script src="https://source.zoom.us/3.14.0/lib/vendor/redux-thunk.min.js"></script>
+<script src="https://source.zoom.us/3.14.0/lib/vendor/lodash.min.js"></script>
+<script src="https://source.zoom.us/3.14.0/zoom-meeting-3.14.0.min.js"></script>
+
+<script>
+(async function () {
+  const statusEl = document.getElementById('status')
+  const statusMsg = document.getElementById('status-msg')
+
+  function setStatus(txt, isError) {
+    statusMsg.textContent = txt
+    statusMsg.className = isError ? 'err' : 'msg'
+    if (isError) statusEl.querySelector('.spinner').style.display = 'none'
+  }
+
+  function hideStatus() { statusEl.classList.add('hidden') }
+
+  const params = new URLSearchParams(location.search)
+  const meetingNumber = params.get('meeting')
+  const passcode = params.get('pwd') || ''
+  const userName = params.get('name') || 'mentorado'
+  const userEmail = params.get('email') || ''
+
+  if (!meetingNumber) return setStatus('meeting ID não informado', true)
+  if (typeof ZoomMtg === 'undefined') return setStatus('falha ao carregar Zoom SDK', true)
+
+  try {
+    setStatus('preparando sala…')
+    ZoomMtg.setZoomJSLib('https://source.zoom.us/3.14.0/lib', '/av')
+    ZoomMtg.preLoadWasm()
+    ZoomMtg.prepareWebSDK()
+    try { ZoomMtg.i18n.load('pt-BR') } catch(_) {}
+    try { ZoomMtg.i18n.reload('pt-BR') } catch(_) {}
+
+    setStatus('gerando assinatura…')
+    const sigRes = await fetch('/api/zoom-signature', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ meetingNumber, role: 0 }),
+    })
+    if (!sigRes.ok) throw new Error('signature ' + sigRes.status)
+    const { signature, sdkKey } = await sigRes.json()
+
+    setStatus('entrando na sala…')
+    ZoomMtg.init({
+      leaveUrl: location.origin + '/app/aulas',
+      patchJsMedia: true,
+      disablePreview: false,
+      isSupportAV: true,
+      success: function () {
+        ZoomMtg.join({
+          signature: signature,
+          sdkKey: sdkKey,
+          meetingNumber: String(meetingNumber),
+          passWord: passcode,
+          userName: userName,
+          userEmail: userEmail,
+          success: function () {
+            hideStatus()
+            window.parent?.postMessage({ type: 'zoom:joined' }, '*')
+          },
+          error: function (e) {
+            console.error('join error', e)
+            setStatus((e && (e.reason || e.errorMessage)) || 'falha ao entrar na sala', true)
+          },
+        })
+      },
+      error: function (e) {
+        console.error('init error', e)
+        setStatus((e && (e.reason || e.errorMessage)) || 'falha no init', true)
+      },
+    })
+  } catch (e) {
+    console.error(e)
+    setStatus(e.message || 'erro desconhecido', true)
+  }
+})();
+</script>
+</body>
+</html>
