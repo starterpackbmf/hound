@@ -189,6 +189,33 @@ export function QualityDisplay({ quality, score, followedPlan }) {
   )
 }
 
+// QualityBadge — versão compacta da qualidade pro header do modal
+export function QualityBadge({ quality, score }) {
+  if (!quality) return null
+  const color = qualityColor(quality)
+  return (
+    <div style={{
+      padding: '6px 12px', borderRadius: 8,
+      background: `${color}15`,
+      border: `1px solid ${color}55`,
+      display: 'inline-flex', flexDirection: 'column',
+      alignItems: 'center', gap: 2,
+      minWidth: 120,
+    }}>
+      <span style={{ fontSize: 8, letterSpacing: '0.14em', color: 'var(--text-muted)', fontWeight: 600 }}>
+        QUALIDADE TÉCNICA
+      </span>
+      <span style={{
+        fontSize: 13, fontWeight: 800, color,
+        letterSpacing: '0.02em',
+        fontFamily: 'var(--font-mono)',
+      }}>
+        {quality}{quality !== 'FORÇADA' ? ` ${score}%` : ' 0%'}
+      </span>
+    </div>
+  )
+}
+
 // ResultsPreview — mostra total de pontos, resultado R$ e win rate calculados live
 export function ResultsPreview({ totalPoints, resultBrl, initialContracts, asset }) {
   if (!asset || !initialContracts) {

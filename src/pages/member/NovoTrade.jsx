@@ -9,7 +9,7 @@ import { getTradeFeedback, saveTradeFeedback, TRADE_STATUS_META } from '../../li
 import { getMyProfile } from '../../lib/profile'
 import { uploadPrint } from '../../lib/storage'
 import { calculateEntryQuality, QUALITY_TO_INT, INT_TO_QUALITY } from '../../lib/tradeCalculations'
-import { RulesSelector, FiltersSelector, QualityDisplay, ResultsPreview } from '../../components/TradeSelectors'
+import { RulesSelector, FiltersSelector, QualityDisplay, QualityBadge, ResultsPreview } from '../../components/TradeSelectors'
 import { PageTitle, Section, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IPlus, IX, ICheck, ITarget, IPlay } from '../../components/icons'
 
@@ -226,15 +226,18 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             Protocolo de Performance · V3.0
           </p>
         </div>
-        {modal && onClose && (
-          <button onClick={onClose} style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: 'var(--surface-2)', border: '1px solid var(--border)',
-            color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }} title="fechar">
-            <IX size={14} stroke={1.8} />
-          </button>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <QualityBadge quality={entryQuality.quality} score={entryQuality.score} />
+          {modal && onClose && (
+            <button onClick={onClose} style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: 'var(--surface-2)', border: '1px solid var(--border)',
+              color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }} title="fechar">
+              <IX size={14} stroke={1.8} />
+            </button>
+          )}
+        </div>
       </header>
 
       {err && <div style={{ marginBottom: 16 }}><ErrorBox>{err}</ErrorBox></div>}
@@ -294,7 +297,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       </Section>
 
-      {/* REGRAS + FILTROS + QUALIDADE */}
+      {/* REGRAS + FILTROS (qualidade aparece no badge do header) */}
       <Section title="protocolo de entrada">
         <div style={{ display: 'grid', gap: 12 }}>
           <RulesSelector
@@ -306,11 +309,6 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             operational={form.setup}
             selectedFilters={form.selected_filters}
             onChange={filters => set('selected_filters', filters)}
-          />
-          <QualityDisplay
-            quality={entryQuality.quality}
-            score={entryQuality.score}
-            followedPlan={entryQuality.followedPlan}
           />
         </div>
       </Section>
