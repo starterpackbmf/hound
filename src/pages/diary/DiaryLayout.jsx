@@ -59,8 +59,14 @@ export default function DiaryLayout() {
       <div className="ink-ambient" />
       <aside style={{
         width: 236, minWidth: 236,
-        background: 'var(--ink-bg)',
-        borderRight: '1px solid var(--ink-line)',
+        background:
+          'radial-gradient(ellipse 120% 80% at 0% 0%, rgba(24,209,138,0.08) 0%, transparent 60%),' +
+          'radial-gradient(ellipse 100% 70% at 100% 100%, rgba(164,152,255,0.06) 0%, transparent 60%),' +
+          'linear-gradient(180deg, rgba(14,16,19,0.55) 0%, rgba(10,12,15,0.45) 100%)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        borderRight: '1px solid rgba(255,255,255,0.08)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 4px 0 24px rgba(0,0,0,0.3)',
         display: 'flex', flexDirection: 'column',
         position: 'sticky', top: 0, height: '100vh',
         zIndex: 1,
