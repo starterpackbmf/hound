@@ -328,22 +328,24 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       </Section>
 
-      {/* REGRAS + FILTROS — só aparece quando setup escolhido */}
+      {/* REGRAS + FILTROS — só aparece quando setup escolhido, com fade-up */}
       {form.setup && (
-        <Section title="protocolo de entrada">
-          <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-            <RulesSelector
-              operational={form.setup}
-              selectedRules={form.selected_rules}
-              onChange={rules => set('selected_rules', rules)}
-            />
-            <FiltersSelector
-              operational={form.setup}
-              selectedFilters={form.selected_filters}
-              onChange={filters => set('selected_filters', filters)}
-            />
-          </div>
-        </Section>
+        <div key={form.setup} className="ink-fade-up">
+          <Section title="protocolo de entrada">
+            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+              <RulesSelector
+                operational={form.setup}
+                selectedRules={form.selected_rules}
+                onChange={rules => set('selected_rules', rules)}
+              />
+              <FiltersSelector
+                operational={form.setup}
+                selectedFilters={form.selected_filters}
+                onChange={filters => set('selected_filters', filters)}
+              />
+            </div>
+          </Section>
+        </div>
       )}
 
       {/* EXECUÇÃO */}
@@ -487,26 +489,40 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             </div>
           </div>
 
-          {/* EMOCIONAL */}
+          {/* EMOCIONAL — 3 colunas: positivas / neutras / negativas */}
           <Section title={`estado emocional (máx 3) — ${form.emotions.length}/3`}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {EMOTIONS.map(e => {
-                const selected = form.emotions.includes(e)
-                const tone = EMOTION_TONES[e]
-                const toneClass = selected ? (tone === 'up' ? 'pill-up' : tone === 'down' ? 'pill-down' : 'pill-active') : ''
-                return (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => toggleEmotion(e)}
-                    disabled={!selected && form.emotions.length >= 3}
-                    className={`pill ${toneClass}`}
-                    style={{ cursor: selected || form.emotions.length < 3 ? 'pointer' : 'not-allowed', opacity: !selected && form.emotions.length >= 3 ? 0.4 : 1 }}
-                  >
-                    {e}
-                  </button>
-                )
-              })}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+              {[
+                { label: '▲ positivas', tone: 'up', color: 'var(--ink-green)' },
+                { label: '● neutras', tone: 'neutral', color: 'var(--ink-muted)' },
+                { label: '▼ negativas', tone: 'down', color: 'var(--ink-red)' },
+              ].map(group => (
+                <div key={group.tone} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div style={{ fontSize: 9, letterSpacing: '0.1em', color: group.color, fontWeight: 600, marginBottom: 2 }}>
+                    {group.label}
+                  </div>
+                  {EMOTIONS.filter(e => EMOTION_TONES[e] === group.tone).map(e => {
+                    const selected = form.emotions.includes(e)
+                    const toneClass = selected ? (group.tone === 'up' ? 'pill-up' : group.tone === 'down' ? 'pill-down' : 'pill-active') : ''
+                    return (
+                      <button
+                        key={e}
+                        type="button"
+                        onClick={() => toggleEmotion(e)}
+                        disabled={!selected && form.emotions.length >= 3}
+                        className={`pill ${toneClass}`}
+                        style={{
+                          cursor: selected || form.emotions.length < 3 ? 'pointer' : 'not-allowed',
+                          opacity: !selected && form.emotions.length >= 3 ? 0.4 : 1,
+                          justifyContent: 'center', fontSize: 11,
+                        }}
+                      >
+                        {e}
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           </Section>
 
@@ -587,9 +603,9 @@ function PrintUploader({ value, onChange }) {
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
           style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '28px 20px',
-            borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            padding: '12px 16px',
+            borderRadius: 8,
             border: `1.5px dashed ${dragOver ? 'var(--ink-green)' : 'rgba(24,209,138,0.3)'}`,
             background: dragOver ? 'rgba(24,209,138,0.06)' : 'rgba(24,209,138,0.02)',
             color: 'var(--ink-text, var(--text-primary))',
@@ -598,16 +614,16 @@ function PrintUploader({ value, onChange }) {
             width: '100%',
           }}
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink-green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.85 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-green)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.9, flexShrink: 0 }}>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-green)' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-green)' }}>
             {uploading ? 'enviando…' : 'Upload (jpg/png até 5MB)'}
           </div>
           <div style={{ fontSize: 11, color: 'var(--ink-muted, var(--text-muted))' }}>
-            ou cole um link da imagem
+            · ou cole um link
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFile} style={{ display: 'none' }} disabled={uploading} />
         </button>
