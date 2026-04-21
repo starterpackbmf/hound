@@ -636,7 +636,7 @@ function EquityCard({ data }) {
   segments.push(current)
 
   // calcula largura horizontal de cada segmento pra animar em sequência
-  const TOTAL_DRAW_MS = 1200
+  const TOTAL_DRAW_MS = 2400
   const totalSpan = segments.reduce((sum, s) => sum + (s.pts[s.pts.length - 1][0] - s.pts[0][0]), 0) || 1
   let cumulative = 0
   const segTiming = segments.map(s => {
