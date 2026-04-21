@@ -4,6 +4,7 @@ import { listAccounts, listTrades, getDefaultAccount } from '../../lib/trades'
 import { PageTitle, ErrorBox, Loading } from './ui'
 import { IArrowLeft, IArrowRight, ICalendar } from '../../components/icons'
 import { WeekdayHeatmap, MapaOperacional, DiagnosticoPeriodo, FocoDoPeriodo } from '../../components/HistoryInsights'
+import { InkSelect } from '../../components/InkControls'
 
 const DIAS = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
 const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
@@ -90,16 +91,23 @@ export default function Historico() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      <PageTitle eyebrow="OPERACIONAL" sub="calendário mensal dos seus trades.">histórico</PageTitle>
+    <div className="ink-modal" style={{ maxWidth: 900, margin: '0 auto' }}>
+      <div style={{ marginBottom: 20 }}>
+        <h1 style={{
+          fontSize: 28, fontWeight: 700, letterSpacing: '0.02em',
+          margin: 0, color: 'var(--ink-text, var(--text-primary))',
+          textTransform: 'uppercase',
+        }}>
+          Histórico
+        </h1>
+      </div>
 
-      {/* Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Controls — glass card */}
+      <div className="ink-card" style={{ padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         {accounts.length > 1 && (
-          <select value={accountId} onChange={e => setAccountId(e.target.value)}
-            style={{ padding: '7px 10px', background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12 }}>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+          <div style={{ minWidth: 180 }}>
+            <InkSelect value={accountId} onChange={setAccountId} options={accounts.map(a => ({ value: a.id, label: a.name }))} />
+          </div>
         )}
         <div style={{ display: 'flex', gap: 4 }}>
           {['todos', 'WIN', 'WDO'].map(f => (
@@ -110,15 +118,15 @@ export default function Historico() {
           ))}
         </div>
         <div style={{ flex: 1 }} />
-        <button onClick={() => shiftMonth(-1)} className="btn btn-ghost" style={{ padding: 6 }}><IArrowLeft size={14} stroke={1.8} /></button>
-        <div style={{ fontSize: 13, color: 'var(--text-primary)', minWidth: 140, textAlign: 'center', fontFamily: 'var(--font-mono)' }}>
+        <button onClick={() => shiftMonth(-1)} className="btn btn-ghost" style={{ padding: 8 }}><IArrowLeft size={14} stroke={1.8} /></button>
+        <div style={{ fontSize: 13, color: 'var(--text-primary)', minWidth: 140, textAlign: 'center', fontFamily: 'JetBrains Mono, monospace', fontWeight: 500, textTransform: 'capitalize' }}>
           {MESES[monthDate.getMonth()]} {monthDate.getFullYear()}
         </div>
-        <button onClick={() => shiftMonth(1)} className="btn btn-ghost" style={{ padding: 6 }}><IArrowRight size={14} stroke={1.8} /></button>
+        <button onClick={() => shiftMonth(1)} className="btn btn-ghost" style={{ padding: 8 }}><IArrowRight size={14} stroke={1.8} /></button>
       </div>
 
-      {/* Aggregate */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 20 }}>
+      {/* Aggregate — glass cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 20 }}>
         <AggStat label="TRADES" value={agg.total} />
         <AggStat label="W / L" value={`${agg.wins}W / ${agg.losses}L`} />
         <AggStat label="PTS" value={agg.pts.toFixed(1)} color={agg.pts >= 0 ? 'var(--up)' : 'var(--down)'} />
@@ -128,7 +136,7 @@ export default function Historico() {
       {err ? <ErrorBox>{err}</ErrorBox>
        : loading ? <Loading />
        : (
-        <div className="card" style={{ padding: 16 }}>
+        <div className="ink-card" style={{ padding: 16 }}>
           {/* weekday header */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
             {DIAS.map(d => (
@@ -197,9 +205,9 @@ export default function Historico() {
 
 function AggStat({ label, value, color }) {
   return (
-    <div className="card" style={{ padding: '10px 12px' }}>
-      <div className="label-muted" style={{ fontSize: 9, marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 15, fontWeight: 500, fontFamily: 'var(--font-mono)', color: color || 'var(--text-primary)' }}>
+    <div className="ink-card" style={{ padding: '12px 14px' }}>
+      <div className="label-muted" style={{ fontSize: 10, marginBottom: 6, letterSpacing: '0.12em' }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, fontFamily: 'JetBrains Mono, monospace', color: color || 'var(--text-primary)', letterSpacing: '-0.02em' }}>
         {value}
       </div>
     </div>

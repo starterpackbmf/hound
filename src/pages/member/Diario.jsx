@@ -123,6 +123,10 @@ export default function Diario() {
           <InkDate value={urlDate} onChange={changeDate} />
         </div>
         <button onClick={() => shiftDate(1)} className="btn btn-ghost" style={{ padding: 8 }}><IArrowRight size={14} stroke={1.8} /></button>
+        <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', textTransform: 'capitalize', letterSpacing: '0.04em' }}>
+          {new Date(urlDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long' })}
+          {urlDate === todayIso() && <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 4, background: 'rgba(24,209,138,0.14)', color: 'var(--ink-green)', fontSize: 10, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>hoje</span>}
+        </div>
         <div style={{ flex: 1 }} />
         {trades.length > 0 && (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
