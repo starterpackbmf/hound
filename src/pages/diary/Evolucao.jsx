@@ -129,22 +129,31 @@ export default function Evolucao() {
   }, [filtered])
 
   // por estratégia
+  // pontos do trade: usa total_points quando tem, senão cai pra media_ponderada * contratos_iniciais
+  const tradePoints = (t) => {
+    if (typeof t.total_points === 'number' && !Number.isNaN(t.total_points)) return t.total_points
+    const mp = Number(t.media_ponderada) || 0
+    const c = Number(t.contratos_iniciais) || 0
+    return mp * c
+  }
+
   const bySetup = useMemo(() => {
     const m = {}
     ;['TA', 'TC', 'TRM', 'FQ'].forEach(k => { m[k] = { trades: [], points: 0, brl: 0 } })
     filtered.forEach(t => {
       if (!m[t.setup]) return
       m[t.setup].trades.push(t)
-      m[t.setup].points += t.total_points || 0
+      m[t.setup].points += tradePoints(t)
       m[t.setup].brl += t.resultado_brl || 0
     })
     return Object.entries(m).map(([code, d]) => {
       const ops = d.trades.length
-      const wins = d.trades.filter(t => (t.total_points || 0) > 0).length
+      const pointsArr = d.trades.map(tradePoints)
+      const wins = pointsArr.filter(p => p > 0).length
+      const losses = pointsArr.filter(p => p < 0).length
       const hitRate = ops > 0 ? Math.round((wins / ops) * 100) : 0
-      const losses = d.trades.filter(t => (t.total_points || 0) < 0).length
-      const avgWin = wins > 0 ? d.trades.filter(t => (t.total_points || 0) > 0).reduce((s, t) => s + t.total_points, 0) / wins : 0
-      const avgLoss = losses > 0 ? Math.abs(d.trades.filter(t => (t.total_points || 0) < 0).reduce((s, t) => s + t.total_points, 0) / losses) : 0
+      const avgWin = wins > 0 ? pointsArr.filter(p => p > 0).reduce((s, p) => s + p, 0) / wins : 0
+      const avgLoss = losses > 0 ? Math.abs(pointsArr.filter(p => p < 0).reduce((s, p) => s + p, 0) / losses) : 0
       const payoff = avgLoss > 0 ? avgWin / avgLoss : 0
       return { code, ops, points: d.points, brl: d.brl, hitRate, payoff }
     })
@@ -396,6 +405,26 @@ function DaysCard({ days, streak }) {
   )
 }
 
+function niceTicks(min, max, target = 5) {
+  const range = max - min
+  if (range === 0) return [min]
+  const rough = range / target
+  const mag = Math.pow(10, Math.floor(Math.log10(rough)))
+  const normalized = rough / mag
+  const step = (normalized < 1.5 ? 1 : normalized < 3 ? 2 : normalized < 7 ? 5 : 10) * mag
+  const start = Math.floor(min / step) * step
+  const ticks = []
+  for (let v = start; v <= max + step * 0.5; v += step) ticks.push(v)
+  return ticks
+}
+
+function fmtAxis(v) {
+  const abs = Math.abs(v)
+  const sign = v < 0 ? '-' : ''
+  if (abs >= 1000) return `${sign}R$${Math.round(abs / 1000)}k`
+  return `${sign}R$${Math.round(abs)}`
+}
+
 function EquityCard({ data }) {
   const [hover, setHover] = useState(null)
   const ref = useRef(null)
@@ -410,7 +439,7 @@ function EquityCard({ data }) {
     return () => ro.disconnect()
   }, [])
 
-  const pad = { l: 8, r: 8, t: 30, b: 30 }
+  const pad = { l: 50, r: 12, t: 20, b: 30 }
   if (data.length < 2) {
     return (
       <div className="ink-card" style={{ padding: 20, minHeight: 280 }}>
@@ -421,14 +450,40 @@ function EquityCard({ data }) {
   }
 
   const ys = data.map(d => d.value)
-  const minY = Math.min(0, ...ys), maxY = Math.max(...ys)
+  const minRaw = Math.min(0, ...ys), maxRaw = Math.max(0, ...ys)
+  const ticks = niceTicks(minRaw, maxRaw, 5)
+  const minY = Math.min(...ticks), maxY = Math.max(...ticks)
   const w = size.w - pad.l - pad.r, h = size.h - pad.t - pad.b
+  const yScale = v => pad.t + h - ((v - minY) / (maxY - minY || 1)) * h
   const pts = data.map((d, i) => [
     pad.l + (i / (data.length - 1)) * w,
-    pad.t + h - ((d.value - minY) / (maxY - minY || 1)) * h,
+    yScale(d.value),
   ])
-  const path = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
-  const areaD = path + ` L ${pts[pts.length - 1][0]} ${pad.t + h} L ${pts[0][0]} ${pad.t + h} Z`
+
+  // segmenta a linha: verde quando >=0, vermelho quando <0
+  // gera segmentos cruzando zero com interpolação
+  const baseY = yScale(0)
+  const segments = []
+  let current = { pts: [pts[0]], positive: data[0].value >= 0 }
+  for (let i = 1; i < data.length; i++) {
+    const prevVal = data[i-1].value, curVal = data[i].value
+    const prevPos = prevVal >= 0, curPos = curVal >= 0
+    if (prevPos === curPos) {
+      current.pts.push(pts[i])
+    } else {
+      // cross — interpola ponto em y=0
+      const t = prevVal / (prevVal - curVal)
+      const crossX = pts[i-1][0] + (pts[i][0] - pts[i-1][0]) * t
+      const crossPt = [crossX, baseY]
+      current.pts.push(crossPt)
+      segments.push(current)
+      current = { pts: [crossPt, pts[i]], positive: curPos }
+    }
+  }
+  segments.push(current)
+
+  const pathD = (segPts) => segPts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
+  const areaD = (segPts) => pathD(segPts) + ` L ${segPts[segPts.length - 1][0]} ${baseY} L ${segPts[0][0]} ${baseY} Z`
 
   // drawdown max
   let peak = data[0].value, lowIdx = 0, maxDD = 0
@@ -439,8 +494,8 @@ function EquityCard({ data }) {
   })
   const lowPt = pts[lowIdx]
   const lastPt = pts[pts.length - 1]
-
-  const baseY = pad.t + h - ((0 - minY) / (maxY - minY || 1)) * h
+  const lastPositive = data[data.length - 1].value >= 0
+  const endColor = lastPositive ? GREEN : RED
 
   function onMove(e) {
     const rect = ref.current.getBoundingClientRect()
@@ -454,23 +509,42 @@ function EquityCard({ data }) {
       <div style={{ fontSize: 13, fontWeight: 500, color: TEXT, marginBottom: 12 }}>Curva de Capital</div>
       <svg ref={ref} width="100%" height={size.h} onMouseMove={onMove} onMouseLeave={() => setHover(null)} style={{ display: 'block', cursor: 'crosshair' }}>
         <defs>
-          <linearGradient id="eq-fill" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="eq-fill-g" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={GREEN} stopOpacity="0.28" />
             <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
           </linearGradient>
+          <linearGradient id="eq-fill-r" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor={RED} stopOpacity="0.28" />
+            <stop offset="100%" stopColor={RED} stopOpacity="0" />
+          </linearGradient>
         </defs>
-        {/* grid */}
-        {[0.25, 0.5, 0.75].map((f, i) => (
-          <line key={i} x1={pad.l} y1={pad.t + h * f} x2={pad.l + w} y2={pad.t + h * f} stroke={LINE} strokeDasharray="1 5" />
-        ))}
-        {/* baseline 0 */}
-        <line x1={pad.l} y1={baseY} x2={pad.l + w} y2={baseY} stroke="rgba(255,255,255,0.18)" strokeDasharray="3 4" />
-        <text x={pad.l + 4} y={baseY - 5} style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.5 }}>
-          INÍCIO
-        </text>
 
-        <path d={areaD} fill="url(#eq-fill)" />
-        <path d={path} fill="none" stroke={GREEN} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        {/* linhas de referência + labels */}
+        {ticks.map((t, i) => {
+          const y = yScale(t)
+          const isZero = t === 0
+          return (
+            <g key={i}>
+              <line x1={pad.l} y1={y} x2={pad.l + w} y2={y}
+                stroke={isZero ? 'rgba(255,255,255,0.18)' : LINE}
+                strokeDasharray={isZero ? '3 4' : '1 5'} />
+              <text x={pad.l - 8} y={y + 3.5} textAnchor="end"
+                style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fill: isZero ? MUTED : DIM }}>
+                {fmtAxis(t)}
+              </text>
+            </g>
+          )
+        })}
+
+        {/* áreas + linhas segmentadas */}
+        {segments.map((seg, i) => (
+          <g key={i}>
+            <path d={areaD(seg.pts)} fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'} />
+            <path d={pathD(seg.pts)} fill="none"
+              stroke={seg.positive ? GREEN : RED}
+              strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </g>
+        ))}
 
         {/* drawdown marker */}
         {maxDD > 0 && (
@@ -481,24 +555,41 @@ function EquityCard({ data }) {
         )}
 
         {/* end glow */}
-        <circle cx={lastPt[0]} cy={lastPt[1]} r="4" fill={GREEN} />
-        <circle cx={lastPt[0]} cy={lastPt[1]} r="12" fill={GREEN} opacity="0.3" className="ink-dot-pulse" />
+        <circle cx={lastPt[0]} cy={lastPt[1]} r="4" fill={endColor} />
+        <circle cx={lastPt[0]} cy={lastPt[1]} r="12" fill={endColor} opacity="0.3" className="ink-dot-pulse" />
+
+        {/* datas eixo X */}
+        {(() => {
+          const labels = []
+          const step = Math.max(1, Math.floor(data.length / 6))
+          for (let i = 0; i < data.length; i += step) {
+            const [x] = pts[i]
+            const d = new Date(data[i].date + 'T12:00')
+            labels.push(
+              <text key={i} x={x} y={pad.t + h + 18} textAnchor="middle"
+                style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.4 }}>
+                {d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace(' de ', ' ').replace('.', '')}
+              </text>
+            )
+          }
+          return labels
+        })()}
 
         {/* hover */}
         {hover && (
           <g>
             <line x1={hover.x} y1={pad.t} x2={hover.x} y2={pad.t + h} stroke="rgba(255,255,255,0.16)" />
-            <circle cx={hover.x} cy={hover.y} r="4" fill="#07080A" stroke={GREEN} strokeWidth="1.4" />
+            <circle cx={hover.x} cy={hover.y} r="4" fill="#07080A" stroke={data[hover.i].value >= 0 ? GREEN : RED} strokeWidth="1.4" />
             <g transform={`translate(${Math.min(hover.x + 10, size.w - 170)}, ${Math.max(hover.y - 56, pad.t + 4)})`}>
               <rect width="160" height="50" rx="6" fill="rgba(14,16,19,0.94)" stroke="rgba(255,255,255,0.1)" />
               <text x="10" y="15" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.8, textTransform: 'uppercase' }}>
                 {new Date(data[hover.i].date + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
               </text>
-              <text x="10" y="30" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fill: TEXT, fontWeight: 500 }}>
-                R$ {data[hover.i].value.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+              <text x="10" y="30" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fill: data[hover.i].value >= 0 ? GREEN : RED, fontWeight: 500 }}>
+                {data[hover.i].value >= 0 ? '+' : '−'}R$ {Math.abs(data[hover.i].value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
               </text>
               <text x="10" y="43" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fill: data[hover.i].dayPnl >= 0 ? GREEN : RED }}>
-                {data[hover.i].dayPnl >= 0 ? '+' : '−'}R$ {Math.abs(data[hover.i].dayPnl).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                dia: {data[hover.i].dayPnl >= 0 ? '+' : '−'}R$ {Math.abs(data[hover.i].dayPnl).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
               </text>
             </g>
           </g>
@@ -509,6 +600,18 @@ function EquityCard({ data }) {
 }
 
 function DailyCard({ data }) {
+  const ref = useRef(null)
+  const [size, setSize] = useState({ w: 480, h: 260 })
+
+  useEffect(() => {
+    if (!ref.current) return
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) setSize({ w: e.contentRect.width, h: 260 })
+    })
+    ro.observe(ref.current)
+    return () => ro.disconnect()
+  }, [])
+
   if (data.length === 0) {
     return (
       <div className="ink-card" style={{ padding: 20, minHeight: 280 }}>
@@ -517,35 +620,73 @@ function DailyCard({ data }) {
       </div>
     )
   }
-  const maxAbs = Math.max(...data.map(d => Math.abs(d.value)), 1)
+
+  const pad = { l: 50, r: 12, t: 20, b: 30 }
+  const vals = data.map(d => d.value)
+  const minRaw = Math.min(0, ...vals), maxRaw = Math.max(0, ...vals)
+  const ticks = niceTicks(minRaw, maxRaw, 5)
+  const minY = Math.min(...ticks), maxY = Math.max(...ticks)
+  const w = size.w - pad.l - pad.r, h = size.h - pad.t - pad.b
+  const yScale = v => pad.t + h - ((v - minY) / (maxY - minY || 1)) * h
+  const baseY = yScale(0)
+  const slot = w / data.length
+  const barW = Math.max(3, slot * 0.7)
+
   return (
-    <div className="ink-card ink-fade-up" style={{ padding: 18 }}>
+    <div className="ink-card ink-fade-up" style={{ padding: 18, position: 'relative' }}>
       <div style={{ fontSize: 13, fontWeight: 500, color: TEXT, marginBottom: 12 }}>Resultado Diário</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 3, height: 232, justifyContent: 'flex-end' }}>
-        {data.map(d => {
-          const heightPct = Math.abs(d.value) / maxAbs
-          const up = d.value >= 0
+      <svg ref={ref} width="100%" height={size.h} style={{ display: 'block' }}>
+        {/* ticks */}
+        {ticks.map((t, i) => {
+          const y = yScale(t)
+          const isZero = t === 0
           return (
-            <div key={d.date} style={{
-              flex: 1,
-              height: `${Math.max(heightPct * 90, 2)}%`,
-              background: up ? GREEN : RED,
-              borderRadius: 2,
-              minWidth: 4,
-              opacity: 0.85,
-              transition: 'opacity .15s ease',
-            }}
-            title={`${d.date}: ${d.value >= 0 ? '+' : '−'}R$ ${Math.abs(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}
-            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-            onMouseLeave={e => e.currentTarget.style.opacity = '0.85'}
-            />
+            <g key={i}>
+              <line x1={pad.l} y1={y} x2={pad.l + w} y2={y}
+                stroke={isZero ? 'rgba(255,255,255,0.18)' : LINE}
+                strokeDasharray={isZero ? '3 4' : '1 5'} />
+              <text x={pad.l - 8} y={y + 3.5} textAnchor="end"
+                style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fill: isZero ? MUTED : DIM }}>
+                {fmtAxis(t)}
+              </text>
+            </g>
           )
         })}
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, fontSize: 9, color: DIM, fontFamily: 'JetBrains Mono, monospace', letterSpacing: 0.5 }}>
-        <span>{new Date(data[0].date + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase()}</span>
-        <span>HOJE</span>
-      </div>
+
+        {/* bars */}
+        {data.map((d, i) => {
+          const up = d.value >= 0
+          const cx = pad.l + slot * (i + 0.5)
+          const yVal = yScale(d.value)
+          const y = Math.min(yVal, baseY)
+          const barH = Math.abs(yVal - baseY)
+          return (
+            <g key={d.date}>
+              <rect x={cx - barW / 2} y={y} width={barW} height={Math.max(barH, 1)}
+                fill={up ? GREEN : RED} rx="2" opacity="0.88">
+                <title>{`${d.date}: ${up ? '+' : '−'}R$ ${Math.abs(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}</title>
+              </rect>
+            </g>
+          )
+        })}
+
+        {/* x-axis labels */}
+        {(() => {
+          const labels = []
+          const step = Math.max(1, Math.floor(data.length / 6))
+          for (let i = 0; i < data.length; i += step) {
+            const cx = pad.l + slot * (i + 0.5)
+            const d = new Date(data[i].date + 'T12:00')
+            labels.push(
+              <text key={i} x={cx} y={pad.t + h + 18} textAnchor="middle"
+                style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.4 }}>
+                {d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace(' de ', ' ').replace('.', '')}
+              </text>
+            )
+          }
+          return labels
+        })()}
+      </svg>
     </div>
   )
 }
