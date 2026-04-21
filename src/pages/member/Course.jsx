@@ -360,6 +360,7 @@ function ModuleCard({ node, onEnterGroup, onSelectVideo }) {
         cursor: clickable ? 'pointer' : 'default',
         textAlign: 'left', color: 'inherit',
         opacity: clickable ? 1 : 0.55,
+        width: '100%',
       }}
     >
       <div style={{

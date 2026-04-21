@@ -91,6 +91,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="operacional" element={<Operacional />} />
             <Route path="plano" element={<PlanoExecucao />} />
             <Route path="jornada" element={<Jornada />} />
+            <Route path="wolf" element={<ResumoSemanal />} />
           </Route>
 
           <Route path="/p/:id" element={<Perfil />} />

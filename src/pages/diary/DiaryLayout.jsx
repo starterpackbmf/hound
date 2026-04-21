@@ -3,7 +3,7 @@ import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyProfile } from '../../lib/profile'
 import {
-  ITrendingUp, IPencil, IClock, ICheck, ITarget, ISparkles, IBook, IArrowLeft, ILogOut,
+  ITrendingUp, IPencil, IClock, ICheck, ITarget, ISparkles, IBook, IArrowLeft, ILogOut, IZap,
 } from '../../components/icons'
 
 const NAV = [
@@ -12,6 +12,7 @@ const NAV = [
   { to: '/diary/historico',     label: 'histórico',        icon: IClock },
   { to: '/diary/finalizar-dia', label: 'finalizar dia',    icon: ICheck },
   { to: '/diary/operacional',   label: 'raio-x setups',    icon: ITarget },
+  { to: '/diary/wolf',          label: 'w.o.l.f ai',       icon: IZap },
   { to: '/diary/plano',         label: 'plano',            icon: IBook },
   { to: '/diary/jornada',       label: 'jornada',          icon: ISparkles },
 ]

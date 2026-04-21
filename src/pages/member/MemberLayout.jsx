@@ -32,9 +32,11 @@ const SECTIONS = [
   {
     label: 'aprendizado',
     items: [
-      { to: '/app/estudo',        label: 'aulas',             icon: IBook },
+      { to: '/app/aulas',         label: 'ao vivo',           icon: IPlay, liveDot: true },
+      { to: '/app/estudo',        label: 'cursos',            icon: IBook },
+      { to: '/app/imersoes',      label: 'imersões',          icon: IEye },
+      { to: '/app/cursos-gratis', label: 'cursos grátis',     icon: IBook },
       { to: '/app/oraculo',       label: 'oráculo',           icon: GYinYang },
-      { to: '/app/resumo-semanal',label: 'w.o.l.f ai',        icon: IZap },
     ],
   },
   {
@@ -44,8 +46,6 @@ const SECTIONS = [
       { to: '/app/feedback',      label: 'feedback',          icon: IMessage },
       { to: '/app/sessoes',       label: 'sessões',           icon: IMessage },
       { to: '/app/plano-execucao', label: 'plano',            icon: ITarget },
-      { to: '/app/aulas',         label: 'ao vivo',           icon: IPlay, liveDot: true },
-      { to: '/app/imersoes',      label: 'imersões',          icon: IEye },
     ],
   },
   {
@@ -61,7 +61,6 @@ const SECTIONS = [
   {
     label: 'conta',
     items: [
-      { to: '/app/cursos-gratis', label: 'cursos grátis',     icon: IBook },
       { to: '/app/parcerias',     label: 'parcerias',         icon: IExternalLink },
       { to: '/app/packstore',     label: 'pack store',        icon: IStar },
       { to: '/app/minha-ficha',   label: 'minha ficha',       icon: IUsers },
