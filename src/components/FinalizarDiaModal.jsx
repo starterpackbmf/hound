@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import FinalizarDia from '../pages/member/FinalizarDia'
 
-export default function FinalizarDiaModal({ open, onClose, onSaved, date }) {
+export default function FinalizarDiaModal({ open, onClose, onSaved, date, initialDidNotTrade = false }) {
   useEffect(() => {
     if (!open) return
     function onKey(e) { if (e.key === 'Escape') onClose?.() }
@@ -42,7 +42,7 @@ export default function FinalizarDiaModal({ open, onClose, onSaved, date }) {
           maxHeight: '90vh', overflowY: 'auto',
         }}
       >
-        <FinalizarDia modal onClose={onClose} onSaved={onSaved} date={date} />
+        <FinalizarDia modal onClose={onClose} onSaved={onSaved} date={date} initialDidNotTrade={initialDidNotTrade} />
       </div>
     </div>,
     document.body,

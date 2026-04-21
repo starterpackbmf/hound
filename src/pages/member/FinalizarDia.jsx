@@ -13,12 +13,11 @@ const CHECKLIST_ITEMS = [
   'Registrei todos os trades',
   'Analisei o mercado antes de operar',
   'Aceitei perdas sem vingança',
-  'Celebrei ganhos sem euforia',
 ]
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
-export default function FinalizarDia({ modal = false, onClose, onSaved, date: dateProp } = {}) {
+export default function FinalizarDia({ modal = false, onClose, onSaved, date: dateProp, initialDidNotTrade = false } = {}) {
   const { user } = useAuth()
   const nav = useNavigate()
   const today = dateProp || todayIso()
@@ -32,7 +31,7 @@ export default function FinalizarDia({ modal = false, onClose, onSaved, date: da
     performance: '',
     learning: '',
     checklist: [],
-    did_not_trade: false,
+    did_not_trade: initialDidNotTrade,
   })
 
   useEffect(() => {
@@ -224,17 +223,12 @@ export default function FinalizarDia({ modal = false, onClose, onSaved, date: da
         />
       </Section>
 
-      <Section title="não operou hoje?">
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: finalized ? 'default' : 'pointer' }}>
-          <input
-            type="checkbox"
-            disabled={finalized}
-            checked={form.did_not_trade}
-            onChange={e => setForm(f => ({ ...f, did_not_trade: e.target.checked }))}
-          />
-          não operei hoje (reflection day)
-        </label>
-      </Section>
+      {form.did_not_trade && (
+        <div className="card" style={{ padding: 14, marginBottom: 16, borderColor: 'rgba(245,158,11,0.3)', background: 'rgba(245,158,11,0.06)' }}>
+          <div style={{ fontSize: 12, color: 'var(--amber)', fontWeight: 600, marginBottom: 2 }}>📝 dia de reflexão</div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>você marcou que não operou hoje.</div>
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
         <button onClick={finalize} disabled={saving} className="btn btn-primary">

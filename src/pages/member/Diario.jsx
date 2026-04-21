@@ -29,6 +29,7 @@ export default function Diario() {
   const [err, setErr] = useState(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
   const [showFinalizarModal, setShowFinalizarModal] = useState(false)
+  const [finalizarDidNotTrade, setFinalizarDidNotTrade] = useState(false)
 
   async function reload(accId = accountId, date = urlDate) {
     if (!accId) return
@@ -147,7 +148,7 @@ export default function Diario() {
               <IPlus size={12} stroke={2} /> registrar trade
             </button>
             {!daySummary?.did_not_trade && (
-              <button onClick={() => onFinalize(true)} className="btn">não cliquei hoje</button>
+              <button onClick={() => { setFinalizarDidNotTrade(true); setShowFinalizarModal(true) }} className="btn">não cliquei hoje</button>
             )}
           </div>
         </div>
@@ -191,12 +192,14 @@ export default function Diario() {
       />
       <FinalizarDiaModal
         open={showFinalizarModal}
-        onClose={() => setShowFinalizarModal(false)}
+        onClose={() => { setShowFinalizarModal(false); setFinalizarDidNotTrade(false) }}
         onSaved={async () => {
           setShowFinalizarModal(false)
+          setFinalizarDidNotTrade(false)
           await reload()
         }}
         date={urlDate}
+        initialDidNotTrade={finalizarDidNotTrade}
       />
     </div>
   )
