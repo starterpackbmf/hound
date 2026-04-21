@@ -229,12 +229,12 @@ export default function Evolucao() {
 
       {/* FILTROS */}
       <div className="ink-fade-up" style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: filtersOpen ? 12 : 0, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 3 }}>Evolução</div>
             <div style={{ fontSize: 11, color: DIM, letterSpacing: '0.04em' }}>Performance do trader</div>
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', position: 'relative' }}>
             {activeFilterCount(period, asset) > 0 && (
               <button onClick={() => { setPeriod('all'); setAsset('all'); setCustomRange({ from: '', to: '' }) }}
                 style={{ fontSize: 11, color: DIM, padding: '6px 10px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
@@ -262,24 +262,36 @@ export default function Evolucao() {
                 }}>{activeFilterCount(period, asset)}</span>
               )}
             </button>
+
+            {filtersOpen && (
+              <>
+                <div onClick={() => setFiltersOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 5 }} />
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+                  zIndex: 10, minWidth: 440,
+                  padding: 14, borderRadius: 10,
+                  background: 'linear-gradient(180deg, rgba(20,24,29,0.98), rgba(14,16,19,0.98))',
+                  border: '1px solid var(--ink-line-strong)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
+                  display: 'flex', flexDirection: 'column', gap: 6,
+                  animation: 'ink-fade-up .15s ease-out both',
+                }}>
+                  <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
+                  {period === 'custom' && (
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
+                      <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
+                        style={dateInput} />
+                      <span style={{ color: DIM, fontSize: 11 }}>→</span>
+                      <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
+                        style={dateInput} />
+                    </div>
+                  )}
+                  <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
+                </div>
+              </>
+            )}
           </div>
         </div>
-
-        {filtersOpen && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 4 }}>
-            <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
-            {period === 'custom' && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
-                <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
-                  style={dateInput} />
-                <span style={{ color: DIM, fontSize: 11 }}>→</span>
-                <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
-                  style={dateInput} />
-              </div>
-            )}
-            <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
-          </div>
-        )}
       </div>
 
       {/* METRIC CARDS */}
