@@ -24,7 +24,7 @@ const ASSETS = ['WIN', 'WDO']
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
-export default function NovoTrade() {
+export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate } = {}) {
   const { id } = useParams()
   const [params] = useSearchParams()
   const nav = useNavigate()
@@ -40,7 +40,7 @@ export default function NovoTrade() {
 
   const [form, setForm] = useState({
     account_id: '',
-    date: params.get('date') || todayIso(),
+    date: defaultDate || params.get('date') || todayIso(),
     horario_entrada: '09:00',
     horario_saida: '09:00',
     ativo: 'WIN',
@@ -188,7 +188,11 @@ export default function NovoTrade() {
       if (!isEdit) {
         earnByRule('trade_registered', `trade ${saved.ativo} ${saved.setup}`).catch(() => {})
       }
-      nav('/app/diario?date=' + form.date, { replace: true })
+      if (modal && onSaved) {
+        onSaved(saved)
+      } else {
+        nav('/app/diario?date=' + form.date, { replace: true })
+      }
     } catch (e) {
       setErr(e.message)
     } finally {
@@ -200,24 +204,37 @@ export default function NovoTrade() {
 
   return (
     <div style={{ maxWidth: 780 }}>
-      <div style={{ marginBottom: 16 }}>
-        <Link to={`/app/diario?date=${form.date}`} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          fontSize: 11, color: 'var(--text-muted)',
-        }}>
-          <IArrowLeft size={12} stroke={1.6} />
-          voltar pro diário
-        </Link>
-      </div>
+      {!modal && (
+        <div style={{ marginBottom: 16 }}>
+          <Link to={`/app/diario?date=${form.date}`} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 11, color: 'var(--text-muted)',
+          }}>
+            <IArrowLeft size={12} stroke={1.6} />
+            voltar pro diário
+          </Link>
+        </div>
+      )}
 
-      <header style={{ marginBottom: 24 }}>
-        <div className="eyebrow" style={{ marginBottom: 8 }}>REGISTRO DE OPERAÇÃO</div>
-        <h1 className="display" style={{ fontSize: 26, fontWeight: 500, letterSpacing: '-0.02em', margin: 0 }}>
-          {isEdit ? 'Editar trade' : 'Novo trade'}
-        </h1>
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
-          Protocolo de Performance · V3.0
-        </p>
+      <header style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 8 }}>REGISTRO DE OPERAÇÃO</div>
+          <h1 className="display" style={{ fontSize: 26, fontWeight: 500, letterSpacing: '-0.02em', margin: 0 }}>
+            {isEdit ? 'Editar trade' : 'Novo trade'}
+          </h1>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
+            Protocolo de Performance · V3.0
+          </p>
+        </div>
+        {modal && onClose && (
+          <button onClick={onClose} style={{
+            width: 32, height: 32, borderRadius: 8,
+            background: 'var(--surface-2)', border: '1px solid var(--border)',
+            color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }} title="fechar">
+            <IX size={14} stroke={1.8} />
+          </button>
+        )}
       </header>
 
       {err && <div style={{ marginBottom: 16 }}><ErrorBox>{err}</ErrorBox></div>}
@@ -431,9 +448,11 @@ export default function NovoTrade() {
         <button onClick={save} disabled={saving} className="btn btn-primary">
           {saving ? 'gravando...' : isEdit ? 'atualizar' : 'gravar operação'}
         </button>
-        <Link to={`/app/diario?date=${form.date}`} className="btn btn-ghost">
-          descartar
-        </Link>
+        {modal && onClose ? (
+          <button onClick={onClose} className="btn btn-ghost">descartar</button>
+        ) : (
+          <Link to={`/app/diario?date=${form.date}`} className="btn btn-ghost">descartar</Link>
+        )}
         {!isEdit && <span style={{ fontSize: 10, color: 'var(--text-muted)', alignSelf: 'center', fontFamily: 'var(--font-mono)' }}>+3 SC ao registrar</span>}
       </div>
     </div>

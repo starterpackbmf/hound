@@ -7,6 +7,7 @@ import {
 import { earnByRule } from '../../lib/free'
 import { PageTitle, ErrorBox, Loading } from './ui'
 import { IPlus, IPencil, IX, ICheck, ICalendar, IArrowLeft, IArrowRight } from '../../components/icons'
+import TradeModal from '../../components/TradeModal'
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 function fmtBR(iso) {
@@ -25,6 +26,7 @@ export default function Diario() {
   const [daySummary, setDaySummary] = useState(null)
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
+  const [showTradeModal, setShowTradeModal] = useState(false)
 
   async function reload(accId = accountId, date = urlDate) {
     if (!accId) return
@@ -94,9 +96,9 @@ export default function Diario() {
     <div style={{ maxWidth: 900 }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <PageTitle eyebrow="OPERACIONAL">diário de trade</PageTitle>
-        <Link to={`/app/novo-trade?date=${urlDate}`} className="btn btn-primary">
+        <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
           <IPlus size={12} stroke={2} /> registrar trade
-        </Link>
+        </button>
       </div>
 
       {/* Date + account controls */}
@@ -139,9 +141,9 @@ export default function Diario() {
             registrar um trade vale <strong style={{ color: 'var(--amber)' }}>+3 SC</strong>
           </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-            <Link to={`/app/novo-trade?date=${urlDate}`} className="btn btn-primary">
+            <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
               <IPlus size={12} stroke={2} /> registrar trade
-            </Link>
+            </button>
             {!daySummary?.did_not_trade && (
               <button onClick={() => onFinalize(true)} className="btn">não cliquei hoje</button>
             )}
@@ -175,6 +177,16 @@ export default function Diario() {
           ✓ dia finalizado {daySummary.did_not_trade && '(não operou)'}
         </div>
       )}
+
+      <TradeModal
+        open={showTradeModal}
+        onClose={() => setShowTradeModal(false)}
+        onSaved={async () => {
+          setShowTradeModal(false)
+          await reload()
+        }}
+        defaultDate={urlDate}
+      />
     </div>
   )
 }
