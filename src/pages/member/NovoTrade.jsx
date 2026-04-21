@@ -485,6 +485,20 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       <Section title="print da operação">
         <PrintUploader value={form.print_url} onChange={v => set('print_url', v)} />
       </Section>
+
+      {/* BOTÕES — no modal ficam dentro da coluna esquerda, debaixo do print */}
+      {modal && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button onClick={save} disabled={saving} className="btn btn-primary"
+            style={{ padding: '11px 26px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, minWidth: 220, justifyContent: 'center' }}>
+            {saving ? 'gravando...' : isEdit ? 'atualizar operação' : 'gravar operação'}
+          </button>
+          <button onClick={onClose} className="btn"
+            style={{ padding: '11px 22px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            descartar
+          </button>
+        </div>
+      )}
       </div>
       {/* ────── COLUNA DIREITA ────── */}
       {modal && (
@@ -582,26 +596,22 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       )}
       </div>
 
-      <div style={{
-        display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center',
-        marginTop: 20,
-      }}>
-        {modal && onClose ? (
-          <button onClick={onClose} className="btn"
-            style={{ padding: '10px 22px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
-            descartar
+      {/* No modo full-page (não-modal), botões abaixo do form todo */}
+      {!modal && (
+        <div style={{
+          display: 'flex', gap: 10, alignItems: 'center',
+          marginTop: 20,
+        }}>
+          <button onClick={save} disabled={saving} className="btn btn-primary"
+            style={{ padding: '10px 26px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, minWidth: 200, justifyContent: 'center' }}>
+            {saving ? 'gravando...' : isEdit ? 'atualizar operação' : 'gravar operação'}
           </button>
-        ) : (
           <Link to={`/app/diario?date=${form.date}`} className="btn"
             style={{ padding: '10px 22px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
             descartar
           </Link>
-        )}
-        <button onClick={save} disabled={saving} className="btn btn-primary"
-          style={{ padding: '10px 26px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, minWidth: 200, justifyContent: 'center' }}>
-          {saving ? 'gravando...' : isEdit ? 'atualizar operação' : '🔒 gravar operação'}
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
