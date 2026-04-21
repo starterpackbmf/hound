@@ -8,6 +8,7 @@ import { earnByRule } from '../../lib/free'
 import { PageTitle, ErrorBox, Loading } from './ui'
 import { IPlus, IPencil, IX, ICheck, ICalendar, IArrowLeft, IArrowRight } from '../../components/icons'
 import TradeModal from '../../components/TradeModal'
+import FinalizarDiaModal from '../../components/FinalizarDiaModal'
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 function fmtBR(iso) {
@@ -27,6 +28,7 @@ export default function Diario() {
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState(null)
   const [showTradeModal, setShowTradeModal] = useState(false)
+  const [showFinalizarModal, setShowFinalizarModal] = useState(false)
 
   async function reload(accId = accountId, date = urlDate) {
     if (!accId) return
@@ -96,9 +98,14 @@ export default function Diario() {
     <div style={{ maxWidth: 900 }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <PageTitle eyebrow="OPERACIONAL">diário de trade</PageTitle>
-        <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
-          <IPlus size={12} stroke={2} /> registrar trade
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setShowFinalizarModal(true)} className="btn">
+            <ICheck size={12} stroke={2} /> finalizar o dia
+          </button>
+          <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
+            <IPlus size={12} stroke={2} /> registrar trade
+          </button>
+        </div>
       </div>
 
       {/* Date + account controls */}
@@ -186,6 +193,15 @@ export default function Diario() {
           await reload()
         }}
         defaultDate={urlDate}
+      />
+      <FinalizarDiaModal
+        open={showFinalizarModal}
+        onClose={() => setShowFinalizarModal(false)}
+        onSaved={async () => {
+          setShowFinalizarModal(false)
+          await reload()
+        }}
+        date={urlDate}
       />
     </div>
   )

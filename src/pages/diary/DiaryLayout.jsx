@@ -10,7 +10,6 @@ const NAV = [
   { to: '/diary/evolucao',      label: 'evolução',         icon: ITrendingUp },
   { to: '/diary/diario',        label: 'diário do dia',    icon: IPencil },
   { to: '/diary/historico',     label: 'histórico',        icon: IClock },
-  { to: '/diary/finalizar-dia', label: 'finalizar dia',    icon: ICheck },
   { to: '/diary/operacional',   label: 'raio-x setups',    icon: ITarget },
   { to: '/diary/wolf',          label: 'w.o.l.f ai',       icon: IZap },
   { to: '/diary/plano',         label: 'plano',            icon: IBook },

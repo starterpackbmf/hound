@@ -18,10 +18,10 @@ const CHECKLIST_ITEMS = [
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
-export default function FinalizarDia() {
+export default function FinalizarDia({ modal = false, onClose, onSaved, date: dateProp } = {}) {
   const { user } = useAuth()
   const nav = useNavigate()
-  const today = todayIso()
+  const today = dateProp || todayIso()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState(null)
@@ -106,7 +106,8 @@ export default function FinalizarDia() {
         ? await supabase.from('day_summaries').update(payload).eq('id', existing.id)
         : await supabase.from('day_summaries').insert(payload)
       if (error) throw error
-      nav('/app/diario?date=' + today, { replace: true })
+      if (modal && onSaved) onSaved()
+      else nav('/app/diario?date=' + today, { replace: true })
     } catch (e) {
       setErr(e.message)
     } finally {
@@ -239,7 +240,7 @@ export default function FinalizarDia() {
         <button onClick={finalize} disabled={saving} className="btn btn-primary">
           {saving ? 'finalizando...' : finalized ? 'atualizar resumo' : '🔒 finalizar o dia'}
         </button>
-        <button onClick={() => nav('/app/diario')} className="btn btn-ghost">voltar</button>
+        <button onClick={() => modal ? onClose?.() : nav('/app/diario')} className="btn btn-ghost">{modal ? 'fechar' : 'voltar'}</button>
       </div>
     </div>
   )
