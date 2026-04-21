@@ -343,8 +343,8 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
               {form.partials.map((p, i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr 1fr auto', gap: 8, alignItems: 'center' }}>
                   <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)', width: 24 }}>#{i + 1}</span>
-                  <input className="input" type="number" step="0.5" placeholder="pts" value={p.pts} onChange={e => updateParcial(i, 'pts', e.target.value)} />
                   <input className="input" type="number" min="1" placeholder="contratos" value={p.contratos} onChange={e => updateParcial(i, 'contratos', e.target.value)} />
+                  <input className="input" type="number" step="0.5" placeholder="pts" value={p.pts} onChange={e => updateParcial(i, 'pts', e.target.value)} />
                   <input className="input" type="time" value={p.horario || ''} onChange={e => updateParcial(i, 'horario', e.target.value)} />
                   <button type="button" onClick={() => removeParcial(i)} className="btn btn-ghost" style={{ padding: 6 }}>
                     <IX size={11} stroke={1.8} />
