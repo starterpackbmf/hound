@@ -35,7 +35,7 @@ export default function TradeModal({ open, onClose, onSaved, defaultDate }) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          width: '100%', maxWidth: 820,
+          width: '100%', maxWidth: 1140,
           background:
             'radial-gradient(ellipse 100% 70% at 0% 0%, rgba(24,209,138,0.14) 0%, transparent 60%),' +
             'radial-gradient(ellipse 90% 70% at 100% 100%, rgba(164,152,255,0.12) 0%, transparent 60%),' +

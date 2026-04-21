@@ -256,6 +256,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         />
       )}
 
+      <div style={modal ? { columnCount: 2, columnGap: 28, columnFill: 'balance' } : undefined}>
       {/* IDENTIFICAÇÃO */}
       <Section title="identificação">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
@@ -431,6 +432,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       <Section title="print da operação">
         <PrintUploader value={form.print_url} onChange={v => set('print_url', v)} />
       </Section>
+      </div>
 
       <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
         <button onClick={save} disabled={saving} className="btn btn-primary">

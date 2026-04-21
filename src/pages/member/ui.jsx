@@ -16,7 +16,7 @@ export function PageTitle({ children, eyebrow, sub }) {
 
 export function Section({ title, right, children }) {
   return (
-    <section style={{ marginBottom: 28 }}>
+    <section style={{ marginBottom: 28, breakInside: 'avoid', pageBreakInside: 'avoid', WebkitColumnBreakInside: 'avoid' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <span className="label-muted">{title}</span>
         {right}
