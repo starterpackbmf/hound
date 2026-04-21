@@ -42,10 +42,9 @@ const SECTIONS = [
   {
     label: 'monitoria',
     items: [
-      { to: '/app/monitoria',     label: 'acompanhamento',    icon: ICalendar },
-      { to: '/app/feedback',      label: 'feedback',          icon: IMessage },
-      { to: '/app/sessoes',       label: 'sessões',           icon: IMessage },
-      { to: '/app/plano-execucao', label: 'plano',            icon: ITarget },
+      { to: '/app/monitoria',      label: 'agendar monitoria', icon: ICalendar },
+      { to: '/app/sessoes',        label: 'sessões',           icon: IMessage },
+      { to: '/app/plano-execucao', label: 'plano',             icon: ITarget },
     ],
   },
   {
