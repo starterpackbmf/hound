@@ -262,6 +262,7 @@ export default function DiaryLayout() {
         flex: 1, minWidth: 0, overflowX: 'hidden',
         display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
         padding: '32px 40px 64px',
+        position: 'relative', zIndex: 1,
       }}>
         <div style={{ width: '100%', maxWidth: 1280 }}>
           <Outlet />
