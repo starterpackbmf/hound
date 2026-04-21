@@ -647,11 +647,11 @@ function EquityCard({ data }) {
     return { duration, delay }
   })
 
-  // Catmull-Rom → Cubic Bezier pra suavizar a linha levemente (tension 0.5 = meio catmull-rom)
-  const pathD = (segPts) => {
+  // Catmull-Rom → Cubic Bezier pra suavizar a linha (tension 0.7 = arredondado suave)
+  const smoothPath = (segPts) => {
     if (segPts.length < 2) return `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)}`
     if (segPts.length === 2) return `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)} L ${segPts[1][0].toFixed(1)} ${segPts[1][1].toFixed(1)}`
-    const tension = 0.5 // 0 = reto, 1 = catmull-rom clássico; 0.5 = levemente arredondado
+    const tension = 0.7
     let d = `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)}`
     for (let i = 0; i < segPts.length - 1; i++) {
       const p0 = segPts[Math.max(0, i - 1)]
@@ -666,7 +666,27 @@ function EquityCard({ data }) {
     }
     return d
   }
-  const areaD = (segPts) => pathD(segPts) + ` L ${segPts[segPts.length - 1][0]} ${baseY} L ${segPts[0][0]} ${baseY} Z`
+  const pathD = smoothPath
+  const areaD = (segPts) => smoothPath(segPts) + ` L ${segPts[segPts.length - 1][0]} ${baseY} L ${segPts[0][0]} ${baseY} Z`
+
+  // PATH ÚNICO — todos os pontos em uma curva só (pra animação contínua sem "pulo" nos crossings)
+  const fullPath = smoothPath(pts)
+  // Stops do gradient horizontal: hard-switches em cada crossing
+  const xMin = pad.l, xMax = pad.l + w
+  const gradStops = []
+  gradStops.push({ offset: 0, color: data[0].value >= 0 ? GREEN : RED })
+  for (let i = 1; i < data.length; i++) {
+    const prev = data[i - 1].value, cur = data[i].value
+    const prevPos = prev >= 0, curPos = cur >= 0
+    if (prevPos !== curPos) {
+      const t = prev / (prev - cur)
+      const crossX = pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * t
+      const off = (crossX - xMin) / (xMax - xMin)
+      gradStops.push({ offset: off, color: prevPos ? GREEN : RED })
+      gradStops.push({ offset: off, color: curPos ? GREEN : RED })
+    }
+  }
+  gradStops.push({ offset: 1, color: data[data.length - 1].value >= 0 ? GREEN : RED })
 
   // drawdown max
   let peak = data[0].value, lowIdx = 0, maxDD = 0
@@ -728,29 +748,39 @@ function EquityCard({ data }) {
           )
         })}
 
-        {/* áreas + linhas segmentadas — animam em sequência esquerda→direita */}
+        {/* áreas segmentadas (verde/vermelho) — fade-in em sequência */}
         {segments.map((seg, i) => {
           const t = segTiming[i]
           return (
-            <g key={i} style={{ filter: `drop-shadow(0 0 6px ${seg.positive ? GREEN : RED}99) drop-shadow(0 0 14px ${seg.positive ? GREEN : RED}40)` }}>
-              <path
-                className="ink-area-fade"
-                d={areaD(seg.pts)}
-                fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'}
-                style={{ animationDelay: `${t.delay + 120}ms`, animationDuration: `${t.duration}ms` }}
-              />
-              <path
-                className="ink-line-draw"
-                pathLength="1"
-                d={pathD(seg.pts)}
-                fill="none"
-                stroke={seg.positive ? GREEN : RED}
-                strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-                style={{ animationDelay: `${t.delay}ms`, animationDuration: `${t.duration}ms`, animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
-              />
-            </g>
+            <path
+              key={i}
+              className="ink-area-fade"
+              d={areaD(seg.pts)}
+              fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'}
+              style={{ animationDelay: `${t.delay + 120}ms`, animationDuration: `${t.duration}ms` }}
+            />
           )
         })}
+
+        {/* LINHA ÚNICA com gradiente (verde/vermelho baseado no valor) — animação contínua */}
+        <defs>
+          <linearGradient id="eq-stroke" x1={xMin} y1="0" x2={xMax} y2="0" gradientUnits="userSpaceOnUse">
+            {gradStops.map((s, i) => (
+              <stop key={i} offset={s.offset} stopColor={s.color} />
+            ))}
+          </linearGradient>
+        </defs>
+        <g style={{ filter: `drop-shadow(0 0 6px ${GREEN}80) drop-shadow(0 0 14px ${GREEN}35)` }}>
+          <path
+            className="ink-line-draw"
+            pathLength="1"
+            d={fullPath}
+            fill="none"
+            stroke="url(#eq-stroke)"
+            strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+            style={{ animationDuration: `${TOTAL_DRAW_MS}ms`, animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
+          />
+        </g>
 
         {/* (bolinhas removidas) */}
 
