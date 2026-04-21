@@ -100,6 +100,9 @@
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+  text-shadow:
+    0 0 12px color-mix(in srgb, currentColor 35%, transparent),
+    0 0 28px color-mix(in srgb, currentColor 15%, transparent);
 }
 
 [data-diary] .ink-label {
