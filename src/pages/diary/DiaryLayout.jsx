@@ -258,8 +258,14 @@ export default function DiaryLayout() {
         </div>
       </aside>
 
-      <main style={{ flex: 1, minWidth: 0, overflowX: 'hidden' }}>
-        <Outlet />
+      <main style={{
+        flex: 1, minWidth: 0, overflowX: 'hidden',
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-start',
+        padding: '32px 40px 64px',
+      }}>
+        <div style={{ width: '100%', maxWidth: 1280 }}>
+          <Outlet />
+        </div>
       </main>
     </div>
   )

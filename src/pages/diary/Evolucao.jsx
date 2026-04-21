@@ -197,7 +197,7 @@ export default function Evolucao() {
   const rank = profile?.current_badge
 
   return (
-    <div style={{ padding: '32px 40px 64px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+    <div style={{ maxWidth: 1280, position: 'relative', zIndex: 1 }}>
       {/* HEADER */}
       <div className="ink-fade-up" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 36, gap: 20, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
