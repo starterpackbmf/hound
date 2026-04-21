@@ -2,9 +2,9 @@
    Escopo: só dentro de [data-diary] (DiaryLayout). */
 
 [data-diary] {
-  --ink-bg:          #07080A;
-  --ink-surface:     #0E1013;
-  --ink-surface-2:   #14181D;
+  --ink-bg:          #0D0F14;
+  --ink-surface:     #131620;
+  --ink-surface-2:   #191D27;
   --ink-line:        rgba(255,255,255,0.06);
   --ink-line-strong: rgba(255,255,255,0.10);
 
@@ -132,7 +132,7 @@
     radial-gradient(ellipse 120% 100% at 0% 100%, rgba(164,152,255,0.037) 0%, rgba(164,152,255,0.013) 40%, transparent 80%),
     radial-gradient(ellipse 90% 80% at 50% 50%, rgba(111,230,240,0.021) 0%, rgba(111,230,240,0.009) 40%, transparent 85%),
     radial-gradient(ellipse 80% 70% at 100% 100%, rgba(231,198,122,0.021) 0%, rgba(231,198,122,0.007) 40%, transparent 80%),
-    linear-gradient(180deg, #07080A 0%, #0A0B0E 100%);
+    linear-gradient(180deg, #0D0F14 0%, #101218 100%);
 }
 
 /* Noise overlay — só os pontinhos mais brilhantes passam (sparse grain) */
