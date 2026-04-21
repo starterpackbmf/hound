@@ -241,6 +241,32 @@
   background: rgba(255,255,255,0.02);
 }
 
+/* Scrollbar premium — sem track, thumb sutil estilo macOS */
+[data-diary] *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+[data-diary] *::-webkit-scrollbar-track {
+  background: transparent;
+  border: none;
+}
+[data-diary] *::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background .15s ease;
+}
+[data-diary] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.18);
+  background-clip: padding-box;
+}
+[data-diary] *::-webkit-scrollbar-corner { background: transparent; }
+[data-diary] * {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+
 /* Modal pop — escala + slide pra cima com spring sutil */
 @keyframes ink-modal-pop {
   from { opacity: 0; transform: translateY(16px) scale(0.96); }
