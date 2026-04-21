@@ -500,8 +500,17 @@ function EquityCard({ data }) {
   function onMove(e) {
     const rect = ref.current.getBoundingClientRect()
     const x = e.clientX - rect.left
-    const i = Math.max(0, Math.min(data.length - 1, Math.round(((x - pad.l) / w) * (data.length - 1))))
-    setHover({ i, x: pts[i][0], y: pts[i][1] })
+    // frac = posição contínua ao longo dos data points (0..N-1)
+    const frac = Math.max(0, Math.min(data.length - 1, ((x - pad.l) / w) * (data.length - 1)))
+    const i0 = Math.floor(frac), i1 = Math.min(data.length - 1, i0 + 1)
+    const t = frac - i0
+    // valor interpolado
+    const v = data[i0].value + (data[i1].value - data[i0].value) * t
+    const dayPnl = data[i0].dayPnl + (data[i1].dayPnl - data[i0].dayPnl) * t
+    const iSnap = t < 0.5 ? i0 : i1 // pra data/label
+    const xx = pts[i0][0] + (pts[i1][0] - pts[i0][0]) * t
+    const yy = yScale(v)
+    setHover({ i: iSnap, x: xx, y: yy, value: v, dayPnl })
   }
 
   return (
@@ -575,25 +584,40 @@ function EquityCard({ data }) {
           return labels
         })()}
 
-        {/* hover */}
-        {hover && (
-          <g>
-            <line x1={hover.x} y1={pad.t} x2={hover.x} y2={pad.t + h} stroke="rgba(255,255,255,0.16)" />
-            <circle cx={hover.x} cy={hover.y} r="4" fill="#07080A" stroke={data[hover.i].value >= 0 ? GREEN : RED} strokeWidth="1.4" />
-            <g transform={`translate(${Math.min(hover.x + 10, size.w - 170)}, ${Math.max(hover.y - 56, pad.t + 4)})`}>
-              <rect width="160" height="50" rx="6" fill="rgba(14,16,19,0.94)" stroke="rgba(255,255,255,0.1)" />
-              <text x="10" y="15" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.8, textTransform: 'uppercase' }}>
-                {new Date(data[hover.i].date + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-              </text>
-              <text x="10" y="30" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fill: data[hover.i].value >= 0 ? GREEN : RED, fontWeight: 500 }}>
-                {data[hover.i].value >= 0 ? '+' : '−'}R$ {Math.abs(data[hover.i].value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-              </text>
-              <text x="10" y="43" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fill: data[hover.i].dayPnl >= 0 ? GREEN : RED }}>
-                dia: {data[hover.i].dayPnl >= 0 ? '+' : '−'}R$ {Math.abs(data[hover.i].dayPnl).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-              </text>
-            </g>
-          </g>
-        )}
+        {/* hover — crosshair + dot + tooltip com transição suave */}
+        <g style={{
+          opacity: hover ? 1 : 0,
+          transition: 'opacity .12s ease',
+          pointerEvents: 'none',
+        }}>
+          {hover && (
+            <>
+              <line
+                x1={hover.x} y1={pad.t} x2={hover.x} y2={pad.t + h}
+                stroke="rgba(255,255,255,0.14)"
+                style={{ transition: 'x1 .08s linear, x2 .08s linear' }}
+              />
+              <circle
+                cx={hover.x} cy={hover.y} r="5"
+                fill="#07080A" stroke={hover.value >= 0 ? GREEN : RED} strokeWidth="1.4"
+                style={{ transition: 'cx .08s linear, cy .12s ease-out' }}
+              />
+              <g transform={`translate(${Math.min(hover.x + 12, size.w - 172)}, ${Math.max(hover.y - 58, pad.t + 4)})`}
+                style={{ transition: 'transform .1s ease-out' }}>
+                <rect width="160" height="50" rx="6" fill="rgba(14,16,19,0.96)" stroke="rgba(255,255,255,0.1)" />
+                <text x="10" y="15" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                  {new Date(data[hover.i].date + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                </text>
+                <text x="10" y="30" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fill: hover.value >= 0 ? GREEN : RED, fontWeight: 500 }}>
+                  {hover.value >= 0 ? '+' : '−'}R$ {Math.abs(hover.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                </text>
+                <text x="10" y="43" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, fill: hover.dayPnl >= 0 ? GREEN : RED }}>
+                  dia: {hover.dayPnl >= 0 ? '+' : '−'}R$ {Math.abs(hover.dayPnl).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                </text>
+              </g>
+            </>
+          )}
+        </g>
       </svg>
     </div>
   )
