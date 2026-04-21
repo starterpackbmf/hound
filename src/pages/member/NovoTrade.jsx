@@ -27,6 +27,12 @@ const ASSETS = [
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
+function formatTime(v) {
+  const digits = (v || '').replace(/\D/g, '').slice(0, 4)
+  if (digits.length <= 2) return digits
+  return digits.slice(0, 2) + ':' + digits.slice(2)
+}
+
 export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate } = {}) {
   const { id } = useParams()
   const [params] = useSearchParams()
@@ -261,23 +267,37 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       <div>
       {/* IDENTIFICAÇÃO */}
       <Section title="identificação">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          {accounts.length > 1 && (
+        {accounts.length > 1 && (
+          <div style={{ marginBottom: 12 }}>
             <Field label="conta">
               <select className="input" value={form.account_id} onChange={e => set('account_id', e.target.value)}>
                 {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
               </select>
             </Field>
-          )}
+          </div>
+        )}
+        {/* Row 1: data + entrada + saída */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, marginBottom: 12 }}>
           <Field label="data">
             <input className="input" type="date" value={form.date} onChange={e => set('date', e.target.value)} />
           </Field>
           <Field label="entrada">
-            <input className="input" type="time" value={form.horario_entrada} onChange={e => set('horario_entrada', e.target.value)} />
+            <input className="input" type="text" inputMode="numeric" maxLength={5}
+              value={form.horario_entrada}
+              onChange={e => set('horario_entrada', formatTime(e.target.value))}
+              placeholder="HH:MM"
+              style={{ width: 76, fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }} />
           </Field>
           <Field label="saída">
-            <input className="input" type="time" value={form.horario_saida} onChange={e => set('horario_saida', e.target.value)} />
+            <input className="input" type="text" inputMode="numeric" maxLength={5}
+              value={form.horario_saida}
+              onChange={e => set('horario_saida', formatTime(e.target.value))}
+              placeholder="HH:MM"
+              style={{ width: 76, fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }} />
           </Field>
+        </div>
+        {/* Row 2: ativo + setup + direção */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12 }}>
           <Field label="ativo financeiro">
             <select className="input" value={form.ativo} onChange={e => set('ativo', e.target.value)}>
               {ASSETS.map(a => <option key={a.code} value={a.code}>{a.label}</option>)}
@@ -289,17 +309,16 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
               {SETUPS.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
             </select>
           </Field>
-        </div>
-        <div style={{ marginTop: 12 }}>
-          <span className="label-muted" style={{ marginBottom: 6, display: 'block' }}>direção</span>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button type="button" onClick={() => set('direction', 'compra')} className={form.direction === 'compra' ? 'pill pill-up' : 'pill'} style={{ cursor: 'pointer' }}>
-              ▲ Compra
-            </button>
-            <button type="button" onClick={() => set('direction', 'venda')} className={form.direction === 'venda' ? 'pill pill-down' : 'pill'} style={{ cursor: 'pointer' }}>
-              ▼ Venda
-            </button>
-          </div>
+          <Field label="direção">
+            <div style={{ display: 'flex', gap: 4 }}>
+              <button type="button" onClick={() => set('direction', 'compra')} className={form.direction === 'compra' ? 'pill pill-up' : 'pill'} style={{ cursor: 'pointer' }}>
+                ▲ Compra
+              </button>
+              <button type="button" onClick={() => set('direction', 'venda')} className={form.direction === 'venda' ? 'pill pill-down' : 'pill'} style={{ cursor: 'pointer' }}>
+                ▼ Venda
+              </button>
+            </div>
+          </Field>
         </div>
       </Section>
 
@@ -361,45 +380,49 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           )}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
-          <Field label="saldo em aberto">
-            <div className="input" style={{ opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
-              {saldoAberto} contrato{saldoAberto === 1 ? '' : 's'}
+        {!modal && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+              <Field label="saldo em aberto">
+                <div className="input" style={{ opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
+                  {saldoAberto} contrato{saldoAberto === 1 ? '' : 's'}
+                </div>
+              </Field>
+              <Field label="encerramento final (pts)">
+                <input className="input" type="number" step="0.5" value={form.encerramento_pts} onChange={e => set('encerramento_pts', e.target.value)} placeholder={saldoAberto > 0 ? 'pts do saldo restante' : 'não há saldo aberto'} disabled={saldoAberto === 0} />
+              </Field>
+              <Field label="média ponderada (calc)">
+                <div className="input" style={{ opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
+                  {mediaPonderada.toFixed(1)} pts
+                </div>
+              </Field>
+              <Field label="resultado R$ (calc)">
+                <div className="input" style={{
+                  opacity: 0.95, fontFamily: 'var(--font-mono)',
+                  color: resultadoBrl > 0 ? 'var(--up)' : resultadoBrl < 0 ? 'var(--down)' : 'var(--text-primary)',
+                  fontWeight: 500,
+                }}>
+                  {resultadoBrl >= 0 ? '+' : ''}R$ {resultadoBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </Field>
             </div>
-          </Field>
-          <Field label="encerramento final (pts)">
-            <input className="input" type="number" step="0.5" value={form.encerramento_pts} onChange={e => set('encerramento_pts', e.target.value)} placeholder={saldoAberto > 0 ? 'pts do saldo restante' : 'não há saldo aberto'} disabled={saldoAberto === 0} />
-          </Field>
-          <Field label="média ponderada (calc)">
-            <div className="input" style={{ opacity: 0.7, fontFamily: 'var(--font-mono)' }}>
-              {mediaPonderada.toFixed(1)} pts
+            <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
+              multiplicador {form.ativo}: R$ {assetMultiplier(form.ativo).toFixed(2)}/pt
             </div>
-          </Field>
-          <Field label="resultado R$ (calc)">
-            <div className="input" style={{
-              opacity: 0.95, fontFamily: 'var(--font-mono)',
-              color: resultadoBrl > 0 ? 'var(--up)' : resultadoBrl < 0 ? 'var(--down)' : 'var(--text-primary)',
-              fontWeight: 500,
-            }}>
-              {resultadoBrl >= 0 ? '+' : ''}R$ {resultadoBrl.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div style={{ marginTop: 14 }}>
+              <ResultsPreview
+                totalPoints={mediaPonderada}
+                resultBrl={resultadoBrl}
+                initialContracts={Number(form.contratos_iniciais) || 0}
+                asset={form.ativo}
+              />
             </div>
-          </Field>
-        </div>
-        <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 6, fontFamily: 'var(--font-mono)' }}>
-          multiplicador {form.ativo}: R$ {assetMultiplier(form.ativo).toFixed(2)}/pt
-        </div>
-        <div style={{ marginTop: 14 }}>
-          <ResultsPreview
-            totalPoints={mediaPonderada}
-            resultBrl={resultadoBrl}
-            initialContracts={Number(form.contratos_iniciais) || 0}
-            asset={form.ativo}
-          />
-        </div>
+          </>
+        )}
       </Section>
 
-      {/* LEITURA TÉCNICA */}
-      <Section title="leitura técnica">
+      {/* LEITURA TÉCNICA — só no modo full page; no modal vai pra direita */}
+      {!modal && <Section title="leitura técnica">
         <textarea
           className="input"
           rows={4}
@@ -408,7 +431,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           value={form.leitura_tecnica}
           onChange={e => set('leitura_tecnica', e.target.value)}
         />
-      </Section>
+      </Section>}
 
       {/* PRINT */}
       <Section title="print da operação">
@@ -423,33 +446,35 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             <div className="label-muted" style={{ marginBottom: 14, fontSize: 10, letterSpacing: '0.14em' }}>
               📊 RESUMO DA OPERAÇÃO
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
               <div>
                 <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>RESULTADO FINANCEIRO</div>
-                <div className="ink-num" style={{ fontSize: 26, fontWeight: 600, color: resultadoBrl > 0 ? 'var(--ink-green)' : resultadoBrl < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
+                <div className="ink-num" style={{ fontSize: 22, fontWeight: 600, color: resultadoBrl > 0 ? 'var(--ink-green)' : resultadoBrl < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
                   {resultadoBrl >= 0 ? '' : '−'}R$ {Math.abs(resultadoBrl).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>MÉDIA PONDERADA (PONTOS)</div>
-                <div className="ink-num" style={{ fontSize: 26, fontWeight: 600, color: mediaPonderada > 0 ? 'var(--ink-green)' : mediaPonderada < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
+                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>MÉDIA PONDERADA</div>
+                <div className="ink-num" style={{ fontSize: 22, fontWeight: 600, color: mediaPonderada > 0 ? 'var(--ink-green)' : mediaPonderada < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
                   {mediaPonderada.toFixed(1)} <span style={{ fontSize: 11, opacity: 0.55 }}>pts</span>
                 </div>
               </div>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingTop: 14, borderTop: '1px solid var(--ink-line)' }}>
-              <div>
-                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>SALDO EM ABERTO</div>
-                <div className="ink-num" style={{ fontSize: 16, color: 'var(--ink-text)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, paddingTop: 14, borderTop: '1px solid var(--ink-line)' }}>
+              <Field label="saldo em aberto">
+                <div className="input" style={{ opacity: 0.7, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
                   {saldoAberto} contrato{saldoAberto === 1 ? '' : 's'}
                 </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>ENCERRAMENTO FINAL</div>
-                <div className="ink-num" style={{ fontSize: 16, color: 'var(--ink-text)' }}>
-                  {form.encerramento_pts === '' ? 0 : Number(form.encerramento_pts)} <span style={{ fontSize: 10, opacity: 0.55 }}>pts</span>
-                </div>
-              </div>
+              </Field>
+              <Field label="encerramento final">
+                <input
+                  className="input" type="number" step="0.5" style={{ fontSize: 12 }}
+                  value={form.encerramento_pts}
+                  onChange={e => set('encerramento_pts', e.target.value)}
+                  placeholder={saldoAberto > 0 ? 'pts' : '—'}
+                  disabled={saldoAberto === 0}
+                />
+              </Field>
             </div>
             <div style={{ fontSize: 9, color: 'var(--ink-faint)', marginTop: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.04em' }}>
               {form.ativo} · R$ {assetMultiplier(form.ativo).toFixed(2)}/pt
@@ -479,18 +504,30 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             </div>
           </Section>
 
+          {/* LEITURA TÉCNICA — no modal fica na direita */}
+          <Section title="leitura técnica">
+            <textarea
+              className="input"
+              rows={4}
+              style={{ resize: 'vertical', minHeight: 88 }}
+              placeholder="o que viu no gráfico? porquê entrou? o que faria diferente?"
+              value={form.leitura_tecnica}
+              onChange={e => set('leitura_tecnica', e.target.value)}
+            />
+          </Section>
+
           {/* DIRETRIZES */}
           <div className="ink-card" style={{ padding: 16 }}>
             <div className="label-muted" style={{ marginBottom: 10, fontSize: 10, letterSpacing: '0.14em' }}>DIRETRIZES RÁPIDAS</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
               <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Revise todas as informações antes de salvar.
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Revise antes de salvar.
               </li>
               <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Mantenha seus dados sempre atualizados.
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Mantenha seus dados atualizados.
               </li>
               <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> A consistência é o que gera resultado.
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Consistência gera resultado.
               </li>
             </ul>
           </div>
