@@ -728,23 +728,13 @@ function EquityCard({ data }) {
                 fill="none"
                 stroke={seg.positive ? GREEN : RED}
                 strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
-                style={{ animationDelay: `${t.delay}ms`, animationDuration: `${t.duration}ms`, animationTimingFunction: 'linear' }}
+                style={{ animationDelay: `${t.delay}ms`, animationDuration: `${t.duration}ms`, animationTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
               />
             </g>
           )
         })}
 
-        {/* drawdown marker */}
-        {maxDD > 0 && (
-          <g transform={`translate(${lowPt[0]}, ${lowPt[1]})`}>
-            <circle r="3.5" fill={RED} />
-            <circle r="10" fill={RED} opacity="0.3" className="ink-dot-pulse" />
-          </g>
-        )}
-
-        {/* end glow */}
-        <circle cx={lastPt[0]} cy={lastPt[1]} r="4" fill={endColor} />
-        <circle cx={lastPt[0]} cy={lastPt[1]} r="12" fill={endColor} opacity="0.3" className="ink-dot-pulse" />
+        {/* (bolinhas removidas) */}
 
         {/* datas eixo X */}
         {(() => {
