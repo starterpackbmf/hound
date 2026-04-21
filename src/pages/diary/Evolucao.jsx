@@ -129,12 +129,16 @@ export default function Evolucao() {
   }, [filtered])
 
   // por estratégia
-  // pontos do trade: usa total_points quando tem, senão cai pra media_ponderada * contratos_iniciais
+  // "Pontos capturados" do trade = média ponderada (os pts que o mercado moveu a favor),
+  // NÃO média × contratos — esse último seria "pts acumulados em contratos" e infla o número.
+  // Ex: 10 contratos pegando 5 pts médio cada → capturei 5 pts do mercado (não 50).
   const tradePoints = (t) => {
-    if (typeof t.total_points === 'number' && !Number.isNaN(t.total_points)) return t.total_points
-    const mp = Number(t.media_ponderada) || 0
-    const c = Number(t.contratos_iniciais) || 0
-    return mp * c
+    const mp = Number(t.media_ponderada)
+    if (Number.isFinite(mp)) return mp
+    // fallback: se só tem total_points e contratos, divide de volta
+    const tp = Number(t.total_points) || 0
+    const c = Number(t.contratos_iniciais) || 1
+    return c > 0 ? tp / c : tp
   }
 
   const bySetup = useMemo(() => {
