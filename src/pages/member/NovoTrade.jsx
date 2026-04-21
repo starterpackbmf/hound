@@ -262,7 +262,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         />
       )}
 
-      <div style={modal ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 28, alignItems: 'start' } : undefined}>
+      <div style={modal ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 340px', gap: 24, alignItems: 'start' } : undefined}>
       {/* ────── COLUNA ESQUERDA ────── */}
       <div>
       {/* IDENTIFICAÇÃO */}
@@ -297,7 +297,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           </Field>
         </div>
         {/* Row 2: ativo + setup + direção */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
           <Field label="ativo financeiro">
             <select className="input" value={form.ativo} onChange={e => set('ativo', e.target.value)}>
               {ASSETS.map(a => <option key={a.code} value={a.code}>{a.label}</option>)}
