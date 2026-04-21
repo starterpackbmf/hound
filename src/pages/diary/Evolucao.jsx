@@ -647,7 +647,25 @@ function EquityCard({ data }) {
     return { duration, delay }
   })
 
-  const pathD = (segPts) => segPts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
+  // Catmull-Rom → Cubic Bezier pra suavizar a linha levemente (tension 0.5 = meio catmull-rom)
+  const pathD = (segPts) => {
+    if (segPts.length < 2) return `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)}`
+    if (segPts.length === 2) return `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)} L ${segPts[1][0].toFixed(1)} ${segPts[1][1].toFixed(1)}`
+    const tension = 0.5 // 0 = reto, 1 = catmull-rom clássico; 0.5 = levemente arredondado
+    let d = `M ${segPts[0][0].toFixed(1)} ${segPts[0][1].toFixed(1)}`
+    for (let i = 0; i < segPts.length - 1; i++) {
+      const p0 = segPts[Math.max(0, i - 1)]
+      const p1 = segPts[i]
+      const p2 = segPts[i + 1]
+      const p3 = segPts[Math.min(segPts.length - 1, i + 2)]
+      const cp1x = p1[0] + (p2[0] - p0[0]) * tension / 6
+      const cp1y = p1[1] + (p2[1] - p0[1]) * tension / 6
+      const cp2x = p2[0] - (p3[0] - p1[0]) * tension / 6
+      const cp2y = p2[1] - (p3[1] - p1[1]) * tension / 6
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`
+    }
+    return d
+  }
   const areaD = (segPts) => pathD(segPts) + ` L ${segPts[segPts.length - 1][0]} ${baseY} L ${segPts[0][0]} ${baseY} Z`
 
   // drawdown max
