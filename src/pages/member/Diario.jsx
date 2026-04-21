@@ -144,9 +144,6 @@ export default function Diario() {
             registrar um trade vale <strong style={{ color: 'var(--amber)' }}>+3 SC</strong>
           </div>
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
-            <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
-              <IPlus size={12} stroke={2} /> registrar trade
-            </button>
             {!daySummary?.did_not_trade && (
               <button onClick={() => { setFinalizarDidNotTrade(true); setShowFinalizarModal(true) }} className="btn">não cliquei hoje</button>
             )}
