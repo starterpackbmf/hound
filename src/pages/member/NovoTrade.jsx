@@ -47,7 +47,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
     horario_entrada: '09:00',
     horario_saida: '09:00',
     ativo: 'WIN',
-    setup: 'TA',
+    setup: '',
     direction: 'compra',
     contratos_iniciais: 1,
     men_pts: '',
@@ -256,7 +256,9 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         />
       )}
 
-      <div style={modal ? { columnCount: 2, columnGap: 28, columnFill: 'balance' } : undefined}>
+      <div style={modal ? { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 380px', gap: 28, alignItems: 'start' } : undefined}>
+      {/* ────── COLUNA ESQUERDA ────── */}
+      <div>
       {/* IDENTIFICAÇÃO */}
       <Section title="identificação">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
@@ -283,6 +285,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           </Field>
           <Field label="setup">
             <select className="input" value={form.setup} onChange={e => set('setup', e.target.value)}>
+              <option value="">Selecione</option>
               {SETUPS.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
             </select>
           </Field>
@@ -300,21 +303,23 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       </Section>
 
-      {/* REGRAS + FILTROS (qualidade aparece no badge do header) */}
-      <Section title="protocolo de entrada">
-        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-          <RulesSelector
-            operational={form.setup}
-            selectedRules={form.selected_rules}
-            onChange={rules => set('selected_rules', rules)}
-          />
-          <FiltersSelector
-            operational={form.setup}
-            selectedFilters={form.selected_filters}
-            onChange={filters => set('selected_filters', filters)}
-          />
-        </div>
-      </Section>
+      {/* REGRAS + FILTROS — só aparece quando setup escolhido */}
+      {form.setup && (
+        <Section title="protocolo de entrada">
+          <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+            <RulesSelector
+              operational={form.setup}
+              selectedRules={form.selected_rules}
+              onChange={rules => set('selected_rules', rules)}
+            />
+            <FiltersSelector
+              operational={form.setup}
+              selectedFilters={form.selected_filters}
+              onChange={filters => set('selected_filters', filters)}
+            />
+          </div>
+        </Section>
+      )}
 
       {/* EXECUÇÃO */}
       <Section title="execução e métricas">
@@ -393,29 +398,6 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       </Section>
 
-      {/* EMOCIONAL */}
-      <Section title={`estado emocional (máx 3) — ${form.emotions.length}/3 selecionados`}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-          {EMOTIONS.map(e => {
-            const selected = form.emotions.includes(e)
-            const tone = EMOTION_TONES[e]
-            const toneClass = selected ? (tone === 'up' ? 'pill-up' : tone === 'down' ? 'pill-down' : 'pill-active') : ''
-            return (
-              <button
-                key={e}
-                type="button"
-                onClick={() => toggleEmotion(e)}
-                disabled={!selected && form.emotions.length >= 3}
-                className={`pill ${toneClass}`}
-                style={{ cursor: selected || form.emotions.length < 3 ? 'pointer' : 'not-allowed', opacity: !selected && form.emotions.length >= 3 ? 0.4 : 1 }}
-              >
-                {e}
-              </button>
-            )
-          })}
-        </div>
-      </Section>
-
       {/* LEITURA TÉCNICA */}
       <Section title="leitura técnica">
         <textarea
@@ -433,8 +415,90 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         <PrintUploader value={form.print_url} onChange={v => set('print_url', v)} />
       </Section>
       </div>
+      {/* ────── COLUNA DIREITA ────── */}
+      {modal && (
+        <aside style={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* RESUMO DA OPERAÇÃO */}
+          <div className="ink-card" style={{ padding: 18 }}>
+            <div className="label-muted" style={{ marginBottom: 14, fontSize: 10, letterSpacing: '0.14em' }}>
+              📊 RESUMO DA OPERAÇÃO
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>RESULTADO FINANCEIRO</div>
+                <div className="ink-num" style={{ fontSize: 26, fontWeight: 600, color: resultadoBrl > 0 ? 'var(--ink-green)' : resultadoBrl < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
+                  {resultadoBrl >= 0 ? '' : '−'}R$ {Math.abs(resultadoBrl).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>MÉDIA PONDERADA (PONTOS)</div>
+                <div className="ink-num" style={{ fontSize: 26, fontWeight: 600, color: mediaPonderada > 0 ? 'var(--ink-green)' : mediaPonderada < 0 ? 'var(--ink-red)' : 'var(--ink-text)', lineHeight: 1 }}>
+                  {mediaPonderada.toFixed(1)} <span style={{ fontSize: 11, opacity: 0.55 }}>pts</span>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, paddingTop: 14, borderTop: '1px solid var(--ink-line)' }}>
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>SALDO EM ABERTO</div>
+                <div className="ink-num" style={{ fontSize: 16, color: 'var(--ink-text)' }}>
+                  {saldoAberto} contrato{saldoAberto === 1 ? '' : 's'}
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: 9, color: 'var(--ink-dim)', letterSpacing: '0.12em', fontWeight: 600, marginBottom: 6 }}>ENCERRAMENTO FINAL</div>
+                <div className="ink-num" style={{ fontSize: 16, color: 'var(--ink-text)' }}>
+                  {form.encerramento_pts === '' ? 0 : Number(form.encerramento_pts)} <span style={{ fontSize: 10, opacity: 0.55 }}>pts</span>
+                </div>
+              </div>
+            </div>
+            <div style={{ fontSize: 9, color: 'var(--ink-faint)', marginTop: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.04em' }}>
+              {form.ativo} · R$ {assetMultiplier(form.ativo).toFixed(2)}/pt
+            </div>
+          </div>
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+          {/* EMOCIONAL */}
+          <Section title={`estado emocional (máx 3) — ${form.emotions.length}/3`}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {EMOTIONS.map(e => {
+                const selected = form.emotions.includes(e)
+                const tone = EMOTION_TONES[e]
+                const toneClass = selected ? (tone === 'up' ? 'pill-up' : tone === 'down' ? 'pill-down' : 'pill-active') : ''
+                return (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => toggleEmotion(e)}
+                    disabled={!selected && form.emotions.length >= 3}
+                    className={`pill ${toneClass}`}
+                    style={{ cursor: selected || form.emotions.length < 3 ? 'pointer' : 'not-allowed', opacity: !selected && form.emotions.length >= 3 ? 0.4 : 1 }}
+                  >
+                    {e}
+                  </button>
+                )
+              })}
+            </div>
+          </Section>
+
+          {/* DIRETRIZES */}
+          <div className="ink-card" style={{ padding: 16 }}>
+            <div className="label-muted" style={{ marginBottom: 10, fontSize: 10, letterSpacing: '0.14em' }}>DIRETRIZES RÁPIDAS</div>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Revise todas as informações antes de salvar.
+              </li>
+              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Mantenha seus dados sempre atualizados.
+              </li>
+              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> A consistência é o que gera resultado.
+              </li>
+            </ul>
+          </div>
+        </aside>
+      )}
+      </div>
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'space-between' }}>
         <button onClick={save} disabled={saving} className="btn btn-primary">
           {saving ? 'gravando...' : isEdit ? 'atualizar' : 'gravar operação'}
         </button>
