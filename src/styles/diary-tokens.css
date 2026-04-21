@@ -258,7 +258,7 @@
   transition: background .15s ease;
 }
 [data-diary] *::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.11);
   background-clip: padding-box;
 }
 [data-diary] *::-webkit-scrollbar-corner { background: transparent; }
