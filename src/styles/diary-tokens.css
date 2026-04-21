@@ -352,6 +352,17 @@
   border-radius: 8px;
 }
 
+/* Remove spinner arrows dos inputs numéricos */
+[data-diary] input[type="number"]::-webkit-inner-spin-button,
+[data-diary] input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+[data-diary] input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Modal pop — escala + slide pra cima com spring sutil */
 @keyframes ink-modal-pop {
   from { opacity: 0; transform: translateY(16px) scale(0.96); }

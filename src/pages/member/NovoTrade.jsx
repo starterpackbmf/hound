@@ -27,6 +27,97 @@ const ASSETS = [
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
+// Dropdown custom estilo INK — substitui o <select> nativo feio
+function InkSelect({ value, onChange, options, placeholder = 'Selecione' }) {
+  const [open, setOpen] = useState(false)
+  const ref = React.useRef(null)
+  const selected = options.find(o => o.value === value)
+
+  useEffect(() => {
+    if (!open) return
+    function onClick(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="input"
+        style={{
+          width: '100%', textAlign: 'left',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer',
+          color: selected ? 'var(--ink-text, var(--text-primary))' : 'var(--ink-dim, var(--text-muted))',
+          borderColor: open ? 'rgba(24,209,138,0.4)' : undefined,
+          boxShadow: open ? '0 0 0 3px rgba(24,209,138,0.12)' : undefined,
+        }}
+      >
+        <span>{selected?.label || placeholder}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"
+          style={{ transition: 'transform .15s ease', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && (
+        <div
+          style={{
+            position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 50,
+            padding: 4, borderRadius: 10,
+            background: 'linear-gradient(180deg, rgba(22,26,32,0.98), rgba(16,19,26,0.98))',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            animation: 'ink-fade-up .14s ease-out both',
+          }}
+        >
+          {options.map(o => {
+            const active = o.value === value
+            return (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => { onChange(o.value); setOpen(false) }}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  width: '100%', padding: '8px 10px', borderRadius: 6,
+                  background: active ? 'rgba(24,209,138,0.12)' : 'transparent',
+                  border: 'none',
+                  color: active ? 'var(--ink-green)' : 'var(--ink-text, var(--text-primary))',
+                  fontSize: 12.5, fontWeight: active ? 600 : 500,
+                  cursor: 'pointer', textAlign: 'left',
+                  transition: 'background .12s ease',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
+              >
+                <span>{o.label}</span>
+                {active && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2.5 6L5 8.5L9.5 3.5" stroke="var(--ink-green)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function formatTime(v) {
   const digits = (v || '').replace(/\D/g, '').slice(0, 4)
   if (digits.length <= 2) return digits
@@ -276,9 +367,11 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         {accounts.length > 1 && (
           <div style={{ marginBottom: 12 }}>
             <Field label="conta">
-              <select className="input" value={form.account_id} onChange={e => set('account_id', e.target.value)}>
-                {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
+              <InkSelect
+                value={form.account_id}
+                onChange={v => set('account_id', v)}
+                options={accounts.map(a => ({ value: a.id, label: a.name }))}
+              />
             </Field>
           </div>
         )}
@@ -305,15 +398,19 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         {/* Row 2: ativo + setup + direção */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
           <Field label="ativo financeiro">
-            <select className="input" value={form.ativo} onChange={e => set('ativo', e.target.value)}>
-              {ASSETS.map(a => <option key={a.code} value={a.code}>{a.label}</option>)}
-            </select>
+            <InkSelect
+              value={form.ativo}
+              onChange={v => set('ativo', v)}
+              options={ASSETS.map(a => ({ value: a.code, label: a.label }))}
+            />
           </Field>
           <Field label="setup">
-            <select className="input" value={form.setup} onChange={e => set('setup', e.target.value)}>
-              <option value="">Selecione</option>
-              {SETUPS.map(s => <option key={s.code} value={s.code}>{s.label}</option>)}
-            </select>
+            <InkSelect
+              value={form.setup}
+              onChange={v => set('setup', v)}
+              options={SETUPS.map(s => ({ value: s.code, label: s.label }))}
+              placeholder="Selecione"
+            />
           </Field>
           <Field label="direção">
             <div style={{
