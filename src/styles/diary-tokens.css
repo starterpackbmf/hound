@@ -192,3 +192,50 @@
   from { opacity: 0; transform: translateY(6px) }
   to   { opacity: 1; transform: translateY(0) }
 }
+
+/* Overrides pros componentes herdados do Matilha ficarem em verde (não cyan) */
+[data-diary] .btn-primary {
+  background: var(--ink-green);
+  color: #07080A;
+  border-color: transparent;
+}
+[data-diary] .btn-primary:hover {
+  background: #14b878;
+  border-color: transparent;
+  box-shadow: 0 0 18px rgba(24,209,138,0.4);
+}
+[data-diary] .eyebrow {
+  color: var(--ink-green);
+}
+[data-diary] .btn-outline-cyan,
+[data-diary] .btn-outline-amber {
+  color: var(--ink-green);
+  border-color: rgba(24,209,138,0.25);
+}
+[data-diary] .btn-outline-cyan:hover,
+[data-diary] .btn-outline-amber:hover {
+  background: var(--ink-green-soft);
+  border-color: var(--ink-green);
+  box-shadow: 0 0 12px rgba(24,209,138,0.2);
+}
+[data-diary] .pill.pill-active {
+  background: var(--ink-green-soft);
+  border-color: rgba(24,209,138,0.3);
+  color: var(--ink-green);
+}
+[data-diary] .pill-cyan {
+  color: var(--ink-green);
+  border-color: rgba(24,209,138,0.3);
+  background: var(--ink-green-soft);
+}
+[data-diary] .glow-cyan {
+  text-shadow: 0 0 24px var(--ink-green);
+}
+[data-diary] .leftbar-cyan {
+  border-left-color: var(--ink-green);
+}
+[data-diary] input[type="date"]:focus,
+[data-diary] .input:focus {
+  border-color: rgba(24,209,138,0.5);
+  box-shadow: 0 0 0 3px rgba(24,209,138,0.15);
+}

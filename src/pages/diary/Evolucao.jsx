@@ -58,6 +58,7 @@ export default function Evolucao() {
   const [period, setPeriod] = useState('all')
   const [setup, setSetup] = useState('all')
   const [asset, setAsset] = useState('all')
+  const [customRange, setCustomRange] = useState({ from: '', to: '' })
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -73,17 +74,22 @@ export default function Evolucao() {
 
   const filtered = useMemo(() => {
     let list = trades
-    if (period !== 'all') {
+    if (period === 'custom' && (customRange.from || customRange.to)) {
+      if (customRange.from) list = list.filter(t => t.date >= customRange.from)
+      if (customRange.to) list = list.filter(t => t.date <= customRange.to)
+    } else if (period !== 'all') {
       const daysBack = PERIODS.find(p => p.id === period)?.days
-      const cutoff = new Date()
-      cutoff.setDate(cutoff.getDate() - daysBack)
-      const iso = cutoff.toISOString().slice(0, 10)
-      list = list.filter(t => t.date >= iso)
+      if (daysBack) {
+        const cutoff = new Date()
+        cutoff.setDate(cutoff.getDate() - daysBack)
+        const iso = cutoff.toISOString().slice(0, 10)
+        list = list.filter(t => t.date >= iso)
+      }
     }
     if (setup !== 'all') list = list.filter(t => t.setup === setup)
     if (asset !== 'all') list = list.filter(t => (t.ativo || '').toUpperCase() === asset)
     return list
-  }, [trades, period, setup, asset])
+  }, [trades, period, setup, asset, customRange])
 
   // métricas principais
   const metrics = useMemo(() => {
@@ -221,15 +227,33 @@ export default function Evolucao() {
       </div>
 
       {/* FILTROS */}
-      <div className="ink-fade-up" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 22, flexWrap: 'wrap', gap: 14 }}>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 3 }}>Evolução</div>
-          <div style={{ fontSize: 11, color: DIM, letterSpacing: '0.04em' }}>Performance do trader</div>
+      <div className="ink-fade-up" style={{ marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 3 }}>Evolução</div>
+            <div style={{ fontSize: 11, color: DIM, letterSpacing: '0.04em' }}>Performance do trader</div>
+          </div>
+          {(period !== 'all' || setup !== 'all' || asset !== 'all') && (
+            <button onClick={() => { setPeriod('all'); setSetup('all'); setAsset('all'); setCustomRange({ from: '', to: '' }) }}
+              style={{ fontSize: 11, color: DIM, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              limpar filtros
+            </button>
+          )}
         </div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-          <FilterGroup options={PERIODS} value={period} onChange={setPeriod} />
-          <FilterGroup options={SETUPS} value={setup} onChange={setSetup} />
-          <FilterGroup options={ASSETS} value={asset} onChange={setAsset} />
+
+        <div className="ink-card" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <FilterRow label="PERÍODO" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
+          {period === 'custom' && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 80 }}>
+              <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
+                style={dateInput} />
+              <span style={{ color: DIM, fontSize: 11 }}>→</span>
+              <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
+                style={dateInput} />
+            </div>
+          )}
+          <FilterRow label="ESTRATÉGIA" options={SETUPS} value={setup} onChange={setSetup} />
+          <FilterRow label="ATIVO" options={ASSETS} value={asset} onChange={setAsset} />
         </div>
       </div>
 
@@ -287,18 +311,56 @@ export default function Evolucao() {
 
 // ─── COMPONENTES ─────────────────────────────────────────────────────
 
-function FilterGroup({ options, value, onChange }) {
+const dateInput = {
+  padding: '5px 9px',
+  borderRadius: 6,
+  border: '1px solid var(--ink-line-strong)',
+  background: 'rgba(255,255,255,0.02)',
+  color: 'var(--ink-text)',
+  fontSize: 11,
+  fontFamily: 'JetBrains Mono, monospace',
+  outline: 'none',
+  colorScheme: 'dark',
+}
+
+function FilterRow({ label, options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
-      {options.map(o => {
-        const active = value === o.id
-        return (
-          <button key={o.id} onClick={() => onChange(o.id)}
-            className={'ink-chip' + (active ? ' active' : '')}>
-            {o.label}
-          </button>
-        )
-      })}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{
+        fontSize: 9, letterSpacing: '0.14em', color: 'var(--ink-dim)',
+        fontWeight: 600, width: 68, flexShrink: 0,
+      }}>{label}</div>
+      <div style={{
+        display: 'flex', gap: 1, flex: 1, flexWrap: 'wrap',
+        padding: 3, borderRadius: 8,
+        background: 'rgba(255,255,255,0.025)',
+        border: '1px solid var(--ink-line)',
+      }}>
+        {options.map(o => {
+          const active = value === o.id
+          return (
+            <button key={o.id} onClick={() => onChange(o.id)}
+              style={{
+                padding: '5px 12px',
+                borderRadius: 6,
+                border: 'none',
+                background: active ? 'rgba(24,209,138,0.14)' : 'transparent',
+                color: active ? 'var(--ink-green)' : 'var(--ink-muted)',
+                fontSize: 11.5,
+                fontFamily: active ? "'Inter', sans-serif" : 'JetBrains Mono, monospace',
+                fontWeight: active ? 600 : 500,
+                letterSpacing: 0.02,
+                cursor: 'pointer',
+                transition: 'background .12s ease, color .12s ease',
+                whiteSpace: 'nowrap',
+              }}
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.color = 'var(--ink-text)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' } }}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'var(--ink-muted)'; e.currentTarget.style.background = 'transparent' } }}>
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
