@@ -151,8 +151,8 @@ export default function Historico() {
                   style={{
                     aspectRatio: '1',
                     padding: 6,
-                    background: hasAny ? (dayResult >= 0 ? '#22c55e12' : '#ef444412') : 'var(--surface-2)',
-                    border: '1px solid ' + (hasAny ? (dayResult >= 0 ? '#22c55e55' : '#ef444455') : 'var(--border)'),
+                    background: hasAny ? (dayResult >= 0 ? 'color-mix(in srgb, var(--up) 10%, transparent)' : 'color-mix(in srgb, var(--down) 10%, transparent)') : 'var(--surface-2)',
+                    border: '1px solid ' + (hasAny ? (dayResult >= 0 ? 'color-mix(in srgb, var(--up) 35%, transparent)' : 'color-mix(in srgb, var(--down) 35%, transparent)') : 'var(--border)'),
                     borderRadius: 6,
                     display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                     color: 'var(--text-primary)', fontSize: 11,

@@ -173,7 +173,7 @@ export default function Diario() {
       )}
 
       {daySummary?.is_finalized && (
-        <div style={{ marginTop: 20, padding: 12, background: '#22c55e11', border: '1px solid #22c55e44', borderRadius: 6, fontSize: 12, color: 'var(--up)' }}>
+        <div style={{ marginTop: 20, padding: 12, background: 'color-mix(in srgb, var(--up) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--up) 30%, transparent)', borderRadius: 6, fontSize: 12, color: 'var(--up)' }}>
           ✓ dia finalizado {daySummary.did_not_trade && '(não operou)'}
         </div>
       )}
