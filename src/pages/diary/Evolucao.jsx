@@ -59,6 +59,7 @@ export default function Evolucao() {
   const [setup, setSetup] = useState('all')
   const [asset, setAsset] = useState('all')
   const [customRange, setCustomRange] = useState({ from: '', to: '' })
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -228,33 +229,57 @@ export default function Evolucao() {
 
       {/* FILTROS */}
       <div className="ink-fade-up" style={{ marginBottom: 22 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: filtersOpen ? 12 : 0, flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 3 }}>Evolução</div>
             <div style={{ fontSize: 11, color: DIM, letterSpacing: '0.04em' }}>Performance do trader</div>
           </div>
-          {(period !== 'all' || setup !== 'all' || asset !== 'all') && (
-            <button onClick={() => { setPeriod('all'); setSetup('all'); setAsset('all'); setCustomRange({ from: '', to: '' }) }}
-              style={{ fontSize: 11, color: DIM, padding: '4px 8px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-              limpar filtros
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {activeFilterCount(period, asset) > 0 && (
+              <button onClick={() => { setPeriod('all'); setAsset('all'); setCustomRange({ from: '', to: '' }) }}
+                style={{ fontSize: 11, color: DIM, padding: '6px 10px', background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                limpar
+              </button>
+            )}
+            <button onClick={() => setFiltersOpen(v => !v)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 10px', borderRadius: 6,
+                background: filtersOpen ? 'rgba(255,255,255,0.05)' : 'transparent',
+                border: '1px solid var(--ink-line)',
+                color: 'var(--ink-text)',
+                fontSize: 11.5, cursor: 'pointer',
+                transition: 'background .12s ease, border-color .12s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--ink-line-strong)' }}
+              onMouseLeave={e => { if (!filtersOpen) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'var(--ink-line)' } }}>
+              <span style={{ opacity: 0.7 }}>⚙</span>
+              filtros
+              {activeFilterCount(period, asset) > 0 && (
+                <span style={{
+                  padding: '0 6px', borderRadius: 99, fontSize: 10,
+                  background: 'var(--ink-green)', color: '#07080A', fontWeight: 700,
+                }}>{activeFilterCount(period, asset)}</span>
+              )}
             </button>
-          )}
+          </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
-          {period === 'custom' && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
-              <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
-                style={dateInput} />
-              <span style={{ color: DIM, fontSize: 11 }}>→</span>
-              <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
-                style={dateInput} />
-            </div>
-          )}
-          <FilterRow label="estratégia" options={SETUPS} value={setup} onChange={setSetup} />
-          <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
-        </div>
+        {filtersOpen && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingTop: 4 }}>
+            <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
+            {period === 'custom' && (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
+                <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
+                  style={dateInput} />
+                <span style={{ color: DIM, fontSize: 11 }}>→</span>
+                <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
+                  style={dateInput} />
+              </div>
+            )}
+            <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
+          </div>
+        )}
       </div>
 
       {/* METRIC CARDS */}
@@ -310,6 +335,13 @@ export default function Evolucao() {
 }
 
 // ─── COMPONENTES ─────────────────────────────────────────────────────
+
+function activeFilterCount(period, asset) {
+  let n = 0
+  if (period !== 'all') n++
+  if (asset !== 'all') n++
+  return n
+}
 
 const dateInput = {
   padding: '5px 9px',
