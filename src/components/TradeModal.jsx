@@ -23,24 +23,29 @@ export default function TradeModal({ open, onClose, onSaved, defaultDate }) {
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(4,5,7,0.8)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        background: 'rgba(4,5,7,0.35)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '5vh 16px',
         overflowY: 'auto',
+        animation: 'ink-fade-up .18s ease-out both',
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 820,
-          background: 'linear-gradient(180deg, rgba(14,16,19,0.97), rgba(11,13,16,0.97))',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 14,
+          background: 'linear-gradient(180deg, #14181D, #0E1013)',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: 16,
           padding: '28px 28px 24px',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
+          boxShadow:
+            'inset 0 1px 0 rgba(255,255,255,0.06),' +
+            '0 1px 2px rgba(0,0,0,0.4),' +
+            '0 12px 24px rgba(0,0,0,0.55),' +
+            '0 40px 80px rgba(0,0,0,0.85),' +
+            '0 0 0 1px rgba(24,209,138,0.05)',
           maxHeight: '90vh', overflowY: 'auto',
+          animation: 'ink-modal-pop .22s cubic-bezier(0.34, 1.2, 0.64, 1) both',
         }}
       >
         <NovoTrade modal onClose={onClose} onSaved={onSaved} defaultDate={defaultDate} />

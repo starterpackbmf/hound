@@ -241,6 +241,12 @@
   background: rgba(255,255,255,0.02);
 }
 
+/* Modal pop — escala + slide pra cima com spring sutil */
+@keyframes ink-modal-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Curva de capital desenhando */
 [data-diary] .ink-line-draw {
   stroke-dasharray: 1;
