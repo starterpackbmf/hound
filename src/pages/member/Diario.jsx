@@ -96,7 +96,7 @@ export default function Diario() {
   if (err) return <ErrorBox>erro: {err} — rode <code>0008_trades.sql</code> se ainda não rodou.</ErrorBox>
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <PageTitle eyebrow="OPERACIONAL">diário de trade</PageTitle>
         <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">

@@ -90,7 +90,7 @@ export default function Historico() {
   }
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <PageTitle eyebrow="OPERACIONAL" sub="calendário mensal dos seus trades.">histórico</PageTitle>
 
       {/* Controls */}

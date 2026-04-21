@@ -38,7 +38,7 @@ export default function ResumoSemanal() {
   if (loading) return <Loading />
 
   return (
-    <div style={{ maxWidth: 780 }}>
+    <div style={{ maxWidth: 780, margin: '0 auto' }}>
       <PageTitle eyebrow="APRENDIZADO" sub="seu mentor de trading com IA — resumos semanais baseados no seu diário.">
         w.o.l.f ai
       </PageTitle>

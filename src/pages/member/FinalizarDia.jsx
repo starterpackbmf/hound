@@ -120,7 +120,7 @@ export default function FinalizarDia({ modal = false, onClose, onSaved, date: da
   const todayFmt = new Date(today + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <PageTitle eyebrow="FIM DE PREGÃO" sub={`${todayFmt} — revise o dia, marque o checklist e finalize.`}>
         finalizar o dia
       </PageTitle>

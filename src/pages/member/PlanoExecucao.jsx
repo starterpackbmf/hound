@@ -62,7 +62,7 @@ export default function PlanoExecucao() {
 
   if (!plan) {
     return (
-      <div style={{ maxWidth: 700 }}>
+      <div style={{ maxWidth: 700, margin: '0 auto' }}>
         <PageTitle eyebrow="MONITORIA" sub="seu plano operacional definido pelo mentor.">
           plano de execução
         </PageTitle>
@@ -75,7 +75,7 @@ export default function PlanoExecucao() {
   }
 
   return (
-    <div style={{ maxWidth: 760 }}>
+    <div style={{ maxWidth: 760, margin: '0 auto' }}>
       <PageTitle eyebrow="MONITORIA" sub={`última atualização: ${new Date(plan.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}`}>
         plano de execução
       </PageTitle>

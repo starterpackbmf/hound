@@ -21,7 +21,7 @@ const TAB_LABELS = {
 export default function Jornada() {
   const [tab, setTab] = useState('matilha')
   return (
-    <div style={{ maxWidth: 1040 }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto' }}>
       <PageTitle eyebrow="A MATILHA" sub="sua evolução, metas e diagnóstico pessoal.">minha jornada</PageTitle>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>

@@ -76,7 +76,7 @@ export default function Operacional() {
   if (loading) return <Loading />
 
   return (
-    <div style={{ maxWidth: 1040 }}>
+    <div style={{ maxWidth: 1040, margin: '0 auto' }}>
       <PageTitle eyebrow="ANÁLISE" sub="raio-x por setup: qual está dando dinheiro, qual você tá forçando, qual evitar.">
         operacional
       </PageTitle>
