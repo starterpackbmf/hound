@@ -23,7 +23,9 @@ export default function TradeModal({ open, onClose, onSaved, defaultDate }) {
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(4,5,7,0.35)',
+        background: 'rgba(4,5,7,0.45)',
+        backdropFilter: 'blur(6px)',
+        WebkitBackdropFilter: 'blur(6px)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '5vh 16px',
         overflowY: 'auto',
