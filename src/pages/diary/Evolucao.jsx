@@ -241,10 +241,10 @@ export default function Evolucao() {
           )}
         </div>
 
-        <div className="ink-card" style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <FilterRow label="PERÍODO" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
           {period === 'custom' && (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 80 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
               <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
                 style={dateInput} />
               <span style={{ color: DIM, fontSize: 11 }}>→</span>
@@ -252,8 +252,8 @@ export default function Evolucao() {
                 style={dateInput} />
             </div>
           )}
-          <FilterRow label="ESTRATÉGIA" options={SETUPS} value={setup} onChange={setSetup} />
-          <FilterRow label="ATIVO" options={ASSETS} value={asset} onChange={setAsset} />
+          <FilterRow label="estratégia" options={SETUPS} value={setup} onChange={setSetup} />
+          <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
         </div>
       </div>
 
@@ -325,37 +325,31 @@ const dateInput = {
 
 function FilterRow({ label, options, value, onChange }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div style={{
-        fontSize: 9, letterSpacing: '0.14em', color: 'var(--ink-dim)',
-        fontWeight: 600, width: 68, flexShrink: 0,
+        fontSize: 10, color: 'var(--ink-dim)',
+        fontWeight: 400, width: 58, flexShrink: 0,
       }}>{label}</div>
-      <div style={{
-        display: 'flex', gap: 1, flex: 1, flexWrap: 'wrap',
-        padding: 3, borderRadius: 8,
-        background: 'rgba(255,255,255,0.025)',
-        border: '1px solid var(--ink-line)',
-      }}>
+      <div style={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
         {options.map(o => {
           const active = value === o.id
           return (
             <button key={o.id} onClick={() => onChange(o.id)}
               style={{
-                padding: '5px 12px',
-                borderRadius: 6,
+                padding: '3px 8px',
+                borderRadius: 4,
                 border: 'none',
-                background: active ? 'rgba(24,209,138,0.14)' : 'transparent',
+                background: active ? 'rgba(24,209,138,0.12)' : 'transparent',
                 color: active ? 'var(--ink-green)' : 'var(--ink-muted)',
-                fontSize: 11.5,
-                fontFamily: active ? "'Inter', sans-serif" : 'JetBrains Mono, monospace',
-                fontWeight: active ? 600 : 500,
-                letterSpacing: 0.02,
+                fontSize: 11,
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: active ? 500 : 400,
                 cursor: 'pointer',
-                transition: 'background .12s ease, color .12s ease',
+                transition: 'background .1s ease, color .1s ease',
                 whiteSpace: 'nowrap',
               }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.color = 'var(--ink-text)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)' } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'var(--ink-muted)'; e.currentTarget.style.background = 'transparent' } }}>
+              onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--ink-text)' }}
+              onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--ink-muted)' }}>
               {o.label}
             </button>
           )
