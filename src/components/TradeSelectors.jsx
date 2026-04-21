@@ -29,8 +29,8 @@ export function RulesSelector({ operational, selectedRules, onChange }) {
         </div>
         <span className="pill" style={{
           fontSize: 10,
-          color: done ? 'var(--up)' : 'var(--amber)',
-          borderColor: done ? 'var(--up)' : 'var(--amber)',
+          color: done ? 'var(--up)' : 'var(--text-muted)',
+          borderColor: done ? 'var(--up)' : 'var(--border-strong)',
           opacity: 0.9,
         }}>
           {done ? '✓ completo' : `${count}/${config.mandatoryRules.length}`}
@@ -97,7 +97,7 @@ export function FiltersSelector({ operational, selectedFilters, onChange }) {
             melhoram o score da entrada (até +30%)
           </div>
         </div>
-        <span className="pill" style={{ fontSize: 10, color: 'var(--cyan)', borderColor: 'var(--cyan)', opacity: 0.9 }}>
+        <span className="pill" style={{ fontSize: 10, color: 'var(--up)', borderColor: 'var(--up)', opacity: 0.9 }}>
           +{bonus}%
         </span>
       </div>
@@ -112,16 +112,16 @@ export function FiltersSelector({ operational, selectedFilters, onChange }) {
               style={{
                 display: 'flex', alignItems: 'center', gap: 10,
                 padding: '10px 12px', borderRadius: 8,
-                border: `1px solid ${on ? 'rgba(0,217,255,0.4)' : 'var(--border)'}`,
-                background: on ? 'rgba(0,217,255,0.08)' : 'var(--surface-2)',
+                border: `1px solid ${on ? 'rgba(24,209,138,0.4)' : 'var(--border)'}`,
+                background: on ? 'rgba(24,209,138,0.08)' : 'var(--surface-2)',
                 color: on ? 'var(--text-primary)' : 'var(--text-secondary)',
                 fontSize: 12, textAlign: 'left', cursor: 'pointer',
               }}
             >
               <span style={{
                 width: 14, height: 14, borderRadius: 3,
-                border: `2px solid ${on ? 'var(--cyan)' : 'var(--text-muted)'}`,
-                background: on ? 'var(--cyan)' : 'transparent',
+                border: `2px solid ${on ? 'var(--up)' : 'var(--text-muted)'}`,
+                background: on ? 'var(--up)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#0a0a0e', fontSize: 8, fontWeight: 700, flexShrink: 0,
               }}>{on && '✓'}</span>
