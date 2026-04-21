@@ -786,7 +786,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       </div>
       {/* ────── COLUNA DIREITA ────── */}
       {modal && (
-        <aside style={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <aside style={{ position: 'sticky', top: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
           {/* RESUMO DA OPERAÇÃO */}
           <div className="ink-card" style={{ padding: 18 }}>
             <div className="label-muted" style={{ marginBottom: 14, fontSize: 10, letterSpacing: '0.14em' }}>

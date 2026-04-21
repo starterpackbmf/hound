@@ -286,6 +286,10 @@
     transform .2s ease,
     box-shadow .2s ease;
 }
+/* Dentro do aside (coluna direita) usa apenas o gap do flex — zera margem */
+[data-diary] .ink-modal aside section {
+  margin-bottom: 0;
+}
 [data-diary] .ink-modal section:hover {
   border-color: var(--ink-line-strong);
   background: linear-gradient(180deg, rgba(26,30,36,0.48), rgba(18,20,25,0.32));
