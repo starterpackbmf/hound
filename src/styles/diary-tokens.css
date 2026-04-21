@@ -306,6 +306,33 @@
   color: var(--ink-green);
 }
 
+/* Pills (emocional etc) com hover glow sutil */
+[data-diary] .ink-modal .pill {
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .15s ease,
+    box-shadow .25s ease;
+}
+[data-diary] .ink-modal .pill:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(255,255,255,0.04);
+}
+[data-diary] .ink-modal .pill.pill-up:not(:disabled):hover {
+  border-color: rgba(24,209,138,0.5);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(24,209,138,0.28);
+}
+[data-diary] .ink-modal .pill.pill-down:not(:disabled):hover {
+  border-color: rgba(255,84,112,0.5);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(255,84,112,0.28);
+}
+[data-diary] .ink-modal .pill.pill-active:not(:disabled):hover {
+  border-color: rgba(231,198,122,0.5);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(231,198,122,0.24);
+}
+
 /* Modal pop — escala + slide pra cima com spring sutil */
 @keyframes ink-modal-pop {
   from { opacity: 0; transform: translateY(16px) scale(0.96); }

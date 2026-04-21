@@ -328,25 +328,32 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       </Section>
 
-      {/* REGRAS + FILTROS — só aparece quando setup escolhido, com fade-up */}
-      {form.setup && (
-        <div key={form.setup} className="ink-fade-up">
-          <Section title="protocolo de entrada">
-            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
-              <RulesSelector
-                operational={form.setup}
-                selectedRules={form.selected_rules}
-                onChange={rules => set('selected_rules', rules)}
-              />
-              <FiltersSelector
-                operational={form.setup}
-                selectedFilters={form.selected_filters}
-                onChange={filters => set('selected_filters', filters)}
-              />
-            </div>
-          </Section>
+      {/* REGRAS + FILTROS — expande de cima pra baixo empurrando o resto */}
+      <div style={{
+        display: 'grid',
+        gridTemplateRows: form.setup ? '1fr' : '0fr',
+        opacity: form.setup ? 1 : 0,
+        transition: 'grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1), opacity 280ms ease-out',
+      }}>
+        <div style={{ overflow: 'hidden' }}>
+          {form.setup && (
+            <Section title="protocolo de entrada">
+              <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+                <RulesSelector
+                  operational={form.setup}
+                  selectedRules={form.selected_rules}
+                  onChange={rules => set('selected_rules', rules)}
+                />
+                <FiltersSelector
+                  operational={form.setup}
+                  selectedFilters={form.selected_filters}
+                  onChange={filters => set('selected_filters', filters)}
+                />
+              </div>
+            </Section>
+          )}
         </div>
-      )}
+      </div>
 
       {/* EXECUÇÃO */}
       <Section title="execução e métricas">
