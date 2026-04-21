@@ -1,0 +1,166 @@
+/* Tokens premium do Diário — inspirados no design do Claude Design.
+   Escopo: só dentro de [data-diary] (DiaryLayout). */
+
+[data-diary] {
+  --ink-bg:          #07080A;
+  --ink-surface:     #0E1013;
+  --ink-surface-2:   #14181D;
+  --ink-line:        rgba(255,255,255,0.06);
+  --ink-line-strong: rgba(255,255,255,0.10);
+
+  --ink-text:        #E9EBEE;
+  --ink-muted:       rgba(233,235,238,0.62);
+  --ink-dim:         rgba(233,235,238,0.40);
+  --ink-faint:       rgba(233,235,238,0.18);
+
+  --ink-green:       #18D18A;
+  --ink-green-soft:  rgba(24,209,138,0.14);
+  --ink-green-ghost: rgba(24,209,138,0.06);
+
+  --ink-red:         #FF5470;
+  --ink-red-soft:    rgba(255,84,112,0.14);
+
+  --ink-gold:        #E7C67A;
+  --ink-violet:      #A498FF;
+  --ink-cyan:        #6FE6F0;
+
+  --ink-font-serif:  'Instrument Serif', 'Times New Roman', serif;
+
+  background: var(--ink-bg);
+  color: var(--ink-text);
+}
+
+[data-diary] .ink-card {
+  border: 1px solid var(--ink-line);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(20,24,29,0.6), rgba(14,16,19,0.4));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+[data-diary] .ink-card-solid {
+  border: 1px solid var(--ink-line);
+  border-radius: 10px;
+  background: rgba(14,16,19,0.5);
+}
+
+[data-diary] .ink-num {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-diary] .ink-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+[data-diary] .ink-dot-pulse {
+  animation: ink-pulse 2s ease-in-out infinite;
+}
+@keyframes ink-pulse {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0.5 }
+}
+
+[data-diary] .ink-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(70% 50% at 100% 50%, rgba(24,209,138,0.06) 0%, transparent 60%),
+    radial-gradient(50% 40% at 0% 0%, rgba(164,152,255,0.04) 0%, transparent 60%);
+}
+
+/* Raycast / Superhuman style interactions */
+[data-diary] .ink-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--ink-line);
+  background: rgba(255,255,255,0.02);
+  color: var(--ink-text);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .15s ease, border-color .15s ease, transform .08s ease;
+}
+[data-diary] .ink-btn:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--ink-line-strong);
+}
+[data-diary] .ink-btn:active { transform: scale(0.97) }
+
+[data-diary] .ink-btn-primary {
+  background: var(--ink-green);
+  color: #07080A;
+  border-color: transparent;
+  font-weight: 600;
+}
+[data-diary] .ink-btn-primary:hover {
+  background: #14b878;
+  border-color: transparent;
+}
+
+[data-diary] .ink-chip {
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-dim);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all .12s ease;
+}
+[data-diary] .ink-chip:hover {
+  color: var(--ink-text);
+  background: rgba(255,255,255,0.04);
+}
+[data-diary] .ink-chip.active {
+  color: var(--ink-text);
+  background: rgba(255,255,255,0.08);
+  border-color: var(--ink-line-strong);
+}
+
+[data-diary] .ink-card-interactive {
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .12s ease;
+}
+[data-diary] .ink-card-interactive:hover {
+  border-color: var(--ink-line-strong);
+  background: linear-gradient(180deg, rgba(24,28,34,0.7), rgba(16,18,22,0.5));
+}
+[data-diary] .ink-card-interactive:active { transform: scale(0.995) }
+
+[data-diary] .ink-hero-gradient {
+  background:
+    radial-gradient(80% 100% at 0% 0%, rgba(24,209,138,0.08) 0%, transparent 55%),
+    radial-gradient(60% 80% at 100% 0%, rgba(164,152,255,0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #0E1013, #0B0D10);
+}
+
+[data-diary] .ink-kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 1px 5px;
+  border: 1px solid var(--ink-line-strong);
+  border-radius: 3px;
+  color: var(--ink-dim);
+  background: rgba(255,255,255,0.02);
+}
+
+/* count-up fade-in pros números quando página carrega */
+[data-diary] .ink-fade-up {
+  animation: ink-fade-up .5s ease-out both;
+}
+@keyframes ink-fade-up {
+  from { opacity: 0; transform: translateY(6px) }
+  to   { opacity: 1; transform: translateY(0) }
+}

@@ -10,9 +10,11 @@ import '@fontsource/inter/700.css'
 import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/500.css'
 import '@fontsource/jetbrains-mono/600.css'
+import '@fontsource/instrument-serif'
 
 // Design tokens (must come after fonts)
 import './styles/tokens.css'
+import './styles/diary-tokens.css'
 
 import App from './App.jsx'
 import Vitrine from './pages/Vitrine'
