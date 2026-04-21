@@ -700,7 +700,7 @@ function EquityCard({ data }) {
 
         {/* áreas + linhas segmentadas */}
         {segments.map((seg, i) => (
-          <g key={i}>
+          <g key={i} style={{ filter: `drop-shadow(0 0 6px ${seg.positive ? GREEN : RED}99) drop-shadow(0 0 14px ${seg.positive ? GREEN : RED}40)` }}>
             <path d={areaD(seg.pts)} fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'} />
             <path d={pathD(seg.pts)} fill="none"
               stroke={seg.positive ? GREEN : RED}
@@ -838,9 +838,9 @@ function DailyCard({ data }) {
           const y = Math.min(yVal, baseY)
           const barH = Math.abs(yVal - baseY)
           return (
-            <g key={d.date}>
+            <g key={d.date} style={{ filter: `drop-shadow(0 0 4px ${up ? GREEN : RED}66) drop-shadow(0 0 10px ${up ? GREEN : RED}30)` }}>
               <rect x={cx - barW / 2} y={y} width={barW} height={Math.max(barH, 1)}
-                fill={up ? GREEN : RED} rx="2" opacity="0.88">
+                fill={up ? GREEN : RED} rx="2" opacity="0.9">
                 <title>{`${d.date}: ${up ? '+' : '−'}R$ ${Math.abs(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}</title>
               </rect>
             </g>
