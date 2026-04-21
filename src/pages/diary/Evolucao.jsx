@@ -114,8 +114,10 @@ export default function Evolucao() {
       const dd = cumulative - peak
       if (dd < maxDD) maxDD = dd
     })
-    const maxDDPct = peak > 0 ? Math.abs(maxDD / peak) * 100 : 0
-    return { totalBrl, winRate, winCount: wins, lossCount: losses, total: filtered.length, daysOperated, maxDD, maxDDPct }
+    // drawdown % só faz sentido quando o pico é representativo (usa o maior entre pico e |DD| como denom)
+    const denom = Math.max(peak, Math.abs(maxDD))
+    const maxDDPct = denom > 0 ? Math.abs(maxDD / denom) * 100 : 0
+    return { totalBrl, winRate, winCount: wins, lossCount: losses, total: filtered.length, daysOperated, maxDD, maxDDPct, maxDDPeak: peak }
   }, [filtered])
 
   // curva de capital (cumulativo)
@@ -309,7 +311,13 @@ export default function Evolucao() {
           label="MAX DRAWDOWN"
           value={metrics.maxDD < 0 ? `−R$ ${Math.abs(metrics.maxDD).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}` : 'R$ 0'}
           accent={metrics.maxDD < 0 ? RED : MUTED}
-          sub={`${metrics.maxDDPct.toFixed(1)}% do pico`}
+          sub={
+            metrics.maxDDPeak > 0
+              ? `${metrics.maxDDPct.toFixed(1)}% do pico`
+              : metrics.maxDD < 0
+                ? 'ainda sem pico positivo'
+                : ''
+          }
         />
       </div>
 
