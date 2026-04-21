@@ -544,45 +544,85 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
 function PrintUploader({ value, onChange }) {
   const [uploading, setUploading] = useState(false)
   const [err, setErr] = useState(null)
+  const [dragOver, setDragOver] = useState(false)
+  const fileRef = React.useRef(null)
 
-  async function onFile(e) {
-    const f = e.target.files?.[0]
+  async function handleFile(f) {
     if (!f) return
     setUploading(true); setErr(null)
     try {
       const { url } = await uploadPrint(f)
       onChange(url)
-    } catch (ex) { setErr(ex.message) } finally { setUploading(false); e.target.value = '' }
+    } catch (ex) { setErr(ex.message) } finally { setUploading(false) }
+  }
+
+  async function onFile(e) {
+    await handleFile(e.target.files?.[0])
+    e.target.value = ''
+  }
+
+  function onDrop(e) {
+    e.preventDefault(); e.stopPropagation(); setDragOver(false)
+    const f = e.dataTransfer.files?.[0]
+    if (f) handleFile(f)
   }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      {value && (
-        <div style={{ position: 'relative' }}>
+      {value ? (
+        <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', border: '1px solid var(--ink-line, var(--border))' }}>
           <img src={value} alt="print"
-            style={{ maxWidth: '100%', maxHeight: 320, borderRadius: 8, border: '1px solid var(--border)', objectFit: 'contain', background: 'var(--surface-2)' }}
+            style={{ display: 'block', width: '100%', maxHeight: 280, objectFit: 'contain', background: 'rgba(255,255,255,0.02)' }}
             onError={e => { e.currentTarget.style.display = 'none' }} />
           <button type="button" onClick={() => onChange('')}
-            style={{ position: 'absolute', top: 8, right: 8, background: '#00000099', color: 'white', border: '1px solid #ffffff33', borderRadius: 4, padding: '4px 8px', fontSize: 10 }}>
-            remover
+            style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, background: 'rgba(0,0,0,0.6)', color: 'white', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, cursor: 'pointer' }}>
+            ✕
           </button>
         </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={onDrop}
+          style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+            padding: '28px 20px',
+            borderRadius: 10,
+            border: `1.5px dashed ${dragOver ? 'var(--ink-green)' : 'rgba(24,209,138,0.3)'}`,
+            background: dragOver ? 'rgba(24,209,138,0.06)' : 'rgba(24,209,138,0.02)',
+            color: 'var(--ink-text, var(--text-primary))',
+            cursor: uploading ? 'wait' : 'pointer',
+            transition: 'border-color .15s, background .15s',
+            width: '100%',
+          }}
+        >
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--ink-green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.85 }}>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-green)' }}>
+            {uploading ? 'enviando…' : 'Upload (jpg/png até 5MB)'}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--ink-muted, var(--text-muted))' }}>
+            ou cole um link da imagem
+          </div>
+          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFile} style={{ display: 'none' }} disabled={uploading} />
+        </button>
       )}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-        <label className={uploading ? 'btn' : 'btn btn-outline-cyan'} style={{ cursor: uploading ? 'wait' : 'pointer', opacity: uploading ? 0.6 : 1 }}>
-          {uploading ? 'enviando...' : '📷 upload (jpg/png até 5MB)'}
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFile} style={{ display: 'none' }} disabled={uploading} />
-        </label>
-        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>ou cole um link:</span>
+
+      {!value && (
         <input
           className="input"
           type="url"
           placeholder="https://imgur.com/..."
-          value={value?.startsWith('http') ? value : ''}
+          value={typeof value === 'string' && value.startsWith('http') ? value : ''}
           onChange={e => onChange(e.target.value)}
-          style={{ flex: 1, minWidth: 200, fontSize: 11 }}
+          style={{ fontSize: 11.5 }}
         />
-      </div>
+      )}
       {err && <div style={{ fontSize: 11, color: 'var(--down)' }}>{err}</div>}
     </div>
   )
