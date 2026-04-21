@@ -212,7 +212,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
   if (loading) return <Loading />
 
   return (
-    <div style={{ maxWidth: 780 }}>
+    <div className={modal ? 'ink-modal' : ''} style={modal ? undefined : { maxWidth: 780 }}>
       {!modal && (
         <div style={{ marginBottom: 16 }}>
           <Link to={`/app/diario?date=${form.date}`} style={{
@@ -225,13 +225,16 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         </div>
       )}
 
-      <header style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+      <header style={{ marginBottom: 28, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <div className="eyebrow" style={{ marginBottom: 8 }}>REGISTRO DE OPERAÇÃO</div>
-          <h1 className="display" style={{ fontSize: 26, fontWeight: 500, letterSpacing: '-0.02em', margin: 0 }}>
-            {isEdit ? 'Editar trade' : 'Novo trade'}
+          <h1 style={{
+            fontSize: modal ? 28 : 26, fontWeight: 700, letterSpacing: '0.02em',
+            margin: 0, color: 'var(--ink-text, var(--text-primary))',
+            textTransform: 'uppercase',
+          }}>
+            {isEdit ? 'Editar Operação' : 'Registro de Operação'}
           </h1>
-          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4, fontFamily: 'var(--font-mono)' }}>
+          <p style={{ fontSize: 11, color: 'var(--ink-dim, var(--text-muted))', marginTop: 4, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.08em' }}>
             Protocolo de Performance · V3.0
           </p>
         </div>
@@ -239,11 +242,14 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           <QualityBadge quality={entryQuality.quality} score={entryQuality.score} />
           {modal && onClose && (
             <button onClick={onClose} style={{
-              width: 32, height: 32, borderRadius: 8,
-              background: 'var(--surface-2)', border: '1px solid var(--border)',
-              color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }} title="fechar">
-              <IX size={14} stroke={1.8} />
+              width: 36, height: 36, borderRadius: 8,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ink-line, var(--border))',
+              color: 'var(--ink-muted, var(--text-muted))', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'background .12s',
+            }} onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}
+               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
+              title="fechar">
+              <IX size={16} stroke={1.8} />
             </button>
           )}
         </div>
@@ -516,21 +522,6 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             />
           </Section>
 
-          {/* DIRETRIZES */}
-          <div className="ink-card" style={{ padding: 16 }}>
-            <div className="label-muted" style={{ marginBottom: 10, fontSize: 10, letterSpacing: '0.14em' }}>DIRETRIZES RÁPIDAS</div>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Revise antes de salvar.
-              </li>
-              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Mantenha seus dados atualizados.
-              </li>
-              <li style={{ fontSize: 11.5, color: 'var(--ink-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ color: 'var(--ink-green)', opacity: 0.8 }}>✓</span> Consistência gera resultado.
-              </li>
-            </ul>
-          </div>
         </aside>
       )}
       </div>
