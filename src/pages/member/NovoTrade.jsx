@@ -177,7 +177,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
         media_ponderada: mediaPonderada,
         resultado_brl: resultadoBrl,
         emotions: form.emotions,
-        followed_plan: form.followed_plan ?? entryQuality.followedPlan,
+        followed_plan: entryQuality.followedPlan,
         leitura_tecnica: form.leitura_tecnica || null,
         print_url: form.print_url || null,
         selected_rules: form.selected_rules,
@@ -299,7 +299,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
 
       {/* REGRAS + FILTROS (qualidade aparece no badge do header) */}
       <Section title="protocolo de entrada">
-        <div style={{ display: 'grid', gap: 12 }}>
+        <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
           <RulesSelector
             operational={form.setup}
             selectedRules={form.selected_rules}
@@ -410,18 +410,6 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
               </button>
             )
           })}
-        </div>
-      </Section>
-
-      {/* SEGUIU O PLANO */}
-      <Section title="seguiu o plano?">
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button type="button" onClick={() => set('followed_plan', true)} className={form.followed_plan === true ? 'pill pill-up' : 'pill'} style={{ cursor: 'pointer' }}>
-            ✓ sim, segui
-          </button>
-          <button type="button" onClick={() => set('followed_plan', false)} className={form.followed_plan === false ? 'pill pill-down' : 'pill'} style={{ cursor: 'pointer' }}>
-            ✗ não segui
-          </button>
         </div>
       </Section>
 
