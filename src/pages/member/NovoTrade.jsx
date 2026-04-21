@@ -20,7 +20,10 @@ const SETUPS = [
   { code: 'FQ',  label: 'FQ — Falha e Quebra' },
 ]
 
-const ASSETS = ['WIN', 'WDO']
+const ASSETS = [
+  { code: 'WIN', label: 'Mini Índice (WIN)' },
+  { code: 'WDO', label: 'Mini Dólar (WDO)' },
+]
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 
@@ -272,11 +275,10 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
           <Field label="saída">
             <input className="input" type="time" value={form.horario_saida} onChange={e => set('horario_saida', e.target.value)} />
           </Field>
-          <Field label="ativo">
-            <input className="input" list="assets-list" value={form.ativo} onChange={e => set('ativo', e.target.value.toUpperCase())} placeholder="WIN / WDO / ..." />
-            <datalist id="assets-list">
-              {ASSETS.map(a => <option key={a} value={a} />)}
-            </datalist>
+          <Field label="ativo financeiro">
+            <select className="input" value={form.ativo} onChange={e => set('ativo', e.target.value)}>
+              {ASSETS.map(a => <option key={a.code} value={a.code}>{a.label}</option>)}
+            </select>
           </Field>
           <Field label="setup">
             <select className="input" value={form.setup} onChange={e => set('setup', e.target.value)}>
