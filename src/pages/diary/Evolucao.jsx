@@ -278,16 +278,12 @@ export default function Evolucao() {
                   display: 'flex', flexDirection: 'column', gap: 6,
                   animation: 'ink-fade-up .15s ease-out both',
                 }}>
-                  <FilterRow label="período" options={[...PERIODS, { id: 'custom', label: 'Intervalo' }]} value={period} onChange={setPeriod} />
-                  {period === 'custom' && (
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', paddingLeft: 68 }}>
-                      <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({ ...r, from: e.target.value }))}
-                        style={dateInput} />
-                      <span style={{ color: DIM, fontSize: 11 }}>→</span>
-                      <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({ ...r, to: e.target.value }))}
-                        style={dateInput} />
-                    </div>
-                  )}
+                  <FilterRow label="período" options={PERIODS} value={period} onChange={(id) => { setPeriod(id); setCustomRange({ from: '', to: '' }) }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 68, marginTop: 2 }}>
+                    <DateField value={customRange.from} onChange={v => { setCustomRange(r => ({ ...r, from: v })); setPeriod('custom') }} placeholder="de" />
+                    <span style={{ color: DIM, fontSize: 11 }}>→</span>
+                    <DateField value={customRange.to} onChange={v => { setCustomRange(r => ({ ...r, to: v })); setPeriod('custom') }} placeholder="até" />
+                  </div>
                   <FilterRow label="ativo" options={ASSETS} value={asset} onChange={setAsset} />
                 </div>
               </>
@@ -363,16 +359,61 @@ function activeFilterCount(period, asset) {
   return n
 }
 
-const dateInput = {
-  padding: '5px 9px',
-  borderRadius: 6,
-  border: '1px solid var(--ink-line-strong)',
-  background: 'rgba(255,255,255,0.02)',
-  color: 'var(--ink-text)',
-  fontSize: 11,
-  fontFamily: 'JetBrains Mono, monospace',
-  outline: 'none',
-  colorScheme: 'dark',
+function DateField({ value, onChange, placeholder }) {
+  const [focus, setFocus] = useState(false)
+  const ref = useRef(null)
+  const display = value
+    ? new Date(value + 'T12:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: '2-digit' }).replace('.', '')
+    : null
+  return (
+    <label style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+      padding: '5px 10px',
+      borderRadius: 6,
+      border: `1px solid ${focus ? 'rgba(24,209,138,0.4)' : 'var(--ink-line)'}`,
+      background: focus ? 'rgba(24,209,138,0.04)' : 'rgba(255,255,255,0.02)',
+      cursor: 'pointer',
+      transition: 'border-color .15s ease, background .15s ease',
+      minWidth: 110,
+    }}
+    onClick={() => ref.current?.showPicker?.()}
+    onMouseEnter={e => { if (!focus) e.currentTarget.style.borderColor = 'var(--ink-line-strong)' }}
+    onMouseLeave={e => { if (!focus) e.currentTarget.style.borderColor = 'var(--ink-line)' }}
+    >
+      <span style={{ fontSize: 11, opacity: 0.7 }}>📅</span>
+      <span style={{
+        fontSize: 11.5,
+        color: value ? 'var(--ink-text)' : 'var(--ink-dim)',
+        fontFamily: value ? 'JetBrains Mono, monospace' : 'inherit',
+        letterSpacing: value ? 0.3 : 0,
+        fontWeight: value ? 500 : 400,
+      }}>
+        {display || placeholder}
+      </span>
+      {value && (
+        <button
+          type="button"
+          onClick={e => { e.stopPropagation(); onChange('') }}
+          style={{ padding: 0, background: 'transparent', border: 'none', color: 'var(--ink-dim)', fontSize: 11, cursor: 'pointer', marginLeft: 2 }}
+          title="limpar"
+        >✕</button>
+      )}
+      <input
+        ref={ref}
+        type="date"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onFocus={() => setFocus(true)}
+        onBlur={() => setFocus(false)}
+        style={{
+          position: 'absolute',
+          opacity: 0,
+          pointerEvents: 'none',
+          width: 0, height: 0,
+        }}
+      />
+    </label>
+  )
 }
 
 function FilterRow({ label, options, value, onChange }) {
