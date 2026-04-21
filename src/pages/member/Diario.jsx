@@ -9,6 +9,7 @@ import { PageTitle, ErrorBox, Loading } from './ui'
 import { IPlus, IPencil, IX, ICheck, ICalendar, IArrowLeft, IArrowRight } from '../../components/icons'
 import TradeModal from '../../components/TradeModal'
 import FinalizarDiaModal from '../../components/FinalizarDiaModal'
+import { InkSelect, InkDate } from '../../components/InkControls'
 
 function todayIso() { return new Date().toISOString().slice(0, 10) }
 function fmtBR(iso) {
@@ -96,38 +97,40 @@ export default function Diario() {
   if (err) return <ErrorBox>erro: {err} — rode <code>0008_trades.sql</code> se ainda não rodou.</ErrorBox>
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
+    <div className="ink-modal" style={{ maxWidth: 900, margin: '0 auto' }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <PageTitle eyebrow="OPERACIONAL">diário de trade</PageTitle>
+        <h1 style={{
+          fontSize: 28, fontWeight: 700, letterSpacing: '0.02em',
+          margin: 0, color: 'var(--ink-text, var(--text-primary))',
+          textTransform: 'uppercase',
+        }}>
+          Diário do Dia
+        </h1>
         <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
           <IPlus size={12} stroke={2} /> registrar trade
         </button>
       </div>
 
-      {/* Date + account controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+      {/* Date + account controls — wrapped in glass card */}
+      <div className="ink-card" style={{ padding: '12px 14px', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         {accounts.length > 1 && (
-          <select value={accountId} onChange={e => setAccountId(e.target.value)}
-            style={{ padding: '7px 10px', background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12 }}>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-          </select>
+          <div style={{ minWidth: 180 }}>
+            <InkSelect value={accountId} onChange={setAccountId} options={accounts.map(a => ({ value: a.id, label: a.name }))} />
+          </div>
         )}
-        <button onClick={() => shiftDate(-1)} className="btn btn-ghost" style={{ padding: 6 }}><IArrowLeft size={14} stroke={1.8} /></button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ICalendar size={14} stroke={1.6} style={{ color: 'var(--amber)' }} />
-          <input type="date" value={urlDate} onChange={e => changeDate(e.target.value)}
-            style={{ padding: '6px 10px', background: 'var(--surface-1)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text-primary)', fontSize: 12, fontFamily: 'var(--font-mono)' }} />
-          <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{fmtBR(urlDate)}</span>
+        <button onClick={() => shiftDate(-1)} className="btn btn-ghost" style={{ padding: 8 }}><IArrowLeft size={14} stroke={1.8} /></button>
+        <div style={{ minWidth: 180 }}>
+          <InkDate value={urlDate} onChange={changeDate} />
         </div>
-        <button onClick={() => shiftDate(1)} className="btn btn-ghost" style={{ padding: 6 }}><IArrowRight size={14} stroke={1.8} /></button>
+        <button onClick={() => shiftDate(1)} className="btn btn-ghost" style={{ padding: 8 }}><IArrowRight size={14} stroke={1.8} /></button>
         <div style={{ flex: 1 }} />
         {trades.length > 0 && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', fontSize: 12, color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
             <span>{trades.length} trade{trades.length !== 1 ? 's' : ''}</span>
-            <span>·</span>
+            <span style={{ opacity: 0.4 }}>·</span>
             <span>{wins}W / {trades.length - wins}L</span>
-            <span>·</span>
-            <span style={{ color: total >= 0 ? 'var(--up)' : 'var(--down)', fontWeight: 500 }}>
+            <span style={{ opacity: 0.4 }}>·</span>
+            <span style={{ color: total >= 0 ? 'var(--up)' : 'var(--down)', fontWeight: 600 }}>
               {total >= 0 ? '+' : ''}R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
