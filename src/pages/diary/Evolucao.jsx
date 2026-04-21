@@ -715,9 +715,16 @@ function DailyCard({ data }) {
   )
 }
 
+function fmtPts(n) {
+  const abs = Math.abs(n)
+  const s = abs.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return (n < 0 ? '−' : n > 0 ? '+' : '') + s
+}
+
 function StrategyCard({ stats, active, onClick }) {
-  const { code, ops, points, brl, hitRate, payoff } = stats
-  const pnlColor = brl > 0 ? GREEN : brl < 0 ? RED : MUTED
+  const { code, ops, points, brl, hitRate } = stats
+  const pnlColor = points > 0 ? GREEN : points < 0 ? RED : MUTED
+  const brlColor = brl > 0 ? GREEN : brl < 0 ? RED : MUTED
   const codeColor = code === 'TA' ? GREEN : code === 'TC' ? CYAN : code === 'TRM' ? VIOLET : GOLD
   const codeWithDot = code === 'TA' ? 'T.A' : code === 'TC' ? 'T.C' : code === 'TRM' ? 'T.M' : 'F.Q'
   const nameMap = {
@@ -726,6 +733,8 @@ function StrategyCard({ stats, active, onClick }) {
     TRM: 'Retorno às Médias',
     FQ: 'Falha e Quebra',
   }
+  const perOp = ops > 0 ? points / ops : 0
+  const perOpStr = (perOp >= 0 ? '+' : '−') + Math.round(Math.abs(perOp)).toLocaleString('pt-BR')
 
   return (
     <button
@@ -750,15 +759,20 @@ function StrategyCard({ stats, active, onClick }) {
         <span style={{ fontSize: 12.5, color: TEXT, fontWeight: 500 }}>{nameMap[code]}</span>
       </div>
       <div className="ink-num" style={{ fontSize: 20, color: pnlColor, fontWeight: 500, letterSpacing: '-0.02em' }}>
-        {points >= 0 ? '+' : '−'}{Math.abs(points).toFixed(0)} <span style={{ fontSize: 10, opacity: 0.55, fontWeight: 400 }}>pts</span>
+        {fmtPts(points)} <span style={{ fontSize: 10, opacity: 0.55, fontWeight: 400 }}>pts</span>
       </div>
-      <div className="ink-num" style={{ fontSize: 13, color: pnlColor, opacity: 0.85 }}>
+      <div className="ink-num" style={{ fontSize: 13, color: brlColor, opacity: 0.85 }}>
         {fmtBRL(brl, { sign: true })}
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: MUTED, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.02em' }}>
-        <span>{ops} ops</span>
-        <span>WR <span style={{ color: hitRate >= 60 ? GREEN : hitRate >= 50 ? GOLD : RED, fontWeight: 600 }}>{hitRate}%</span></span>
-        <span>P <span style={{ color: TEXT }}>{payoff.toFixed(2)}</span></span>
+      <div style={{ fontSize: 10.5, color: MUTED, fontFamily: 'JetBrains Mono, monospace', letterSpacing: '0.02em', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div>
+          Assertividade <span style={{ color: hitRate >= 60 ? GREEN : hitRate >= 50 ? GOLD : RED, fontWeight: 600 }}>{hitRate}%</span>
+          <span style={{ margin: '0 6px', opacity: 0.4 }}>·</span>
+          {ops} op{ops !== 1 ? 's' : ''}
+        </div>
+        <div style={{ color: perOp >= 0 ? GREEN : RED, opacity: 0.9 }}>
+          {perOpStr} /op
+        </div>
       </div>
     </button>
   )
