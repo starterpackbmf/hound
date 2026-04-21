@@ -244,6 +244,24 @@
 }
 
 /* Overrides pros componentes herdados do Matilha ficarem em verde (não cyan) */
+[data-diary] .btn {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--ink-line-strong);
+  color: var(--ink-text);
+}
+[data-diary] .btn:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+}
+[data-diary] .btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+[data-diary] .btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--ink-text);
+}
 [data-diary] .btn-primary {
   background: var(--ink-green);
   color: #07080A;
