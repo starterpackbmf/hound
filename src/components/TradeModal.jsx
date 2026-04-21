@@ -19,12 +19,13 @@ export default function TradeModal({ open, onClose, onSaved, defaultDate }) {
 
   return createPortal(
     <div
+      data-diary
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
-        background: 'rgba(0,0,0,0.72)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        background: 'rgba(4,5,7,0.8)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
         padding: '5vh 16px',
         overflowY: 'auto',
@@ -34,11 +35,11 @@ export default function TradeModal({ open, onClose, onSaved, defaultDate }) {
         onClick={e => e.stopPropagation()}
         style={{
           width: '100%', maxWidth: 820,
-          background: 'rgba(14, 14, 20, 0.95)',
+          background: 'linear-gradient(180deg, rgba(14,16,19,0.97), rgba(11,13,16,0.97))',
           border: '1px solid rgba(255,255,255,0.08)',
           borderRadius: 14,
           padding: '28px 28px 24px',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.6)',
+          boxShadow: '0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04)',
           maxHeight: '90vh', overflowY: 'auto',
         }}
       >

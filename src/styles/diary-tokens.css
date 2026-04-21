@@ -28,6 +28,34 @@
 
   background: var(--ink-bg);
   color: var(--ink-text);
+
+  /* Overrides: tokens do Matilha sobrescritos dentro do diário
+     pra páginas compartilhadas (Diario, Historico, etc) herdarem o visual */
+  --body: var(--ink-bg);
+  --surface-1: var(--ink-surface);
+  --surface-2: var(--ink-surface-2);
+  --surface-3: #1A1F25;
+  --border: var(--ink-line);
+  --border-strong: var(--ink-line-strong);
+
+  --text-primary: var(--ink-text);
+  --text-secondary: rgba(233,235,238,0.8);
+  --text-muted: var(--ink-muted);
+  --text-faint: var(--ink-faint);
+
+  --up: var(--ink-green);
+  --down: var(--ink-red);
+  --amber: var(--ink-gold);
+  --pink: var(--ink-red);
+  --purple: var(--ink-violet);
+  --cyan: var(--ink-cyan);
+
+  --amber-dim: var(--ink-green-soft);
+  --amber-dim-15: rgba(24,209,138,0.15);
+  --amber-dim-25: rgba(24,209,138,0.25);
+  --amber-dim-20: rgba(24,209,138,0.20);
+  --cyan-dim: rgba(111,230,240,0.12);
+  --cyan-dim-20: rgba(111,230,240,0.20);
 }
 
 [data-diary] .ink-card {
