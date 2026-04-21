@@ -316,11 +316,44 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
             </select>
           </Field>
           <Field label="direção">
-            <div style={{ display: 'flex', gap: 4 }}>
-              <button type="button" onClick={() => set('direction', 'compra')} className={form.direction === 'compra' ? 'pill pill-up' : 'pill'} style={{ cursor: 'pointer' }}>
+            <div style={{
+              display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6,
+              padding: 4, borderRadius: 10,
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--ink-line)',
+            }}>
+              <button
+                type="button"
+                onClick={() => set('direction', 'compra')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 7,
+                  border: `1px solid ${form.direction === 'compra' ? 'rgba(24,209,138,0.5)' : 'transparent'}`,
+                  background: form.direction === 'compra' ? 'rgba(24,209,138,0.14)' : 'transparent',
+                  color: form.direction === 'compra' ? 'var(--ink-green)' : 'var(--ink-muted)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  transition: 'all .15s ease',
+                  boxShadow: form.direction === 'compra' ? '0 0 14px rgba(24,209,138,0.22)' : 'none',
+                }}
+              >
                 ▲ Compra
               </button>
-              <button type="button" onClick={() => set('direction', 'venda')} className={form.direction === 'venda' ? 'pill pill-down' : 'pill'} style={{ cursor: 'pointer' }}>
+              <button
+                type="button"
+                onClick={() => set('direction', 'venda')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 7,
+                  border: `1px solid ${form.direction === 'venda' ? 'rgba(255,84,112,0.5)' : 'transparent'}`,
+                  background: form.direction === 'venda' ? 'rgba(255,84,112,0.14)' : 'transparent',
+                  color: form.direction === 'venda' ? 'var(--ink-red)' : 'var(--ink-muted)',
+                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                  transition: 'all .15s ease',
+                  boxShadow: form.direction === 'venda' ? '0 0 14px rgba(255,84,112,0.22)' : 'none',
+                }}
+              >
                 ▼ Venda
               </button>
             </div>
@@ -551,15 +584,7 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
 
       <div style={{
         display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center',
-        marginTop: 16,
-        ...(modal ? {
-          position: 'sticky', bottom: -24,
-          padding: '16px 0 4px',
-          background: 'linear-gradient(180deg, rgba(14,16,19,0) 0%, rgba(14,16,19,0.88) 30%, rgba(14,16,19,0.95) 100%)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          zIndex: 5,
-        } : {}),
+        marginTop: 20,
       }}>
         {modal && onClose ? (
           <button onClick={onClose} className="btn"

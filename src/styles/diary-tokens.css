@@ -306,8 +306,9 @@
   color: var(--ink-green);
 }
 
-/* Pills (emocional etc) com hover glow sutil */
+/* Pills (emocional etc) com hover glow sutil + glow persistente quando selecionado */
 [data-diary] .ink-modal .pill {
+  border-radius: 8px;
   transition:
     background .18s ease,
     border-color .18s ease,
@@ -320,17 +321,35 @@
   border-color: rgba(255,255,255,0.18);
   box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 14px rgba(255,255,255,0.04);
 }
+/* Glow persistente (sem precisar hover) nos pills selecionados */
+[data-diary] .ink-modal .pill.pill-up {
+  box-shadow: 0 0 14px rgba(24,209,138,0.22);
+}
+[data-diary] .ink-modal .pill.pill-down {
+  box-shadow: 0 0 14px rgba(255,84,112,0.22);
+}
+[data-diary] .ink-modal .pill.pill-active {
+  box-shadow: 0 0 14px rgba(231,198,122,0.18);
+}
 [data-diary] .ink-modal .pill.pill-up:not(:disabled):hover {
+  transform: translateY(-1px);
   border-color: rgba(24,209,138,0.5);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(24,209,138,0.28);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 20px rgba(24,209,138,0.35);
 }
 [data-diary] .ink-modal .pill.pill-down:not(:disabled):hover {
+  transform: translateY(-1px);
   border-color: rgba(255,84,112,0.5);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(255,84,112,0.28);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 20px rgba(255,84,112,0.35);
 }
 [data-diary] .ink-modal .pill.pill-active:not(:disabled):hover {
+  transform: translateY(-1px);
   border-color: rgba(231,198,122,0.5);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 18px rgba(231,198,122,0.24);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4), 0 0 20px rgba(231,198,122,0.28);
+}
+
+/* Inputs/selects mais arredondados */
+[data-diary] .ink-modal .input {
+  border-radius: 8px;
 }
 
 /* Modal pop — escala + slide pra cima com spring sutil */
