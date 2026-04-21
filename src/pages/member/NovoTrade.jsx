@@ -549,16 +549,33 @@ export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate
       )}
       </div>
 
-      <div style={{ display: 'flex', gap: 10, marginTop: 24, justifyContent: 'space-between' }}>
-        <button onClick={save} disabled={saving} className="btn btn-primary">
-          {saving ? 'gravando...' : isEdit ? 'atualizar' : 'gravar operação'}
-        </button>
+      <div style={{
+        display: 'flex', gap: 10, justifyContent: 'space-between', alignItems: 'center',
+        marginTop: 16,
+        ...(modal ? {
+          position: 'sticky', bottom: -24,
+          padding: '16px 0 4px',
+          background: 'linear-gradient(180deg, rgba(14,16,19,0) 0%, rgba(14,16,19,0.88) 30%, rgba(14,16,19,0.95) 100%)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          zIndex: 5,
+        } : {}),
+      }}>
         {modal && onClose ? (
-          <button onClick={onClose} className="btn btn-ghost">descartar</button>
+          <button onClick={onClose} className="btn"
+            style={{ padding: '10px 22px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            descartar
+          </button>
         ) : (
-          <Link to={`/app/diario?date=${form.date}`} className="btn btn-ghost">descartar</Link>
+          <Link to={`/app/diario?date=${form.date}`} className="btn"
+            style={{ padding: '10px 22px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 600 }}>
+            descartar
+          </Link>
         )}
-        {!isEdit && <span style={{ fontSize: 10, color: 'var(--text-muted)', alignSelf: 'center', fontFamily: 'var(--font-mono)' }}>+3 SC ao registrar</span>}
+        <button onClick={save} disabled={saving} className="btn btn-primary"
+          style={{ padding: '10px 26px', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, minWidth: 200, justifyContent: 'center' }}>
+          {saving ? 'gravando...' : isEdit ? 'atualizar operação' : '🔒 gravar operação'}
+        </button>
       </div>
     </div>
   )
