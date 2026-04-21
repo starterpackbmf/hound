@@ -230,7 +230,7 @@ export default function Evolucao() {
       </div>
 
       {/* FILTROS */}
-      <div className="ink-fade-up" style={{ marginBottom: 22 }}>
+      <div className="ink-fade-up" style={{ marginBottom: 22, position: 'relative', zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 3 }}>Evolução</div>
@@ -267,10 +267,10 @@ export default function Evolucao() {
 
             {filtersOpen && (
               <>
-                <div onClick={() => setFiltersOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 5 }} />
+                <div onClick={() => setFiltersOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
                 <div style={{
                   position: 'absolute', top: 'calc(100% + 8px)', right: 0,
-                  zIndex: 10, minWidth: 440,
+                  zIndex: 100, minWidth: 440,
                   padding: 14, borderRadius: 10,
                   background: 'linear-gradient(180deg, rgba(20,24,29,0.98), rgba(14,16,19,0.98))',
                   border: '1px solid var(--ink-line-strong)',
