@@ -319,8 +319,8 @@ export default function Evolucao() {
 
       {/* CHARTS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(480px, 1fr))', gap: 14, marginBottom: 28 }}>
-        <EquityCard data={equity} />
-        <DailyCard data={daily} />
+        <EquityCard key={`eq-${period}-${setup}-${asset}-${customRange.from}-${customRange.to}`} data={equity} />
+        <DailyCard key={`dl-${period}-${setup}-${asset}-${customRange.from}-${customRange.to}`} data={daily} />
       </div>
 
       {/* STRATEGY METRICS */}
@@ -635,6 +635,18 @@ function EquityCard({ data }) {
   }
   segments.push(current)
 
+  // calcula largura horizontal de cada segmento pra animar em sequência
+  const TOTAL_DRAW_MS = 1200
+  const totalSpan = segments.reduce((sum, s) => sum + (s.pts[s.pts.length - 1][0] - s.pts[0][0]), 0) || 1
+  let cumulative = 0
+  const segTiming = segments.map(s => {
+    const span = s.pts[s.pts.length - 1][0] - s.pts[0][0]
+    const duration = (span / totalSpan) * TOTAL_DRAW_MS
+    const delay = (cumulative / totalSpan) * TOTAL_DRAW_MS
+    cumulative += span
+    return { duration, delay }
+  })
+
   const pathD = (segPts) => segPts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ')
   const areaD = (segPts) => pathD(segPts) + ` L ${segPts[segPts.length - 1][0]} ${baseY} L ${segPts[0][0]} ${baseY} Z`
 
@@ -698,15 +710,29 @@ function EquityCard({ data }) {
           )
         })}
 
-        {/* áreas + linhas segmentadas */}
-        {segments.map((seg, i) => (
-          <g key={i} style={{ filter: `drop-shadow(0 0 6px ${seg.positive ? GREEN : RED}99) drop-shadow(0 0 14px ${seg.positive ? GREEN : RED}40)` }}>
-            <path className="ink-area-fade" d={areaD(seg.pts)} fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'} />
-            <path className="ink-line-draw" pathLength="1" d={pathD(seg.pts)} fill="none"
-              stroke={seg.positive ? GREEN : RED}
-              strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        ))}
+        {/* áreas + linhas segmentadas — animam em sequência esquerda→direita */}
+        {segments.map((seg, i) => {
+          const t = segTiming[i]
+          return (
+            <g key={i} style={{ filter: `drop-shadow(0 0 6px ${seg.positive ? GREEN : RED}99) drop-shadow(0 0 14px ${seg.positive ? GREEN : RED}40)` }}>
+              <path
+                className="ink-area-fade"
+                d={areaD(seg.pts)}
+                fill={seg.positive ? 'url(#eq-fill-g)' : 'url(#eq-fill-r)'}
+                style={{ animationDelay: `${t.delay + 120}ms`, animationDuration: `${t.duration}ms` }}
+              />
+              <path
+                className="ink-line-draw"
+                pathLength="1"
+                d={pathD(seg.pts)}
+                fill="none"
+                stroke={seg.positive ? GREEN : RED}
+                strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                style={{ animationDelay: `${t.delay}ms`, animationDuration: `${t.duration}ms`, animationTimingFunction: 'linear' }}
+              />
+            </g>
+          )
+        })}
 
         {/* drawdown marker */}
         {maxDD > 0 && (
