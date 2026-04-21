@@ -123,10 +123,10 @@
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse 110% 90% at 90% 0%, rgba(24,209,138,0.083) 0%, rgba(24,209,138,0.03) 35%, transparent 75%),
-    radial-gradient(ellipse 120% 100% at 0% 100%, rgba(164,152,255,0.068) 0%, rgba(164,152,255,0.023) 40%, transparent 80%),
-    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(111,230,240,0.038) 0%, rgba(111,230,240,0.015) 40%, transparent 85%),
-    radial-gradient(ellipse 80% 70% at 100% 100%, rgba(231,198,122,0.038) 0%, rgba(231,198,122,0.011) 40%, transparent 80%),
+    radial-gradient(ellipse 110% 90% at 90% 0%, rgba(24,209,138,0.042) 0%, rgba(24,209,138,0.015) 35%, transparent 75%),
+    radial-gradient(ellipse 120% 100% at 0% 100%, rgba(164,152,255,0.034) 0%, rgba(164,152,255,0.012) 40%, transparent 80%),
+    radial-gradient(ellipse 90% 80% at 50% 50%, rgba(111,230,240,0.019) 0%, rgba(111,230,240,0.008) 40%, transparent 85%),
+    radial-gradient(ellipse 80% 70% at 100% 100%, rgba(231,198,122,0.019) 0%, rgba(231,198,122,0.006) 40%, transparent 80%),
     linear-gradient(180deg, #07080A 0%, #0A0B0E 100%);
 }
 
