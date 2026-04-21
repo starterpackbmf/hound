@@ -98,14 +98,9 @@ export default function Diario() {
     <div style={{ maxWidth: 900 }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <PageTitle eyebrow="OPERACIONAL">diário de trade</PageTitle>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => setShowFinalizarModal(true)} className="btn">
-            <ICheck size={12} stroke={2} /> finalizar o dia
-          </button>
-          <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
-            <IPlus size={12} stroke={2} /> registrar trade
-          </button>
-        </div>
+        <button onClick={() => setShowTradeModal(true)} className="btn btn-primary">
+          <IPlus size={12} stroke={2} /> registrar trade
+        </button>
       </div>
 
       {/* Date + account controls */}
@@ -173,7 +168,7 @@ export default function Diario() {
               preencher o resumo diário vale <strong style={{ color: 'var(--amber)' }}>+5 SC</strong>
             </div>
           </div>
-          <button onClick={() => onFinalize(false)} className="btn btn-primary">
+          <button onClick={() => setShowFinalizarModal(true)} className="btn btn-primary">
             <ICheck size={12} stroke={2} /> finalizar dia
           </button>
         </div>
