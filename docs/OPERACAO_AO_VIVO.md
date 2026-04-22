@@ -151,26 +151,28 @@ Três tabs:
 
 ## 🌐 URL do app em produção
 
-A URL atual é `https://hound-omega.vercel.app` — nome feio herdado do projeto Vercel antigo.
+**URL oficial:** https://matilha-mentorado.vercel.app
 
-**Pra ter uma URL melhor, 3 opções:**
+**URL legacy (ainda funciona):** https://hound-omega.vercel.app — fallback pra quem bookmarkou durante a transição.
 
-### Opção A — Renomear projeto Vercel
-1. Dashboard Vercel → projeto `hound` → Settings → General
-2. Project Name → troca pra `matilha-app` → Save
-3. URL vira `matilha-app-mateusgschwartz-....vercel.app` (ainda feia) ou `matilha-app.vercel.app` se estiver livre
-4. Requer redeploy
+### Como a URL atual foi configurada
+- Projeto Vercel renomeado de `hound` → `matilha-app` (via API REST)
+- SSO protection desabilitada no projeto (`ssoProtection: null`) — libera aliases custom pra acesso público sem login Vercel
+- Alias `matilha-mentorado.vercel.app` criado via CLI e promovido a URL oficial
 
-### Opção B — Custom domain (recomendado)
-1. Compra/usa um domínio (ex: `app.matilha.com.br`)
-2. Dashboard Vercel → projeto → Settings → Domains → Add
-3. Configura DNS (Vercel guia os registros)
-4. URL fica `app.matilha.com.br` — memorável e brandable
+### Pra trocar por domínio custom (recomendado quando formos pra produção real)
+1. Apontar DNS de `app.matilha.com.br` (ou similar) pro Vercel
+2. Dashboard Vercel → projeto `matilha-app` → Settings → Domains → Add
+3. Vercel guia os registros DNS (A + CNAME)
+4. SSL é automático
 
-### Opção C — Aceitar hound-omega
-Funciona perfeitamente. Só bookmark e vida que segue.
+### Histórico de confusão (pra referência futura)
+O projeto Vercel originalmente se chamava `hound` porque o repo GitHub é `starterpackbmf/hound` (que começou como uma IA de abertura chamada "Hound", depois virou Matilha). Isso gerava:
+- `hound.vercel.app` → outro projeto de outro dono (colisão de namespace)
+- `hound-omega.vercel.app` → nosso Matilha
+- Confusão persistente porque os nomes eram próximos
 
-> Nota: tentei adicionar alias `matilha-app.vercel.app` via CLI mas o Vercel aplicou **SSO protection** nele (exige login Vercel), porque ele não é um alias "de produção". Tem que ser via dashboard (opção A) ou custom domain (opção B) pra bypass.
+O rename resolveu isso.
 
 ---
 
