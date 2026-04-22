@@ -81,6 +81,8 @@ import MinhaAgenda from './pages/monitor/MinhaAgenda'
 import AdminConteudos from './pages/monitor/AdminConteudos'
 import ConfigZoom from './pages/monitor/ConfigZoom'
 import Feedbacks from './pages/monitor/Feedbacks'
+import Resgates from './pages/monitor/Resgates'
+import Solicitacoes from './pages/monitor/Solicitacoes'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -204,6 +206,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="conteudos" element={<AdminConteudos />} />
             <Route path="config-zoom" element={<ConfigZoom />} />
             <Route path="feedbacks" element={<Feedbacks />} />
+            <Route path="resgates" element={<Resgates />} />
+            <Route path="solicitacoes" element={<Solicitacoes />} />
             <Route path="aulas/nova" element={<NovaAula />} />
             <Route path="aulas/relatorio/:id" element={<AulaAttendance />} />
           </Route>

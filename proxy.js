@@ -572,16 +572,38 @@ app.get('/zoom/go', async (req, res) => {
     })
   } catch (_) { /* noop */ }
 
-  const base = cfg.base_url || 'https://zoom.us/j/'
   const mid = String(cfg.meeting_id).replace(/\D/g, '')
-  const params = new URLSearchParams()
-  if (cfg.passcode) params.set('pwd', cfg.passcode)
-  params.set('uname', fullName)
-  const zoomUrl = `${base}${mid}?${params.toString()}`
+  const pwd = cfg.passcode ? encodeURIComponent(cfg.passcode) : ''
+  const uname = encodeURIComponent(fullName)
 
-  res.status(302).setHeader('Location', zoomUrl)
+  const nativeUrl = `zoommtg://zoom.us/join?confno=${mid}${pwd ? `&pwd=${pwd}` : ''}&uname=${uname}`
+  const webUrl = `https://zoom.us/wc/join/${mid}?${pwd ? `pwd=${pwd}&` : ''}uname=${uname}&prefer=1`
+
+  res.status(200).setHeader('content-type', 'text/html; charset=utf-8')
   res.setHeader('Cache-Control', 'no-store')
-  return res.end()
+  return res.send(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<title>Entrando no ao vivo...</title>
+<style>
+  body{margin:0;min-height:100vh;background:#0a0a0e;color:#e8e8ee;font:14px/1.5 system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+  .box{text-align:center;max-width:380px;padding:32px}
+  .spin{width:36px;height:36px;border:2px solid rgba(168,85,247,0.2);border-top-color:#a855f7;border-radius:50%;animation:s 0.8s linear infinite;margin:0 auto 18px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  h1{font-size:16px;margin:0 0 8px;font-weight:600}
+  p{color:#9a9aa4;margin:0;font-size:12.5px;line-height:1.5}
+  .sub{margin-top:14px;color:#6a6a74;font-size:11px}
+</style></head><body><div class="box">
+  <div class="spin"></div>
+  <h1>Entrando no ao vivo...</h1>
+  <p>Se o Zoom não abrir automaticamente, <a href="${webUrl}" style="color:#00d9ff">clique aqui</a>.</p>
+  <div class="sub">O link é pessoal — não compartilhe.</div>
+</div>
+<script>
+  var t = setTimeout(function(){ window.location.replace(${JSON.stringify(webUrl)}); }, 1500);
+  window.location.href = ${JSON.stringify(nativeUrl)};
+  window.addEventListener('pagehide', function(){ clearTimeout(t); });
+  window.addEventListener('blur', function(){ clearTimeout(t); });
+</script>
+</body></html>`)
 })
 
 const PORT = 3001

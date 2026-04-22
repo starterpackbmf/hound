@@ -5,16 +5,18 @@ import { useIsMobile } from '../../lib/useMedia'
 import { getMyProfile } from '../../lib/profile'
 import {
   ITarget, IUsers, ICalendar, IFile, IBook, IPlay,
-  ILogOut, IArrowLeft, IMenu, IX, ISettings, IMessage,
+  ILogOut, IArrowLeft, IMenu, IX, ISettings, IMessage, IStar, ICheck,
 } from '../../components/icons'
 
 const NAV = [
   { to: '/mentor/visao-geral',     label: 'visão geral',     icon: ITarget },
   { to: '/mentor/alunos',          label: 'alunos',          icon: IUsers },
+  { to: '/mentor/solicitacoes',    label: 'solicitações',    icon: ICheck },
   { to: '/mentor/agenda',          label: 'minha agenda',    icon: ICalendar },
   { to: '/mentor/aulas/nova',      label: 'agendar aula',    icon: IPlay },
   { to: '/mentor/relatorio',       label: 'relatório',       icon: IFile },
   { to: '/mentor/conteudos',       label: 'conteúdos',       icon: IBook },
+  { to: '/mentor/resgates',        label: 'resgates',        icon: IStar },
 ]
 
 // Itens visíveis só pra admin/suporte

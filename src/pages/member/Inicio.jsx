@@ -4,459 +4,775 @@ import { useAuth } from '../../auth/AuthContext'
 import { matilha } from '../../lib/matilha'
 import { getMyProfile } from '../../lib/profile'
 import { isPremium } from '../../lib/gate'
-import { supabase } from '../../lib/supabase'
-import { listEvents, partitionEvents } from '../../lib/events'
+import { listEvents, partitionEvents, EVENT_KIND_LABELS } from '../../lib/events'
 import { listLiveSessions } from '../../lib/liveSessions'
-import { getMyCoins } from '../../lib/free'
-import { getRecentFeedbackForMe, getMyMentorshipSessions } from '../../lib/feedback'
-import { listThisWeekChallenges, listMyCompletions } from '../../lib/challenges'
+import { listSocialPosts, getMyCoins } from '../../lib/free'
+import { listPosts as listCommunityPosts, categoryMeta } from '../../lib/community'
 import RankBadge from '../../components/RankBadge'
-import Hound from '../../components/Hound'
 import {
-  IBook, ICalendar, IEye, IPencil, GYinYang,
-  IArrowRight, ITrendingUp, ITrendingDown,
+  IArrowRight, IPlay, ICalendar, ITrendingUp, ITrendingDown,
 } from '../../components/icons'
+
+// Student ID do Mateus no banco Matilha/Lovable (fonte dos "trades de referência").
+// Se não setado, a seção "Diário do Mateus" mostra aviso de config pendente.
+const PORTFOLIO_STUDENT_ID = import.meta.env.VITE_PORTFOLIO_STUDENT_ID || null
 
 export default function Inicio() {
   const { user } = useAuth()
   const [profile, setProfile] = useState(null)
-  const [summary, setSummary] = useState(null)
-  const [liveEvent, setLiveEvent] = useState(null)
-  const [nextSession, setNextSession] = useState(null)
   const [coins, setCoins] = useState(null)
-  const [recentFb, setRecentFb] = useState([])
-  const [openChallenges, setOpenChallenges] = useState([])
-  const [loading, setLoading] = useState(true)
+
+  const [liveNow, setLiveNow] = useState(null)
+  const [nextLive, setNextLive] = useState(null)
+  const [recentLive, setRecentLive] = useState(null)
+
+  const [events, setEvents] = useState([])
+  const [portfolioTrades, setPortfolioTrades] = useState(null)
+  const [portfolioSummary, setPortfolioSummary] = useState(null)
+  const [communityPosts, setCommunityPosts] = useState([])
+  const [socialPosts, setSocialPosts] = useState([])
 
   useEffect(() => {
     if (!user) return
     let cancel = false
     ;(async () => {
-      setLoading(true)
-      const p = await getMyProfile().catch(() => null)
+      const [p, c] = await Promise.all([
+        getMyProfile().catch(() => null),
+        getMyCoins().catch(() => ({ balance: 0 })),
+      ])
       if (cancel) return
-      setProfile(p)
+      setProfile(p); setCoins(c)
 
-      if (p?.lovable_student_id) {
-        matilha.summary(p.lovable_student_id).catch(() => null).then(s => !cancel && setSummary(s))
-      }
-
-      listEvents({ limit: 20 }).then(events => {
-        if (cancel) return
-        const { live } = partitionEvents(events)
-        setLiveEvent(live[0] || null)
-      }).catch(() => {})
-
-      listLiveSessions({ upcoming: true, limit: 5 }).then(sessions => {
+      listLiveSessions({ upcoming: false, limit: 20 }).then(sessions => {
         if (cancel) return
         const now = Date.now()
-        // sessão ao vivo = janela starts_at-10min até ends_at
-        const liveZoom = (sessions || []).find(s => {
+        const live = (sessions || []).find(s => {
           const starts = new Date(s.starts_at).getTime()
-          const ends = s.ends_at ? new Date(s.ends_at).getTime() : starts + 2 * 3600 * 1000
-          return now >= starts - 10 * 60 * 1000 && now <= ends
+          const ends = s.ends_at ? new Date(s.ends_at).getTime() : starts + 90*60*1000
+          return now >= starts - 10*60*1000 && now <= ends
         })
-        if (liveZoom) {
-          setNextSession({ ...liveZoom, live: true })
-        } else {
-          const upcoming = (sessions || []).find(s => new Date(s.starts_at).getTime() > now)
-          setNextSession(upcoming || null)
-        }
+        const upcoming = (sessions || [])
+          .filter(s => new Date(s.starts_at).getTime() > now - 10*60*1000 && s !== live)
+          .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0]
+        const past = (sessions || [])
+          .filter(s => {
+            const ends = s.ends_at ? new Date(s.ends_at).getTime() : new Date(s.starts_at).getTime() + 90*60*1000
+            return ends < now
+          })
+          .sort((a, b) => new Date(b.starts_at) - new Date(a.starts_at))[0]
+        setLiveNow(live || null)
+        setNextLive(upcoming || null)
+        setRecentLive(past || null)
       }).catch(() => {})
 
-      getMyCoins().catch(() => ({ balance: 0 })).then(c => !cancel && setCoins(c))
+      listEvents({ limit: 30 }).then(evs => {
+        if (cancel) return
+        setEvents(partitionEvents(evs).upcoming.slice(0, 5))
+      }).catch(() => {})
 
-      getRecentFeedbackForMe({ limit: 3 }).catch(() => []).then(fb => !cancel && setRecentFb(fb))
+      if (PORTFOLIO_STUDENT_ID) {
+        const now = new Date()
+        const from = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
+        const to = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10)
+        matilha.trades(PORTFOLIO_STUDENT_ID, from, to)
+          .then(data => !cancel && setPortfolioTrades((data?.trades || data || []).slice(0, 8)))
+          .catch(() => setPortfolioTrades([]))
+        matilha.summary(PORTFOLIO_STUDENT_ID, from, to)
+          .then(data => !cancel && setPortfolioSummary(data))
+          .catch(() => {})
+      } else {
+        setPortfolioTrades([])
+      }
 
-      Promise.all([listThisWeekChallenges(), listMyCompletions()])
-        .then(([ch, done]) => {
-          if (cancel) return
-          const doneSet = new Set(done)
-          setOpenChallenges(ch.filter(c => !doneSet.has(c.id)))
-        })
+      listCommunityPosts({ limit: 4 })
+        .then(posts => !cancel && setCommunityPosts(posts || []))
         .catch(() => {})
-
-      if (!cancel) setLoading(false)
+      listSocialPosts()
+        .then(posts => !cancel && setSocialPosts((posts || []).slice(0, 3)))
+        .catch(() => {})
     })()
     return () => { cancel = true }
   }, [user])
 
-  const name = profile?.name?.trim() || user?.email?.split('@')[0] || 'mentorado'
-  const firstName = name.split(' ')[0]
-  const badge = profile?.current_badge
-  const status = profile?.status
-  const roles = profile?.roles || []
+  const premium = isPremium(profile)
+  const displayName = profile?.name?.split(' ')[0]?.toLowerCase() || user?.email?.split('@')[0] || 'mentorado'
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 32, maxWidth: 1040 }}>
-      {/* HERO */}
-      <section>
-        <div className="eyebrow" style={{ marginBottom: 10 }}>SEJA BEM-VINDO</div>
-        <h1 className="display" style={{
-          fontSize: 40, fontWeight: 400, margin: '0 0 14px',
-          color: 'var(--text-primary)', letterSpacing: '-0.025em',
-          textShadow: '0 0 30px rgba(0,217,255,0.25), 0 0 60px rgba(168,85,247,0.15)',
-        }}>
-          {firstName}
-        </h1>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span className="pill">
-            <span className={`dot ${status === 'ativo' ? 'dot-up' : 'dot-muted'}`} />
-            {status || 'pendente'}
+    <div style={{ maxWidth: 1200, display: 'flex', flexDirection: 'column', gap: 22 }}>
+      {/* ==== GREETING ==== */}
+      <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--cyan)', fontWeight: 600, marginBottom: 4 }}>
+            {greetingByHour()}
+          </div>
+          <h1 style={{
+            fontSize: 36, fontWeight: 500, margin: 0, letterSpacing: '-0.02em',
+            fontFamily: 'var(--font-display, Instrument Serif, serif)',
+            color: 'var(--text-primary)',
+          }}>
+            {displayName}
+          </h1>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 11.5, color: 'var(--text-muted)' }}>
+          <span className="pill" style={{
+            fontSize: 9,
+            background: premium ? 'linear-gradient(135deg, rgba(236,72,153,0.12), rgba(168,85,247,0.12))' : 'var(--surface-2)',
+            borderColor: premium ? 'rgba(168,85,247,0.35)' : 'var(--border)',
+            color: premium ? 'var(--text-primary)' : 'var(--text-muted)',
+            fontWeight: 700, letterSpacing: '0.12em',
+          }}>
+            {premium ? '✨ MENTORADO' : 'FREE'}
           </span>
-          {badge && <RankBadge rank={badge} size="sm" />}
-          {roles.filter(r => r !== 'individual').map(r => (
-            <span key={r} className="pill">
-              <IEye size={11} stroke={1.6} />
-              {r}
-            </span>
-          ))}
-          {coins && (
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 4, fontFamily: 'var(--font-mono)' }}>
-              ⎈ {coins.balance} moedas
-            </span>
-          )}
+          {profile?.current_badge && <RankBadge rank={profile.current_badge} size="xs" glow />}
+          <span style={{ background: 'var(--border)', width: 3, height: 3, borderRadius: '50%', display: 'inline-block', margin: '0 4px' }} />
+          <span style={{ fontFamily: 'var(--font-mono)' }}>{fmtLongDate()}</span>
         </div>
-      </section>
+      </header>
 
-      {/* BANNER UPGRADE (free) */}
-      {!isPremium(profile) && (
-        <Link to="/app/upgrade" style={{
-          display: 'block',
-          padding: '20px 22px',
-          borderRadius: 14,
-          background: 'linear-gradient(135deg, rgba(236,72,153,0.12) 0%, rgba(168,85,247,0.10) 50%, rgba(0,217,255,0.12) 100%)',
-          border: '1px solid rgba(168,85,247,0.35)',
-          boxShadow: '0 0 40px rgba(168,85,247,0.18), inset 0 1px 0 rgba(255,255,255,0.06)',
-          position: 'relative', overflow: 'hidden',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <div style={{
-                fontSize: 10, letterSpacing: '0.18em', fontWeight: 700,
-                fontFamily: 'var(--font-mono)',
-                background: 'linear-gradient(90deg, #ec4899, #a855f7, #00d9ff)',
-                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                marginBottom: 6,
-              }}>✨ PLANO FREE — DESTRAVE A MATILHA</div>
-              <div style={{ fontSize: 16, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 4 }}>
-                Diário, W.O.L.F AI, monitoria ao vivo, oráculo, imersões…
-              </div>
-              <div style={{ fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                você tá vendo só a casca. mentorados viram trader de verdade — com plano, feedback e revisão toda semana.
-              </div>
-            </div>
-            <span style={{
-              padding: '10px 16px', borderRadius: 8,
-              background: 'linear-gradient(135deg, #ec4899, #a855f7, #00d9ff)',
-              color: '#0a0a0e', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em',
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              boxShadow: '0 8px 24px rgba(168,85,247,0.35)',
-              flexShrink: 0,
-            }}>
-              virar mentorado <IArrowRight size={13} stroke={2.4} />
-            </span>
-          </div>
-        </Link>
-      )}
+      {/* ==== HERO ==== */}
+      <LiveHero liveNow={liveNow} nextLive={nextLive} recentLive={recentLive} />
 
-      {/* BANNER ZOOM AO VIVO (novo sistema) */}
-      {nextSession && nextSession.live && (
-        <Link to={`/app/aulas/ao-vivo/${nextSession.id}`} style={{
-          display: 'flex', alignItems: 'center', gap: 16,
-          padding: '14px 18px',
-          background: 'linear-gradient(90deg, rgba(236,72,153,0.12) 0%, var(--surface-2) 50%)',
-          border: '1px solid rgba(236,72,153,0.4)',
-          borderRadius: 10,
-          boxShadow: '0 0 30px rgba(236,72,153,0.18)',
-          color: 'inherit', textDecoration: 'none',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="dot dot-live" style={{ width: 8, height: 8 }} />
-            <span className="glow-pink" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--pink)', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>ZOOM AO VIVO</span>
-          </div>
-          <div style={{ height: 20, width: 1, background: 'var(--border)' }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)' }}>{nextSession.title}</div>
-            {nextSession.host_name && <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>com {nextSession.host_name}</div>}
-          </div>
-          <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
-            entrar <IArrowRight size={12} stroke={2} />
-          </span>
-        </Link>
-      )}
+      {/* ==== PORTFOLIO + EVENTS ==== */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 18 }} className="inicio-two-cols">
+        <PortfolioSection trades={portfolioTrades} summary={portfolioSummary} configured={!!PORTFOLIO_STUDENT_ID} premium={premium} />
+        <EventsSection events={events} />
+      </div>
 
-      {nextSession && !nextSession.live && (
-        <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12, borderColor: 'rgba(0,217,255,0.25)' }}>
-          <div style={{ fontSize: 9, color: 'var(--cyan)', letterSpacing: '0.14em', fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
-            PRÓXIMA AULA
-          </div>
-          <div style={{ height: 16, width: 1, background: 'var(--border)' }} />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>{nextSession.title}</div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-              {new Date(nextSession.starts_at).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-              {nextSession.host_name ? ` · ${nextSession.host_name}` : ''}
-            </div>
-          </div>
-          <Link to="/app/aulas" className="btn btn-ghost" style={{ fontSize: 11 }}>ver agenda</Link>
-        </div>
-      )}
+      {/* ==== ATIVIDADE ==== */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }} className="inicio-two-cols">
+        <CommunitySection posts={communityPosts} />
+        <SocialSection posts={socialPosts} />
+      </div>
 
-      {/* BANNER AO VIVO (sistema events legacy) */}
-      {liveEvent && (
-        <Link to="/app/aulas" style={{
-          display: 'flex', alignItems: 'center', gap: 16,
-          padding: '14px 18px',
-          background: 'linear-gradient(90deg, #ec489914 0%, var(--surface-2) 40%)',
-          border: '1px solid #ec489944',
-          borderRadius: 10,
-          transition: 'all 150ms',
-          boxShadow: '0 0 30px #ec489922',
-        }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = '#ec489988'}
-        onMouseLeave={e => e.currentTarget.style.borderColor = '#ec489944'}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span className="dot dot-live" style={{ width: 8, height: 8 }} />
-            <span className="glow-pink" style={{
-              fontSize: 10, letterSpacing: '0.14em', color: 'var(--pink)',
-              fontWeight: 600, fontFamily: 'var(--font-mono)',
-            }}>AO VIVO AGORA</span>
-          </div>
-          <div style={{ height: 20, width: 1, background: 'var(--border)' }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 500, color: 'var(--text-primary)' }}>
-              {liveEvent.title}
-            </div>
-            {liveEvent.host_name && (
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                com {liveEvent.host_name}
-              </div>
-            )}
-          </div>
-          <span className="btn btn-primary" style={{ pointerEvents: 'none' }}>
-            entrar <IArrowRight size={12} stroke={2} />
-          </span>
-        </Link>
-      )}
-
-      {/* GRID 2x2 SHORTCUTS */}
-      <section>
-        <div style={sectionHead}>
-          <span className="label-muted">continuar de onde parou</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
-          <ShortcutCard
-            icon={IBook} to="/app/estudo"
-            title="área de estudo"
-            sub="retome seus cursos e siga o caminho do Tradesystem."
-            cta="ver cursos"
-          />
-          <ShortcutCard
-            icon={ICalendar} to="/app/aulas"
-            title="próxima aula ao vivo"
-            sub="agenda, open class e replays da sala."
-            cta="ver agenda"
-          />
-          <ShortcutCard
-            icon={GYinYang} to="/app/oraculo"
-            title="oráculo"
-            sub="pergunte sobre qualquer aula, conceito ou estratégia. respostas treinadas no acervo."
-            cta="abrir"
-          />
-          <ShortcutCard
-            icon={IPencil} to="/app/diario"
-            title="diário"
-            sub="registre os trades do dia. vira hábito depois do pregão."
-            cta="abrir diário"
-          />
-        </div>
-      </section>
-
-      {/* FEEDBACK RECENTE DO MONITOR */}
-      {recentFb.length > 0 && (
-        <section>
-          <div style={sectionHead}>
-            <span className="label-muted">🧭 feedback recente do monitor</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {recentFb.map(f => (
-              <div key={f.id} className="card leftbar-cyan" style={{ padding: '10px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 10, color: 'var(--cyan)', fontFamily: 'var(--font-mono)' }}>
-                    {new Date(f.day_date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                  </span>
-                  {(f.tags || []).map(t => <span key={t} className="pill pill-cyan" style={{ fontSize: 9 }}>{t}</span>)}
-                </div>
-                <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
-                  {f.feedback}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* DESAFIOS DA SEMANA */}
-      {openChallenges.length > 0 && (
-        <section>
-          <div style={sectionHead}>
-            <span className="label-muted">⚡ desafios abertos</span>
-            <Link to="/app/desafios" style={{ fontSize: 11, color: 'var(--pink)' }}>
-              ver todos →
-            </Link>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 8 }}>
-            {openChallenges.slice(0, 3).map(c => (
-              <Link key={c.id} to="/app/desafios" className="card card-hover leftbar-pink" style={{
-                padding: 12, color: 'var(--text-primary)', textDecoration: 'none',
-              }}>
-                <div style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>{c.title}</div>
-                <div style={{ fontSize: 10, color: 'var(--pink)', fontFamily: 'var(--font-mono)' }}>
-                  +{c.reward_sc} SC
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* PERFIL / MATILHA */}
-      <section>
-        <div style={sectionHead}>
-          <span className="label-muted">sua matilha</span>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10 }}>
-          <StatCard label="STATUS" value={status || 'pendente'} mono={false} accent="cyan" />
-          <StatCard label="BADGE" value={badge ? badge.replace(/_/g, ' ') : '—'} mono={false} accent="purple" />
-          <StatCard label="MOEDAS" value={coins?.balance ?? '—'} mono accent="pink" />
-          <StatCard label="DIÁRIO" value={profile?.lovable_student_id ? 'ligado' : '—'} mono={false} accent="cyan" />
-        </div>
-      </section>
-
-      {/* PERFORMANCE (se ligado ao diário) */}
-      {profile?.lovable_student_id && summary?.total_trades > 0 && (
-        <section>
-          <div style={sectionHead}>
-            <span className="label-muted">performance recente</span>
-            <Link to="/app/diario" className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 8px' }}>
-              abrir diário <IArrowRight size={11} stroke={1.6} />
-            </Link>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
-            <StatCard label="TRADES" value={summary.total_trades} mono accent="cyan" />
-            <StatCard label="WIN RATE" value={`${summary.win_rate}%`} mono accent="pink" />
-            <StatCard label="R:R MÉDIO" value={summary.risk_reward ? `${summary.risk_reward.toFixed(1)}x` : '—'} mono accent="purple" />
-            <StatCard label="RESULTADO" value={`R$ ${Number(summary.total_result_brl).toLocaleString('pt-BR')}`} mono valueColor={summary.total_result_brl >= 0 ? 'var(--up)' : 'var(--down)'} accent={summary.total_result_brl >= 0 ? 'up' : 'down'} />
-            <StatCard label="SEGUIU PLANO" value={`${summary.followed_plan_rate}%`} mono accent="cyan" />
-          </div>
-        </section>
-      )}
-
-      {/* Row inferior: atalhos + Hound */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: 10 }}>
-        <div className="card" style={{ padding: 16 }}>
-          <div style={sectionHead}>
-            <span className="label-muted">atalhos</span>
-            <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'var(--font-mono)' }}>tecle ⌘K</span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 6, marginTop: 6 }}>
-            <Shortcut k="G → D" label="abrir diário" />
-            <Shortcut k="G → E" label="ir pra estudo" />
-            <Shortcut k="G → O" label="oráculo" />
-            <Shortcut k="G → R" label="destaques" />
-            <Shortcut k="N" label="novo trade" />
-            <Shortcut k="?" label="todos os atalhos" />
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Hound size={40} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>
-              o Hound tá de olho
-            </div>
-            <div style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2, lineHeight: 1.45 }}>
-              relatório pré-market chega todo dia 08:45
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {loading && <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>carregando dados...</div>}
+      <style>{`
+        @media (max-width: 900px) {
+          .inicio-two-cols { grid-template-columns: 1fr !important; }
+          .hero-two { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   )
 }
 
-function ShortcutCard({ icon: Ico, title, sub, cta, to, meta, progress }) {
-  return (
-    <Link to={to} className="card card-hover" style={{
-      display: 'flex', flexDirection: 'column', gap: 10, padding: 16,
-      color: 'var(--text-primary)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Ico size={18} stroke={1.5} style={{ color: 'var(--amber)' }} />
-        {meta && <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{meta}</span>}
-      </div>
-      <div>
-        <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>{title}</div>
-        <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{sub}</div>
-      </div>
-      {progress != null && (
-        <div style={{ height: 2, background: 'var(--surface-3)', borderRadius: 99, overflow: 'hidden', marginTop: 2 }}>
-          <div style={{ height: '100%', width: `${progress}%`, background: 'var(--amber)' }} />
-        </div>
-      )}
-      <div style={{ fontSize: 11, color: 'var(--amber)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
-        {cta} <IArrowRight size={11} stroke={1.8} />
-      </div>
-    </Link>
-  )
+// ============================================================
+// LIVE HERO
+// ============================================================
+function LiveHero({ liveNow, nextLive, recentLive }) {
+  if (liveNow) return <LiveNowBanner session={liveNow} />
+  if (nextLive) return <NextLiveBanner session={nextLive} recentLive={recentLive} />
+  return <QuietBanner recentLive={recentLive} />
 }
 
-function StatCard({ label, value, sub, mono = true, delta, deltaUp, dotLive, valueColor, accent }) {
-  return (
-    <div className={`card ${accent ? `leftbar-${accent}` : ''}`} style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span className="label-muted" style={{ fontSize: 9.5 }}>{label}</span>
-        {dotLive && <span className="dot dot-live" style={{ width: 5, height: 5 }} />}
-      </div>
-      <div style={{
-        fontSize: 18, fontWeight: 500,
-        color: valueColor || 'var(--text-primary)',
-        fontFamily: mono ? 'var(--font-mono)' : 'var(--font-ui)',
-        fontFeatureSettings: mono ? '"zero","ss01"' : undefined,
-        letterSpacing: mono ? '-0.01em' : undefined,
-      }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{sub}</div>}
-      {delta && (
-        <div style={{
-          fontSize: 10, color: deltaUp ? 'var(--up)' : 'var(--down)',
-          fontFamily: 'var(--font-mono)',
-          display: 'flex', alignItems: 'center', gap: 3,
-        }}>
-          {deltaUp ? <ITrendingUp size={10} stroke={1.8} /> : <ITrendingDown size={10} stroke={1.8} />}
-          {delta}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function Shortcut({ k, label }) {
+function LiveNowBanner({ session }) {
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 10,
-      padding: '6px 8px', borderRadius: 4,
-      fontSize: 11.5, color: 'var(--text-secondary)',
+      position: 'relative', overflow: 'hidden',
+      padding: '26px 28px', borderRadius: 16,
+      background: `
+        radial-gradient(ellipse at top left, rgba(236,72,153,0.25), transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(168,85,247,0.22), transparent 60%),
+        linear-gradient(180deg, rgba(24,8,20,0.9), rgba(14,6,18,0.92))
+      `,
+      border: '1px solid rgba(236,72,153,0.45)',
+      boxShadow: '0 0 48px rgba(236,72,153,0.2), inset 0 1px 0 rgba(255,255,255,0.08)',
     }}>
-      <span className="kbd" style={{ minWidth: 48, textAlign: 'center' }}>{k}</span>
-      {label}
+      <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <PulseDot />
+        <span style={{ fontSize: 10, letterSpacing: '0.2em', color: 'var(--pink)', fontWeight: 700 }}>AO VIVO AGORA</span>
+      </div>
+      <div style={{ fontSize: 10.5, letterSpacing: '0.18em', color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>
+        SALA ABERTA
+      </div>
+      <h2 style={{ fontSize: 28, fontWeight: 600, margin: 0, letterSpacing: '-0.02em', color: 'var(--text-primary)', maxWidth: '80%' }}>
+        {session.title}
+      </h2>
+      {session.host_name && (
+        <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 6 }}>
+          com <span style={{ color: 'var(--text-primary)' }}>{session.host_name}</span>
+        </div>
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20 }}>
+        <Link to="/cursos/aulas" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '11px 20px', borderRadius: 10,
+          background: 'linear-gradient(135deg, #ec4899, #a855f7)',
+          color: '#fff', fontSize: 13, fontWeight: 600, textDecoration: 'none',
+          boxShadow: '0 4px 20px rgba(236,72,153,0.35)',
+        }}>
+          <IPlay size={13} stroke={2.2} />
+          entrar na sala
+          <IArrowRight size={12} stroke={2} />
+        </Link>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+          iniciou {relativeTime(session.starts_at)}
+        </span>
+      </div>
     </div>
   )
 }
 
-const sectionHead = {
-  display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10,
+function NextLiveBanner({ session, recentLive }) {
+  const starts = new Date(session.starts_at)
+  const diffMs = starts.getTime() - Date.now()
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffMin = Math.floor((diffMs % 3600000) / 60000)
+  const isSoon = diffMs < 60 * 60 * 1000
+
+  return (
+    <div style={{
+      display: 'grid', gridTemplateColumns: recentLive ? '1.4fr 1fr' : '1fr', gap: 16,
+    }} className="hero-two">
+      <div style={{
+        padding: '24px 26px', borderRadius: 16,
+        background: `radial-gradient(ellipse at top right, rgba(0,217,255,0.14), transparent 55%),
+                     linear-gradient(180deg, rgba(18,22,32,0.85), rgba(12,14,22,0.9))`,
+        border: '1px solid rgba(0,217,255,0.28)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <ICalendar size={12} stroke={1.8} style={{ color: 'var(--cyan)' }} />
+          <span style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--cyan)', fontWeight: 600 }}>PRÓXIMA AULA</span>
+        </div>
+        <h2 style={{ fontSize: 22, fontWeight: 500, margin: '2px 0 6px', letterSpacing: '-0.01em' }}>
+          {session.title}
+        </h2>
+        {session.host_name && (
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14 }}>
+            com <span style={{ color: 'var(--text-primary)' }}>{session.host_name}</span>
+          </div>
+        )}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 16,
+          padding: '10px 12px', borderRadius: 9,
+          background: 'var(--surface-2)', border: '1px solid var(--border)',
+          width: 'fit-content',
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 600 }}>COMEÇA EM</span>
+            <span style={{ fontSize: 20, fontFamily: 'var(--font-mono)', fontWeight: 600,
+              color: isSoon ? 'var(--pink)' : 'var(--cyan)', letterSpacing: '0.02em' }}>
+              {diffMs < 0 ? 'agora' : diffHours > 0 ? `${diffHours}h ${diffMin}m` : `${diffMin}min`}
+            </span>
+          </div>
+          <div style={{ width: 1, height: 28, background: 'var(--border)' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <span style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 600 }}>HORÁRIO</span>
+            <span style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>
+              {starts.toLocaleString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        </div>
+        <div style={{ marginTop: 14 }}>
+          <Link to="/cursos/aulas" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            fontSize: 12, color: 'var(--cyan)', textDecoration: 'none',
+          }}>
+            ver agenda completa <IArrowRight size={11} stroke={1.8} />
+          </Link>
+        </div>
+      </div>
+      {recentLive && <RecentLiveCard session={recentLive} />}
+    </div>
+  )
+}
+
+function QuietBanner({ recentLive }) {
+  return (
+    <div style={{
+      padding: '24px 26px', borderRadius: 16,
+      background: 'linear-gradient(180deg, rgba(18,22,32,0.7), rgba(12,14,22,0.75))',
+      border: '1px solid var(--border)',
+      display: 'grid', gridTemplateColumns: recentLive ? '1fr 1fr' : '1fr', gap: 20,
+    }} className="hero-two">
+      <div>
+        <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8 }}>
+          SEM AULAS AGENDADAS
+        </div>
+        <h2 style={{ fontSize: 20, fontWeight: 500, margin: 0, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
+          Nada rolando no momento
+        </h2>
+        <p style={{ fontSize: 12.5, color: 'var(--text-muted)', marginTop: 6, lineHeight: 1.5 }}>
+          Aulas ao vivo, open class e imersões aparecem aqui assim que forem agendadas.
+        </p>
+        <Link to="/cursos/aulas" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          fontSize: 12, color: 'var(--cyan)', textDecoration: 'none', marginTop: 12,
+        }}>
+          ver replays <IArrowRight size={11} stroke={1.8} />
+        </Link>
+      </div>
+      {recentLive && <RecentLiveCard session={recentLive} />}
+    </div>
+  )
+}
+
+function RecentLiveCard({ session }) {
+  return (
+    <div style={{
+      padding: 16, borderRadius: 12,
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.06)',
+    }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.18em', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 6 }}>
+        ÚLTIMA AULA
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', marginBottom: 6, lineHeight: 1.3 }}>
+        {session.title}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        {relativeTime(session.ends_at || session.starts_at)}
+      </div>
+      {session.replay_url && (
+        <Link to="/cursos/aulas" style={{
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+          fontSize: 11, color: 'var(--amber)', textDecoration: 'none', marginTop: 8,
+        }}>
+          ▶ ver replay
+        </Link>
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// PORTFOLIO
+// ============================================================
+function PortfolioSection({ trades, summary, configured, premium }) {
+  const loading = trades === null
+  return (
+    <div style={{
+      padding: 22, borderRadius: 14,
+      background: `radial-gradient(ellipse at top left, rgba(168,85,247,0.08), transparent 60%),
+                   linear-gradient(180deg, rgba(18,22,32,0.75), rgba(14,16,22,0.8))`,
+      border: '1px solid rgba(255,255,255,0.07)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--purple)', fontWeight: 600, marginBottom: 4 }}>
+            DIÁRIO DA REFERÊNCIA
+          </div>
+          <h3 style={{ fontSize: 18, fontWeight: 500, margin: 0, letterSpacing: '-0.01em' }}>
+            Trades do Mateus Schwartz
+          </h3>
+          <p style={{ fontSize: 11.5, color: 'var(--text-muted)', marginTop: 4, lineHeight: 1.5 }}>
+            Cada trade que ele pega na sala ao vivo, registrado em tempo real.
+          </p>
+        </div>
+        {premium && (
+          <Link to="/diary/historico" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            fontSize: 11, color: 'var(--cyan)', textDecoration: 'none',
+            padding: '6px 10px', borderRadius: 6,
+            border: '1px solid rgba(0,217,255,0.2)',
+            background: 'rgba(0,217,255,0.05)',
+            flexShrink: 0,
+          }}>
+            meu diário <IArrowRight size={10} stroke={1.8} />
+          </Link>
+        )}
+      </div>
+
+      {!configured ? (
+        <PortfolioNotConfigured />
+      ) : loading ? (
+        <div style={{ color: 'var(--text-muted)', fontSize: 12, padding: '20px 0', textAlign: 'center' }}>
+          carregando trades...
+        </div>
+      ) : trades.length === 0 ? (
+        <div style={{ color: 'var(--text-muted)', fontSize: 12, padding: '20px 0', textAlign: 'center' }}>
+          Nenhum trade registrado este mês ainda.
+        </div>
+      ) : (
+        <>
+          <PortfolioStats summary={summary} />
+          <div style={{ height: 1, background: 'var(--border)', margin: '16px 0' }} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {trades.slice(0, 6).map((t, i) => <TradeRow key={t.id || i} trade={t} />)}
+          </div>
+          {!premium && (
+            <div style={{
+              marginTop: 14, padding: '12px 14px', borderRadius: 10,
+              background: 'linear-gradient(135deg, rgba(236,72,153,0.1), rgba(168,85,247,0.08))',
+              border: '1px solid rgba(236,72,153,0.22)',
+              display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
+                  Quer ver isso ao vivo?
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                  Mentorados acompanham cada entrada e saída em tempo real na sala.
+                </div>
+              </div>
+              <Link to="/app/upgrade" className="btn" style={{
+                fontSize: 11, padding: '7px 12px',
+                background: 'linear-gradient(135deg, #ec4899, #a855f7)',
+                color: '#fff', border: 'none',
+              }}>
+                virar mentorado
+              </Link>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+function PortfolioNotConfigured() {
+  return (
+    <div style={{
+      padding: 16, borderRadius: 8, fontSize: 11.5,
+      background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)',
+      color: 'var(--text-muted)', lineHeight: 1.5,
+    }}>
+      <div style={{ color: 'var(--amber)', fontWeight: 600, marginBottom: 4 }}>⚙ aguardando configuração</div>
+      Defina <code style={{ color: 'var(--amber)' }}>VITE_PORTFOLIO_STUDENT_ID</code> no <code>.env</code> com o student_id do Mateus no banco Matilha (API do diário).
+    </div>
+  )
+}
+
+function PortfolioStats({ summary }) {
+  if (!summary) return null
+  const total = summary.total_result_brl ?? summary.total_brl ?? summary.result ?? 0
+  const wr = summary.win_rate ?? summary.winrate ?? 0
+  const n = summary.total_trades ?? summary.trades_count ?? summary.n ?? 0
+  const up = total >= 0
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <MiniStat label="RESULTADO DO MÊS" value={fmtBRL(total)} tone={up ? 'positive' : 'negative'}
+        icon={up ? <ITrendingUp size={12} stroke={2} /> : <ITrendingDown size={12} stroke={2} />} />
+      <MiniStat label="WIN RATE" value={`${Math.round(wr)}%`} tone="neutral" />
+      <MiniStat label="TRADES" value={n} tone="neutral" />
+    </div>
+  )
+}
+
+function MiniStat({ label, value, tone, icon }) {
+  const color = tone === 'positive' ? 'var(--green)' : tone === 'negative' ? 'var(--red)' : 'var(--text-primary)'
+  return (
+    <div style={{
+      padding: '10px 12px', borderRadius: 8,
+      background: 'var(--surface-2)', border: '1px solid var(--border)',
+    }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 4 }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, color, fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 600 }}>
+        {icon}
+        {value}
+      </div>
+    </div>
+  )
+}
+
+function TradeRow({ trade }) {
+  const result = Number(trade.result_brl ?? trade.result ?? trade.resultado ?? 0)
+  const isWin = result > 0
+  const isFlat = result === 0
+  const setup = trade.setup || trade.strategy || '—'
+  const asset = trade.asset || trade.ativo || trade.symbol || '—'
+  const direction = (trade.direction || trade.direcao || '').toLowerCase().startsWith('v') ? 'venda' : 'compra'
+  const points = trade.points ?? trade.pontos
+  const dateStr = trade.date || trade.data || trade.created_at
+  const date = dateStr ? new Date(dateStr) : null
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '60px 1fr 64px auto auto',
+      gap: 10, alignItems: 'center',
+      padding: '8px 10px', borderRadius: 7,
+      background: 'rgba(255,255,255,0.015)',
+      border: '1px solid rgba(255,255,255,0.04)',
+    }}>
+      <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+        {date ? date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '—'}
+      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        <span className="pill" style={{
+          fontSize: 9, fontFamily: 'var(--font-mono)', fontWeight: 600,
+          color: 'var(--text-secondary)', padding: '1px 6px',
+        }}>{String(setup).toUpperCase()}</span>
+        <span style={{ fontSize: 11.5, color: 'var(--text-primary)' }}>{asset}</span>
+        <span style={{
+          fontSize: 9, fontWeight: 700,
+          color: direction === 'compra' ? 'var(--green)' : 'var(--red)',
+          letterSpacing: '0.08em',
+        }}>
+          {direction === 'compra' ? '↑ C' : '↓ V'}
+        </span>
+      </div>
+      <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textAlign: 'right' }}>
+        {points != null ? `${points > 0 ? '+' : ''}${points} pts` : ''}
+      </span>
+      <span className="pill" style={{
+        fontSize: 9, fontWeight: 700,
+        color: isFlat ? 'var(--text-muted)' : isWin ? 'var(--green)' : 'var(--red)',
+        borderColor: isFlat ? 'var(--border)' : isWin ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)',
+        background: isFlat ? 'var(--surface-2)' : isWin ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+      }}>
+        {isFlat ? '—' : isWin ? 'W' : 'L'}
+      </span>
+      <span style={{
+        fontSize: 12, fontFamily: 'var(--font-mono)', fontWeight: 600,
+        color: isFlat ? 'var(--text-muted)' : isWin ? 'var(--green)' : 'var(--red)',
+        minWidth: 72, textAlign: 'right',
+      }}>
+        {fmtBRL(result)}
+      </span>
+    </div>
+  )
+}
+
+// ============================================================
+// EVENTS
+// ============================================================
+function EventsSection({ events }) {
+  return (
+    <div style={{
+      padding: 20, borderRadius: 14,
+      background: 'linear-gradient(180deg, rgba(18,22,32,0.72), rgba(14,16,22,0.78))',
+      border: '1px solid rgba(255,255,255,0.07)',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--cyan)', fontWeight: 600, marginBottom: 2 }}>
+            AGENDA
+          </div>
+          <h3 style={{ fontSize: 15, fontWeight: 500, margin: 0 }}>Próximos eventos</h3>
+        </div>
+        <Link to="/cursos/aulas" style={{ fontSize: 10.5, color: 'var(--text-muted)', textDecoration: 'none' }}>
+          tudo →
+        </Link>
+      </div>
+      {events.length === 0 ? (
+        <div style={{ color: 'var(--text-muted)', fontSize: 11.5, padding: '20px 0', textAlign: 'center', lineHeight: 1.5 }}>
+          Nenhum evento agendado.
+          <div style={{ fontSize: 10, marginTop: 6, color: 'var(--text-faint)' }}>
+            Monitores podem agendar em /mentor/aulas/nova.
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {events.map(e => <EventMiniCard key={e.id} event={e} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function EventMiniCard({ event }) {
+  const starts = new Date(event.starts_at)
+  const kindLabel = EVENT_KIND_LABELS?.[event.kind] || event.kind
+  return (
+    <div style={{
+      padding: 10, borderRadius: 8,
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.05)',
+      display: 'flex', alignItems: 'center', gap: 10,
+    }}>
+      <div style={{
+        flexShrink: 0, width: 40, textAlign: 'center',
+        padding: '6px 0', borderRadius: 6,
+        background: 'rgba(0,217,255,0.06)', border: '1px solid rgba(0,217,255,0.12)',
+      }}>
+        <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', fontWeight: 600 }}>
+          {starts.toLocaleDateString('pt-BR', { month: 'short' }).slice(0, 3).toUpperCase()}
+        </div>
+        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--cyan)', fontFamily: 'var(--font-mono)', lineHeight: 1 }}>
+          {String(starts.getDate()).padStart(2, '0')}
+        </div>
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 9, letterSpacing: '0.12em', color: 'var(--text-muted)', fontWeight: 600, marginBottom: 2 }}>
+          {(kindLabel || '').toString().toUpperCase()}
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {event.title}
+        </div>
+        <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+          {starts.toLocaleString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// COMMUNITY
+// ============================================================
+function CommunitySection({ posts }) {
+  return (
+    <div style={{
+      padding: 20, borderRadius: 14,
+      background: 'linear-gradient(180deg, rgba(18,22,32,0.72), rgba(14,16,22,0.78))',
+      border: '1px solid rgba(255,255,255,0.07)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--purple)', fontWeight: 600, marginBottom: 2 }}>
+            COMUNIDADE
+          </div>
+          <h3 style={{ fontSize: 15, fontWeight: 500, margin: 0 }}>Matilha em ação</h3>
+        </div>
+        <Link to="/app/comunidade" style={{ fontSize: 10.5, color: 'var(--text-muted)', textDecoration: 'none' }}>
+          abrir →
+        </Link>
+      </div>
+      {posts.length === 0 ? (
+        <div style={{ color: 'var(--text-muted)', fontSize: 11.5, padding: '20px 0', textAlign: 'center' }}>
+          nada por aqui ainda.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {posts.slice(0, 4).map(p => <PostMini key={p.id} post={p} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function PostMini({ post }) {
+  const cat = categoryMeta(post.category)
+  const t = post.created_at ? new Date(post.created_at) : null
+  return (
+    <div style={{
+      padding: 10, borderRadius: 7,
+      background: 'rgba(255,255,255,0.018)',
+      border: '1px solid rgba(255,255,255,0.05)',
+      display: 'flex', gap: 10, alignItems: 'flex-start',
+    }}>
+      <span style={{ fontSize: 14, lineHeight: 1 }}>{cat.emoji}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+          {(post.body || '').slice(0, 140)}{post.body?.length > 140 ? '…' : ''}
+        </div>
+        <div style={{ display: 'flex', gap: 8, fontSize: 10, color: 'var(--text-faint)', marginTop: 4 }}>
+          <span style={{ color: 'var(--purple)', fontWeight: 600, letterSpacing: '0.05em' }}>
+            {cat.label}
+          </span>
+          {t && <span style={{ fontFamily: 'var(--font-mono)' }}>· {relativeTime(t)}</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// SOCIAL
+// ============================================================
+function SocialSection({ posts }) {
+  return (
+    <div style={{
+      padding: 20, borderRadius: 14,
+      background: 'linear-gradient(180deg, rgba(18,22,32,0.72), rgba(14,16,22,0.78))',
+      border: '1px solid rgba(255,255,255,0.07)',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--amber)', fontWeight: 600, marginBottom: 2 }}>
+            REDES DO MATEUS
+          </div>
+          <h3 style={{ fontSize: 15, fontWeight: 500, margin: 0 }}>Últimas publicações</h3>
+        </div>
+        <Link to="/app/social" style={{ fontSize: 10.5, color: 'var(--text-muted)', textDecoration: 'none' }}>
+          tudo →
+        </Link>
+      </div>
+      {posts.length === 0 ? (
+        <div style={{ color: 'var(--text-muted)', fontSize: 11.5, padding: '20px 0', textAlign: 'center' }}>
+          cadastre posts em <code>social_posts</code> pra aparecer aqui.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {posts.map(p => <SocialPostMini key={p.id} post={p} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SocialPostMini({ post }) {
+  const platform = (post.platform || 'other').toLowerCase()
+  const pm = {
+    instagram: { label: 'INSTAGRAM', color: '#E1306C', emoji: '📷' },
+    youtube:   { label: 'YOUTUBE',   color: '#FF0000', emoji: '▶' },
+    twitter:   { label: 'X',         color: '#ededed', emoji: '𝕏' },
+    other:     { label: 'LINK',      color: 'var(--amber)', emoji: '🔗' },
+  }[platform] || { label: 'LINK', color: 'var(--amber)', emoji: '🔗' }
+  return (
+    <a href={post.post_url || '#'} target="_blank" rel="noreferrer" style={{
+      display: 'flex', gap: 10, padding: 10, borderRadius: 7, alignItems: 'flex-start',
+      background: 'rgba(255,255,255,0.018)',
+      border: '1px solid rgba(255,255,255,0.05)',
+      textDecoration: 'none', color: 'inherit',
+    }}>
+      <span style={{ fontSize: 14, lineHeight: 1.1, color: pm.color }}>{pm.emoji}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{
+          fontSize: 12, color: 'var(--text-primary)', fontWeight: 500, lineHeight: 1.3, marginBottom: 2,
+          overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+        }}>
+          {post.title || post.description?.slice(0, 80) || '(sem título)'}
+        </div>
+        <div style={{ display: 'flex', gap: 8, fontSize: 10, color: 'var(--text-faint)', marginTop: 3 }}>
+          <span style={{ color: pm.color, fontWeight: 600, letterSpacing: '0.05em' }}>{pm.label}</span>
+          {post.posted_at && <span style={{ fontFamily: 'var(--font-mono)' }}>· {relativeTime(post.posted_at)}</span>}
+        </div>
+      </div>
+    </a>
+  )
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function PulseDot() {
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', width: 10, height: 10 }}>
+      <span style={{
+        position: 'absolute', inset: 0,
+        background: 'var(--pink)', borderRadius: '50%',
+        animation: 'mt-pulse 1.4s ease-out infinite',
+      }} />
+      <span style={{
+        position: 'absolute', inset: 2,
+        background: 'var(--pink)', borderRadius: '50%',
+      }} />
+      <style>{`@keyframes mt-pulse { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(2.2);opacity:0} }`}</style>
+    </span>
+  )
+}
+
+function greetingByHour() {
+  const h = new Date().getHours()
+  if (h < 6) return 'BOA MADRUGADA'
+  if (h < 12) return 'BOM DIA'
+  if (h < 18) return 'BOA TARDE'
+  return 'BOA NOITE'
+}
+function fmtLongDate() {
+  return new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })
+}
+function fmtBRL(v) {
+  if (v == null || Number.isNaN(Number(v))) return 'R$ 0'
+  const n = Number(v)
+  const sign = n > 0 ? '+' : ''
+  return sign + n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 })
+}
+function relativeTime(iso) {
+  if (!iso) return '—'
+  const then = new Date(iso).getTime()
+  const diff = Date.now() - then
+  const abs = Math.abs(diff)
+  const future = diff < 0
+  const min = Math.round(abs / 60000)
+  const hr = Math.round(abs / 3600000)
+  const dy = Math.round(abs / 86400000)
+  if (min < 1) return future ? 'em instantes' : 'agora'
+  if (min < 60) return future ? `em ${min}min` : `${min}min atrás`
+  if (hr < 24) return future ? `em ${hr}h` : `${hr}h atrás`
+  if (dy < 7) return future ? `em ${dy}d` : `${dy}d atrás`
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
