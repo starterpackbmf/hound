@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { getMyProfile } from '../../lib/profile'
 import { IArrowRight, IUsers, IClock } from '../../components/icons'
+
+// Só admin + suporte leem feedbacks (RLS também garante, mas gate no client
+// evita flash de "nenhum resultado" e redireciona monitor comum.)
+const STAFF_ROLES = ['admin', 'suporte']
 
 const MOOD_META = {
   1: { emoji: '😖', label: 'péssimo', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.32)' },
@@ -12,6 +17,7 @@ const MOOD_META = {
 }
 
 export default function Feedbacks() {
+  const [gate, setGate] = useState('checking')  // 'checking' | 'allowed' | 'denied'
   const [filter, setFilter] = useState('urgent')  // 'urgent' | 'all' | 'pending'
   const [feedbacks, setFeedbacks] = useState([])
   const [pending, setPending] = useState([])
@@ -19,8 +25,17 @@ export default function Feedbacks() {
   const [err, setErr] = useState(null)
 
   useEffect(() => {
-    load()
+    getMyProfile()
+      .then(p => {
+        const roles = p?.roles || []
+        setGate(roles.some(r => STAFF_ROLES.includes(r)) ? 'allowed' : 'denied')
+      })
+      .catch(() => setGate('denied'))
   }, [])
+
+  useEffect(() => {
+    if (gate === 'allowed') load()
+  }, [gate])
 
   async function load() {
     setLoading(true); setErr(null)
@@ -49,6 +64,11 @@ export default function Feedbacks() {
       setLoading(false)
     }
   }
+
+  if (gate === 'checking') {
+    return <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>verificando permissões...</div>
+  }
+  if (gate === 'denied') return <Navigate to="/mentor/visao-geral" replace />
 
   const urgent = feedbacks.filter(f => f.mood !== null && f.mood <= 2)
   const shown = filter === 'all' ? feedbacks

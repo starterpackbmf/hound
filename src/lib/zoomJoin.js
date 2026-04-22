@@ -3,6 +3,18 @@
 
 import { supabase } from './supabase'
 
+// Pré-check: lê pendências direto do banco ANTES do aluno clicar "entrar".
+// Serve pra já abrir o modal de feedback proativamente no load da página,
+// sem precisar do round-trip pelo backend (que só detectaria depois do click).
+export async function checkMyPendingFeedback() {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data, error } = await supabase
+    .rpc('user_has_pending_live_feedback', { p_user: user.id })
+  if (error) return null
+  return data?.[0] || null
+}
+
 export async function requestZoomJoin({ liveSessionId = null } = {}) {
   const { data: { session } } = await supabase.auth.getSession()
   const token = session?.access_token

@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { requestZoomJoin, submitLiveFeedback } from '../lib/zoomJoin'
+import { requestZoomJoin, submitLiveFeedback, checkMyPendingFeedback } from '../lib/zoomJoin'
 import { IPlay, IArrowRight, IX, ICheck } from './icons'
 
 // Card de destaque "Entrar no ao vivo" + modais pros 5 tipos de erro do backend.
@@ -8,8 +8,27 @@ export default function LiveJoinCTA() {
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState(null)       // { error, message, ...extra }
   const [countdown, setCountdown] = useState(0)
+  const [pending, setPending] = useState(null) // pendência detectada no load
+
+  // Pré-check: se tem feedback pendente, sinaliza no botão antes do click
+  useEffect(() => {
+    checkMyPendingFeedback().then(p => { if (p) setPending(p) })
+  }, [])
 
   async function onJoin() {
+    // Atalho: se já sabemos que tem pendência, abre o modal direto
+    // (evita round-trip desnecessário pro backend).
+    if (pending) {
+      setErr({
+        error: 'FEEDBACK_REQUIRED',
+        pending: {
+          live_session_id: pending.live_session_id,
+          session_title: pending.session_title,
+          session_ended_at: pending.session_ended_at,
+        },
+      })
+      return
+    }
     setErr(null); setLoading(true)
     try {
       const r = await requestZoomJoin()
@@ -68,36 +87,57 @@ export default function LiveJoinCTA() {
               </span>
             </div>
             <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 2 }}>
-              Entrar no ao vivo da Matilha
+              {pending ? 'Feedback pendente da aula anterior' : 'Entrar no ao vivo da Matilha'}
             </div>
             <div style={{ fontSize: 11.5, color: 'var(--text-muted)', lineHeight: 1.45 }}>
-              Sua presença é registrada automaticamente. O link do Zoom é pessoal — não compartilhe.
+              {pending
+                ? 'Você precisa responder como foi seu dia antes de entrar na próxima aula.'
+                : 'Sua presença é registrada automaticamente. O link do Zoom é pessoal — não compartilhe.'}
             </div>
           </div>
           <button
             onClick={onJoin}
             disabled={loading}
             className="btn btn-primary"
-            style={{ fontSize: 12.5, padding: '10px 18px', opacity: loading ? 0.6 : 1 }}
+            style={{
+              fontSize: 12.5, padding: '10px 18px',
+              opacity: loading ? 0.6 : 1,
+              ...(pending ? {
+                background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+                borderColor: 'rgba(245,158,11,0.5)',
+              } : {}),
+            }}
           >
             <IPlay size={12} stroke={2.2} />
-            {loading ? 'validando...' : 'entrar no ao vivo'}
+            {loading ? 'validando...'
+              : pending ? 'responder feedback anterior'
+              : 'entrar no ao vivo'}
             {!loading && <IArrowRight size={12} stroke={2} />}
           </button>
         </div>
       </div>
 
       {err && (
-        <ErrorDialog err={err} countdown={countdown} onClose={() => setErr(null)} onRetry={onJoin} />
+        <ErrorDialog
+          err={err}
+          countdown={countdown}
+          onClose={() => setErr(null)}
+          onRetry={onJoin}
+          onFeedbackDone={() => setPending(null)}
+        />
       )}
     </>
   )
 }
 
-function ErrorDialog({ err, countdown, onClose, onRetry }) {
+function ErrorDialog({ err, countdown, onClose, onRetry, onFeedbackDone }) {
   // Feedback pendente: modal com form — trava até responder
   if (err.error === 'FEEDBACK_REQUIRED') {
-    return <FeedbackGateModal pending={err.pending} onDone={() => { onClose(); onRetry() }} onClose={onClose} />
+    return <FeedbackGateModal
+      pending={err.pending}
+      onDone={() => { onFeedbackDone?.(); onClose(); onRetry() }}
+      onClose={onClose}
+    />
   }
 
   // Nome faltando: mensagem + link pra /app/minha-ficha
