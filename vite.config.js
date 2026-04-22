@@ -16,4 +16,22 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Bundle tava em 1MB+ — splitting pra carregamento paralelo mais rápido.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core — quase todo mundo precisa
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Gráficos só no histórico/relatório/wolf briefings
+          'charts': ['recharts'],
+          // Zoom SDK só no AulaAoVivo (sala embutida) — deferrível
+          'zoom-sdk': ['@zoom/meetingsdk'],
+          // Supabase client
+          'supabase': ['@supabase/supabase-js'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+  },
 })
