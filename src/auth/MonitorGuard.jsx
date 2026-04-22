@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getMyProfile } from '../lib/profile'
 
-// Allow users with role monitor or admin (imortal also counts as senior)
-const ALLOWED_ROLES = ['monitor', 'admin', 'imortal']
+// Allow users with role monitor / admin / imortal / suporte (CS)
+const ALLOWED_ROLES = ['monitor', 'admin', 'imortal', 'suporte']
 
 export default function MonitorGuard({ children }) {
   const [state, setState] = useState('checking') // 'checking' | 'allowed' | 'denied'

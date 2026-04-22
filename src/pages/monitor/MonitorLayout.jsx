@@ -5,7 +5,7 @@ import { useIsMobile } from '../../lib/useMedia'
 import { getMyProfile } from '../../lib/profile'
 import {
   ITarget, IUsers, ICalendar, IFile, IBook, IPlay,
-  ILogOut, IArrowLeft, IMenu, IX,
+  ILogOut, IArrowLeft, IMenu, IX, ISettings, IMessage,
 } from '../../components/icons'
 
 const NAV = [
@@ -15,6 +15,12 @@ const NAV = [
   { to: '/mentor/aulas/nova',      label: 'agendar aula',    icon: IPlay },
   { to: '/mentor/relatorio',       label: 'relatório',       icon: IFile },
   { to: '/mentor/conteudos',       label: 'conteúdos',       icon: IBook },
+]
+
+// Itens visíveis só pra admin/suporte
+const STAFF_NAV = [
+  { to: '/mentor/feedbacks',       label: 'feedbacks (CS)',    icon: IMessage,  roles: ['admin', 'suporte'] },
+  { to: '/mentor/config-zoom',     label: 'config do ao vivo', icon: ISettings, roles: ['admin', 'suporte'] },
 ]
 
 export default function MonitorLayout() {
@@ -38,24 +44,29 @@ export default function MonitorLayout() {
   const initial = (profile?.name?.[0] || 'M').toUpperCase()
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--body)' }}>
+    <div style={{
+      display: 'flex', minHeight: '100vh', position: 'relative',
+      padding: isMobile ? 0 : '14px 0 14px 14px',
+    }}>
+      <div className="mt-ambient" />
       {isMobile && open && (
         <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, background: '#00000099', zIndex: 19 }} />
       )}
 
-      <aside style={{
+      <aside className={isMobile ? '' : 'mt-sidebar-pill'} style={{
         width: 220, minWidth: 220,
-        background: 'rgba(14, 14, 20, 0.65)',
-        backdropFilter: 'blur(24px) saturate(160%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.06)',
         display: 'flex', flexDirection: 'column',
+        zIndex: 10,
         ...(isMobile ? {
           position: 'fixed', top: 0, bottom: 0, left: 0, zIndex: 20,
+          background: 'rgba(14, 14, 20, 0.85)',
+          backdropFilter: 'blur(24px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.06)',
           transform: open ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 200ms var(--ease)',
         } : {
-          position: 'sticky', top: 0, height: '100vh',
+          position: 'sticky', top: 14, height: 'calc(100vh - 28px)',
         }),
       }}>
         <div style={{ padding: '16px 12px 10px', display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -70,30 +81,28 @@ export default function MonitorLayout() {
           </div>
         </div>
 
-        <nav style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', gap: 1, flex: 1 }}>
-          {NAV.map(item => (
+        <nav className="mt-scrollbar-hidden" style={{ display: 'flex', flexDirection: 'column', padding: '8px 8px', gap: 1, flex: 1, overflowY: 'auto' }}>
+          {[
+            ...NAV,
+            ...STAFF_NAV.filter(it => (profile?.roles || []).some(r => it.roles.includes(r))),
+          ].map(item => (
             <NavLink
               key={item.to}
               to={item.to}
               style={({ isActive }) => ({
-                position: 'relative',
                 display: 'flex', alignItems: 'center', gap: 10,
-                padding: '6px 10px 6px 12px',
-                borderRadius: 5,
+                padding: '7px 10px 7px 12px',
+                borderRadius: 6,
                 fontSize: 12.5, fontWeight: 450,
-                color: isActive ? 'var(--amber)' : 'var(--text-secondary)',
-                background: isActive ? 'var(--amber-dim)' : 'transparent',
-                transition: 'background 150ms, color 150ms',
+                color: isActive ? 'var(--purple)' : 'var(--text-secondary)',
+                background: isActive ? 'rgba(168,85,247,0.1)' : 'transparent',
+                border: isActive ? '1px solid rgba(168,85,247,0.22)' : '1px solid transparent',
+                transition: 'background 150ms, color 150ms, border-color 150ms',
               })}
             >
               {({ isActive }) => (
                 <>
-                  <span style={{
-                    position: 'absolute', left: 0, top: 6, bottom: 6, width: 2,
-                    background: isActive ? 'var(--amber)' : 'transparent',
-                    borderRadius: '0 2px 2px 0',
-                  }} />
-                  <item.icon size={15} stroke={1.6} style={{ color: isActive ? 'var(--amber)' : 'var(--text-muted)' }} />
+                  <item.icon size={15} stroke={1.6} style={{ color: isActive ? 'var(--purple)' : 'var(--text-muted)' }} />
                   <span>{item.label}</span>
                 </>
               )}
@@ -148,8 +157,9 @@ export default function MonitorLayout() {
 
       <main style={{
         flex: 1, minWidth: 0,
-        padding: isMobile ? '64px 16px 32px' : '32px 40px',
+        padding: isMobile ? '64px 16px 32px' : '24px 40px',
         overflow: 'auto',
+        position: 'relative', zIndex: 1,
       }}>
         <div className="fade-in">
           <Outlet />

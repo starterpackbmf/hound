@@ -431,6 +431,159 @@ app.post('/zoom-signature', (req, res) => {
   res.json({ signature: `${unsigned}.${signature}`, sdkKey })
 })
 
+// ─── ZOOM JOIN (gated) ───
+// POST /zoom/join       → valida gates, retorna { redirect_url }
+// GET  /zoom/go?t=...   → 302 pro Zoom com uname preenchido
+const { createClient } = require('@supabase/supabase-js')
+
+const ZOOM_RATE_MS      = 5 * 60 * 1000
+const ZOOM_WINDOW_MS    = 2 * 60 * 60 * 1000
+const ZOOM_TOKEN_TTL_S  = 60
+
+function _hmac(data, secret) {
+  return crypto.createHmac('sha256', secret).update(data).digest('base64url')
+}
+function _signJoinToken(payload, secret) {
+  const body = Buffer.from(JSON.stringify(payload)).toString('base64url')
+  return `${body}.${_hmac(body, secret)}`
+}
+function _verifyJoinToken(token, secret) {
+  if (!token || !token.includes('.')) return null
+  const [body, sig] = token.split('.')
+  if (_hmac(body, secret) !== sig) return null
+  try {
+    const p = JSON.parse(Buffer.from(body, 'base64url').toString('utf8'))
+    if (p.exp && p.exp < Math.floor(Date.now() / 1000)) return null
+    return p
+  } catch { return null }
+}
+function _deviceHash(req) {
+  const ua = req.headers['user-agent'] || ''
+  const lang = req.headers['accept-language'] || ''
+  return crypto.createHash('sha256').update(ua + '|' + lang).digest('hex').slice(0, 32)
+}
+function _clientIp(req) {
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
+    || req.socket?.remoteAddress || null
+}
+function _zoomErrorPage(title, message) {
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Matilha — ${esc(title)}</title><style>body{margin:0;min-height:100vh;background:#0a0a0e;color:#e8e8ee;font:14px/1.5 system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:24px}.card{max-width:420px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:28px;text-align:center}h1{font-size:16px;margin:0 0 10px}p{color:#9a9aa4;margin:0 0 18px}a{color:#00d9ff;text-decoration:none;font-size:12px;padding:8px 14px;border:1px solid rgba(0,217,255,0.3);border-radius:6px;display:inline-block}</style></head><body><div class="card"><h1>${esc(title)}</h1><p>${esc(message)}</p><a href="/cursos/aulas">← voltar pro Matilha</a></div></body></html>`
+}
+function _sbAdmin() {
+  const url = process.env.VITE_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) return null
+  return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
+}
+
+app.post('/zoom/join', async (req, res) => {
+  const sb = _sbAdmin()
+  if (!sb) return res.status(500).json({ error: 'server misconfigured' })
+  const JOIN_SECRET = process.env.ZOOM_JOIN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  const auth = req.headers.authorization || ''
+  const bearer = auth.startsWith('Bearer ') ? auth.slice(7) : null
+  if (!bearer) return res.status(401).json({ error: 'UNAUTHENTICATED' })
+
+  const { data: userRes, error: authErr } = await sb.auth.getUser(bearer)
+  if (authErr || !userRes?.user) return res.status(401).json({ error: 'UNAUTHENTICATED' })
+  const userId = userRes.user.id
+
+  const { data: profile } = await sb.from('profiles').select('name').eq('id', userId).single()
+  const fullName = String(profile?.name || '').trim().replace(/\s+/g, ' ')
+  if (fullName.split(' ').filter(Boolean).length < 2) {
+    return res.status(400).json({ error: 'NAME_REQUIRED', message: 'Complete seu nome (nome + sobrenome) pra entrar no ao vivo — a presença é automática.' })
+  }
+
+  const { data: pendingRows } = await sb.rpc('user_has_pending_live_feedback', { p_user: userId })
+  if (pendingRows?.length) {
+    const p = pendingRows[0]
+    return res.status(403).json({
+      error: 'FEEDBACK_REQUIRED',
+      message: 'Você precisa responder o feedback da aula anterior antes de entrar no próximo ao vivo.',
+      pending: { live_session_id: p.live_session_id, session_title: p.session_title, session_ended_at: p.session_ended_at },
+    })
+  }
+
+  const ip = _clientIp(req)
+  const deviceHash = _deviceHash(req)
+  const since = new Date(Date.now() - ZOOM_WINDOW_MS).toISOString()
+  const { data: recent } = await sb
+    .from('zoom_join_log')
+    .select('ip, device_hash, joined_at')
+    .eq('user_id', userId).gte('joined_at', since)
+    .order('joined_at', { ascending: false }).limit(20)
+
+  if (recent?.length) {
+    const lastMs = Date.now() - new Date(recent[0].joined_at).getTime()
+    if (lastMs < ZOOM_RATE_MS) {
+      return res.status(429).json({ error: 'RATE_LIMIT', message: 'Aguarde antes de tentar entrar de novo.', retry_in_s: Math.ceil((ZOOM_RATE_MS - lastMs) / 1000) })
+    }
+    for (const row of recent) {
+      const ipDiff = row.ip && ip && row.ip !== ip
+      const devDiff = row.device_hash && row.device_hash !== deviceHash
+      if (ipDiff && devDiff) {
+        return res.status(403).json({ error: 'SESSION_CONFLICT', message: 'Detectamos login suspeito desta conta em outro dispositivo.' })
+      }
+    }
+  }
+
+  const { data: cfgRow } = await sb.from('app_settings').select('value').eq('key', 'zoom_live').single()
+  const cfg = cfgRow?.value || {}
+  if (!cfg.meeting_id) {
+    return res.status(503).json({ error: 'NOT_CONFIGURED', message: 'Sala do ao vivo ainda não foi configurada. Avise o admin.' })
+  }
+
+  const liveSessionId = req.body?.live_session_id ? String(req.body.live_session_id) : null
+  const payload = { uid: userId, ls: liveSessionId, exp: Math.floor(Date.now()/1000) + ZOOM_TOKEN_TTL_S }
+  const signed = _signJoinToken(payload, JOIN_SECRET)
+
+  return res.json({ ok: true, redirect_url: `/api/zoom/go?t=${signed}`, name: fullName })
+})
+
+app.get('/zoom/go', async (req, res) => {
+  const sb = _sbAdmin()
+  if (!sb) return res.status(500).send('server misconfigured')
+  const JOIN_SECRET = process.env.ZOOM_JOIN_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  const t = req.query?.t || ''
+  const payload = _verifyJoinToken(t, JOIN_SECRET)
+  if (!payload) {
+    res.status(401).setHeader('content-type', 'text/html; charset=utf-8')
+    return res.send(_zoomErrorPage('Link expirado', 'Volte pro Matilha e clique em "Entrar no ao vivo" de novo.'))
+  }
+
+  const [{ data: cfgRow }, { data: prof }] = await Promise.all([
+    sb.from('app_settings').select('value').eq('key', 'zoom_live').single(),
+    sb.from('profiles').select('name').eq('id', payload.uid).single(),
+  ])
+  const cfg = cfgRow?.value || {}
+  const fullName = String(prof?.name || '').trim().replace(/\s+/g, ' ')
+  if (!cfg.meeting_id || fullName.split(' ').filter(Boolean).length < 2) {
+    res.status(400).setHeader('content-type', 'text/html; charset=utf-8')
+    return res.send(_zoomErrorPage('Não foi possível entrar', 'Configuração incompleta. Volte pro Matilha e tente novamente.'))
+  }
+
+  try {
+    await sb.from('zoom_join_log').insert({
+      user_id: payload.uid, live_session_id: payload.ls,
+      ip: _clientIp(req), device_hash: _deviceHash(req),
+    })
+  } catch (_) { /* noop */ }
+
+  const base = cfg.base_url || 'https://zoom.us/j/'
+  const mid = String(cfg.meeting_id).replace(/\D/g, '')
+  const params = new URLSearchParams()
+  if (cfg.passcode) params.set('pwd', cfg.passcode)
+  params.set('uname', fullName)
+  const zoomUrl = `${base}${mid}?${params.toString()}`
+
+  res.status(302).setHeader('Location', zoomUrl)
+  res.setHeader('Cache-Control', 'no-store')
+  return res.end()
+})
+
 const PORT = 3001
 app.listen(PORT, () => {
   console.log(`🐕 Hound proxy running on http://localhost:${PORT}`)

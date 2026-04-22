@@ -1,6 +1,16 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+
+// Helpers p/ redirect com param (estudo/:slug e aulas/ao-vivo/:id → /cursos/*)
+function NavigateEstudoSlug() {
+  const { slug } = useParams()
+  return <Navigate to={`/cursos/estudo/${slug}`} replace />
+}
+function NavigateAulaAoVivo() {
+  const { id } = useParams()
+  return <Navigate to={`/cursos/aulas/ao-vivo/${id}`} replace />
+}
 
 // Fonts
 import '@fontsource/inter/400.css'
@@ -14,6 +24,7 @@ import '@fontsource/instrument-serif'
 
 // Design tokens (must come after fonts)
 import './styles/tokens.css'
+import './styles/matilha-glass.css'
 import './styles/diary-tokens.css'
 
 import App from './App.jsx'
@@ -46,6 +57,8 @@ import Parcerias from './pages/member/Parcerias'
 import Jornada from './pages/member/Jornada'
 import Historico from './pages/member/Historico'
 import ResumoSemanal from './pages/member/ResumoSemanal'
+import WolfAI from './pages/diary/WolfAI'
+import CursosLayout from './pages/cursos/CursosLayout'
 import MinhaFicha from './pages/member/MinhaFicha'
 import NovoTrade from './pages/member/NovoTrade'
 import AulaAoVivo from './pages/member/AulaAoVivo'
@@ -56,6 +69,7 @@ import Feedback from './pages/member/Feedback'
 import Operacional from './pages/member/Operacional'
 import Settings from './pages/member/Settings'
 import Upgrade from './pages/member/Upgrade'
+import CalcRiscoRetorno from './pages/member/CalcRiscoRetorno'
 import PremiumGate from './auth/PremiumGate'
 import MonitorGuard from './auth/MonitorGuard'
 import MonitorLayout from './pages/monitor/MonitorLayout'
@@ -65,6 +79,8 @@ import MonitorRelatorio from './pages/monitor/Relatorio'
 import AlunoDetail from './pages/monitor/AlunoDetail'
 import MinhaAgenda from './pages/monitor/MinhaAgenda'
 import AdminConteudos from './pages/monitor/AdminConteudos'
+import ConfigZoom from './pages/monitor/ConfigZoom'
+import Feedbacks from './pages/monitor/Feedbacks'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -73,6 +89,7 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/matilha" element={<Vitrine />} />
+          <Route path="/calc" element={<CalcRiscoRetorno />} />
 
           {/* Ambiente Diário — sub-app com layout próprio */}
           <Route
@@ -93,7 +110,25 @@ createRoot(document.getElementById('root')).render(
             <Route path="operacional" element={<Operacional />} />
             <Route path="plano" element={<PlanoExecucao />} />
             <Route path="jornada" element={<Jornada />} />
-            <Route path="wolf" element={<ResumoSemanal />} />
+            <Route path="wolf" element={<WolfAI />} />
+          </Route>
+
+          {/* Sub-app de Cursos — sidebar pill glass próprio */}
+          <Route
+            path="/cursos"
+            element={
+              <ProtectedRoute>
+                <CursosLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="aulas" replace />} />
+            <Route path="aulas" element={<PremiumGate><Aulas /></PremiumGate>} />
+            <Route path="aulas/ao-vivo/:id" element={<PremiumGate><AulaAoVivo /></PremiumGate>} />
+            <Route path="estudo" element={<PremiumGate><Estudo /></PremiumGate>} />
+            <Route path="estudo/:slug" element={<PremiumGate><Course /></PremiumGate>} />
+            <Route path="imersoes" element={<PremiumGate><Imersoes /></PremiumGate>} />
+            <Route path="gratis" element={<CursosGratis />} />
           </Route>
 
           <Route path="/p/:id" element={<Perfil />} />
@@ -117,29 +152,34 @@ createRoot(document.getElementById('root')).render(
             <Route path="upgrade" element={<Upgrade />} />
 
             {/* Premium (mentorado) */}
-            <Route path="jornada" element={<PremiumGate><Jornada /></PremiumGate>} />
-            <Route path="historico" element={<PremiumGate><Historico /></PremiumGate>} />
-            <Route path="resumo-semanal" element={<PremiumGate><ResumoSemanal /></PremiumGate>} />
-            <Route path="novo-trade" element={<PremiumGate><NovoTrade /></PremiumGate>} />
-            <Route path="finalizar-dia" element={<PremiumGate><FinalizarDia /></PremiumGate>} />
+            {/* Rotas duplicadas redirecionam pra /diary (source of truth) */}
+            <Route path="jornada"        element={<Navigate to="/diary/jornada" replace />} />
+            <Route path="historico"      element={<Navigate to="/diary/historico" replace />} />
+            <Route path="resumo-semanal" element={<Navigate to="/diary/wolf" replace />} />
+            <Route path="novo-trade"     element={<Navigate to="/diary/diario" replace />} />
+            <Route path="finalizar-dia"  element={<Navigate to="/diary/diario" replace />} />
+            <Route path="operacional"    element={<Navigate to="/diary/operacional" replace />} />
+            <Route path="plano-execucao" element={<Navigate to="/diary/plano" replace />} />
+            <Route path="diario"         element={<Navigate to="/diary/diario" replace />} />
+
+            {/* Rotas que continuam no /app */}
             <Route path="feedback" element={<PremiumGate><Feedback /></PremiumGate>} />
-            <Route path="operacional" element={<PremiumGate><Operacional /></PremiumGate>} />
             <Route path="trade/:id" element={<PremiumGate><NovoTrade /></PremiumGate>} />
-            <Route path="plano-execucao" element={<PremiumGate><PlanoExecucao /></PremiumGate>} />
             <Route path="sessoes" element={<PremiumGate><Sessoes /></PremiumGate>} />
-            <Route path="estudo" element={<PremiumGate><Estudo /></PremiumGate>} />
-            <Route path="estudo/:slug" element={<PremiumGate><Course /></PremiumGate>} />
-            <Route path="aulas" element={<PremiumGate><Aulas /></PremiumGate>} />
-            <Route path="aulas/ao-vivo/:id" element={<PremiumGate><AulaAoVivo /></PremiumGate>} />
-            <Route path="imersoes" element={<PremiumGate><Imersoes /></PremiumGate>} />
             <Route path="monitoria" element={<PremiumGate><Monitoria /></PremiumGate>} />
-            <Route path="diario" element={<PremiumGate><Diario /></PremiumGate>} />
             <Route path="oraculo" element={<PremiumGate><Oraculo /></PremiumGate>} />
+
+            {/* Rotas de cursos/aulas — redirect pro sub-app /cursos (source of truth) */}
+            <Route path="estudo"              element={<Navigate to="/cursos/estudo" replace />} />
+            <Route path="estudo/:slug"        element={<NavigateEstudoSlug />} />
+            <Route path="aulas"               element={<Navigate to="/cursos/aulas" replace />} />
+            <Route path="aulas/ao-vivo/:id"   element={<NavigateAulaAoVivo />} />
+            <Route path="imersoes"            element={<Navigate to="/cursos/imersoes" replace />} />
+            <Route path="cursos-gratis"       element={<Navigate to="/cursos/gratis" replace />} />
 
             {/* Comunidade (free) */}
             <Route path="comunidade" element={<Comunidade />} />
             <Route path="social" element={<Social />} />
-            <Route path="cursos-gratis" element={<CursosGratis />} />
             <Route path="relatorio" element={<Relatorio />} />
             <Route path="packstore" element={<Packstore />} />
             <Route path="parcerias" element={<Parcerias />} />
@@ -162,6 +202,8 @@ createRoot(document.getElementById('root')).render(
             <Route path="alunos/:id" element={<AlunoDetail />} />
             <Route path="agenda" element={<MinhaAgenda />} />
             <Route path="conteudos" element={<AdminConteudos />} />
+            <Route path="config-zoom" element={<ConfigZoom />} />
+            <Route path="feedbacks" element={<Feedbacks />} />
             <Route path="aulas/nova" element={<NovaAula />} />
             <Route path="aulas/relatorio/:id" element={<AulaAttendance />} />
           </Route>

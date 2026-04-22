@@ -5,6 +5,7 @@ import { listLiveSessions } from '../../lib/liveSessions'
 import { getMyProfile } from '../../lib/profile'
 import { PageTitle, Section, Placeholder, ErrorBox, Loading } from './ui'
 import { IArrowRight, IPlay, ICalendar, IX, IPlus } from '../../components/icons'
+import LiveJoinCTA from '../../components/LiveJoinCTA'
 
 export default function Aulas() {
   const [events, setEvents] = useState([])
@@ -40,6 +41,11 @@ export default function Aulas() {
             <IPlus size={12} stroke={2} /> agendar aula
           </Link>
         )}
+      </div>
+
+      {/* CTA principal — sala fixa do Zoom (link pessoal, gated) */}
+      <div style={{ marginTop: 20 }}>
+        <LiveJoinCTA />
       </div>
 
       {/* Sessões Zoom (sala embutida) */}
