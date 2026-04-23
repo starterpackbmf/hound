@@ -54,12 +54,50 @@ export async function createSlot({ starts_at, duration_min = 60, status = 'dispo
   return data
 }
 
-export async function requestSlot(slotId) {
-  const { data, error } = await supabase.rpc('request_monitor_slot', { slot_id: slotId })
+// Solicita um slot. Agora exige contexto (motivo/categoria/prioridade).
+// Backend valida fair-use e retorna error codes estruturados.
+export async function requestSlot(slotId, {
+  motivo, categoria = null, prioridade = 'rotina', attachment_url = null,
+} = {}) {
+  const { data, error } = await supabase.rpc('request_monitor_slot', {
+    slot_id: slotId,
+    p_motivo: motivo || null,
+    p_categoria: categoria,
+    p_prioridade: prioridade,
+    p_attachment_url: attachment_url,
+  })
   if (error) throw error
-  if (!data?.ok) throw new Error(data?.error || 'falha ao solicitar')
+  if (!data?.ok) {
+    const err = new Error(data?.message || data?.error || 'falha ao solicitar')
+    err.code = data?.error
+    throw err
+  }
   return data
 }
+
+// Marca aluno como no-show (monitor-only)
+export async function markNoShow(slotId) {
+  const { error } = await supabase
+    .from('monitor_slots')
+    .update({ status: 'no_show' })
+    .eq('id', slotId)
+  if (error) throw error
+}
+
+export const SESSION_CATEGORIES = [
+  { code: 'tecnico',        label: 'técnico',         emoji: '📊' },
+  { code: 'emocional',      label: 'emocional',       emoji: '🧠' },
+  { code: 'plano',          label: 'plano de execução', emoji: '📋' },
+  { code: 'revisar_trades', label: 'revisar trades',  emoji: '🔍' },
+  { code: 'onboarding',     label: 'onboarding',      emoji: '👋' },
+  { code: 'outros',         label: 'outros',          emoji: '💬' },
+]
+
+export const SESSION_PRIORITIES = [
+  { code: 'rotina',          label: 'rotina',           emoji: '⚪', color: 'var(--text-muted)' },
+  { code: 'acompanhamento',  label: 'acompanhamento',   emoji: '🟡', color: 'var(--amber)' },
+  { code: 'urgente',         label: 'tô precisando',    emoji: '🔴', color: 'var(--red)' },
+]
 
 export async function confirmSlot(slotId, meetingUrl = null) {
   const { data, error } = await supabase.rpc('confirm_monitor_slot', {

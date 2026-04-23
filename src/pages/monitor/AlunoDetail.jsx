@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { matilha } from '../../lib/matilha'
 import { supabase } from '../../lib/supabase'
-import { getStudentPlan, savePlan } from '../../lib/plans'
+import { getStudentPlan, createPlan, listStudentPlans } from '../../lib/plans'
+import { listStudentNotes } from '../../lib/sessionNotes'
 import {
   listDailyFeedback, saveDailyFeedback, FEEDBACK_TAGS,
   listSessionsFor, saveSession,
@@ -10,7 +11,7 @@ import {
 } from '../../lib/feedback'
 import { PageTitle, Section, ErrorBox, Loading } from '../member/ui'
 import RankBadge from '../../components/RankBadge'
-import { IArrowLeft, IArrowRight, IMessage, IPlus, IX, ICheck } from '../../components/icons'
+import { IArrowLeft, IArrowRight, IMessage, IPlus, IX, ICheck, IClock } from '../../components/icons'
 
 const SETUP_ALL = ['TA', 'TC', 'TRM', 'FQ']
 const ATIVOS_ALL = ['WIN', 'WDO']
@@ -56,10 +57,16 @@ export default function AlunoDetail() {
   }, [id])
 
   function startEdit() {
-    setPlanDraft(plan || {
+    // Defaults: período de 14 dias a partir de hoje
+    const today = new Date()
+    const in14 = new Date(); in14.setDate(today.getDate() + 14)
+    setPlanDraft({
       setups_permitidos: [...SETUP_ALL],
       ativos_permitidos: [...ATIVOS_ALL],
-      active: true,
+      starts_at: isoDate(today),
+      ends_at: isoDate(in14),
+      title: 'Plano de 14 dias',
+      extra_rules: [],
     })
     setEditing(true)
   }
@@ -68,9 +75,13 @@ export default function AlunoDetail() {
     if (!profile?.id) return alert('aluno não tem profile no nosso Supabase ainda')
     try {
       const payload = {
-        ...(plan?.id ? { id: plan.id } : {}),
         user_id: profile.id,
-        active: true,
+        title: planDraft.title || null,
+        starts_at: planDraft.starts_at || null,
+        ends_at: planDraft.ends_at || null,
+        men_max_pts: num(planDraft.men_max_pts),
+        max_trades_per_day: num(planDraft.max_trades_per_day),
+        max_consecutive_stops: num(planDraft.max_consecutive_stops),
         stop_diario_brl: num(planDraft.stop_diario_brl),
         stop_mensal_brl: num(planDraft.stop_mensal_brl),
         stop_por_trade_brl: num(planDraft.stop_por_trade_brl),
@@ -80,13 +91,19 @@ export default function AlunoDetail() {
         horario_limite: planDraft.horario_limite || null,
         melhor_de_3: !!planDraft.melhor_de_3,
         melhor_de_5: !!planDraft.melhor_de_5,
+        extra_rules: (planDraft.extra_rules || []).filter(r => r && r.trim()),
         observacoes: planDraft.observacoes || null,
         objetivos_semana: planDraft.objetivos_semana || null,
       }
-      const saved = await savePlan(payload)
+      // createPlan — trigger no banco arquiva o plano ativo anterior
+      const saved = await createPlan(payload)
       setPlan(saved)
       setEditing(false)
     } catch (e) { alert(e.message) }
+  }
+
+  function isoDate(d) {
+    return d.toISOString().slice(0, 10)
   }
 
   if (loading) return <Loading />
@@ -199,9 +216,91 @@ export default function AlunoDetail() {
         )}
       </Section>
 
+      {profile && <SessionNotesTimeline studentId={profile.id} />}
       {profile && <DailyFeedbackSection studentId={profile.id} />}
       {profile && <TradeFeedbackHistorySection studentId={profile.id} />}
       {profile && <MentorshipSessionsSection studentId={profile.id} />}
+    </div>
+  )
+}
+
+// ============================================================
+// SESSION NOTES TIMELINE — histórico cumulativo de sessões
+// ============================================================
+function SessionNotesTimeline({ studentId }) {
+  const [notes, setNotes] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    listStudentNotes(studentId).then(setNotes).catch(() => {}).finally(() => setLoading(false))
+  }, [studentId])
+
+  if (loading) return null
+  if (notes.length === 0) {
+    return (
+      <Section title="histórico de sessões">
+        <div className="card" style={{ padding: 14, fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', lineHeight: 1.5 }}>
+          Nenhuma sessão registrada ainda.<br/>
+          <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
+            Notas aparecem aqui quando um monitor conclui uma sessão na /mentor/agenda.
+          </span>
+        </div>
+      </Section>
+    )
+  }
+
+  return (
+    <Section title={`histórico de sessões · ${notes.length}`}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {notes.map(n => <SessionNoteCard key={n.id} note={n} />)}
+      </div>
+    </Section>
+  )
+}
+
+function SessionNoteCard({ note }) {
+  const when = new Date(note.created_at)
+  const initial = (note.monitor?.name?.[0] || '?').toUpperCase()
+  return (
+    <div className="card" style={{ padding: 14, borderLeft: '3px solid rgba(168,85,247,0.4)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+        <div style={{
+          width: 22, height: 22, borderRadius: 5,
+          background: note.monitor?.avatar_url ? `url(${note.monitor.avatar_url}) center/cover` : 'linear-gradient(135deg, #a855f7, #ec4899)',
+          color: '#0a0a0e', fontSize: 10, fontWeight: 700,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>{!note.monitor?.avatar_url && initial}</div>
+        <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-primary)' }}>
+          {note.monitor?.name || 'monitor'}
+        </span>
+        <span style={{ fontSize: 10.5, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          · {when.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+        </span>
+        {note.tags?.length > 0 && (
+          <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', flexWrap: 'wrap' }}>
+            {note.tags.slice(0, 4).map(t => (
+              <span key={t} className="pill" style={{ fontSize: 9, fontWeight: 600, color: 'var(--purple)', borderColor: 'rgba(168,85,247,0.3)', background: 'rgba(168,85,247,0.06)' }}>
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+      <div style={{ fontSize: 12.5, color: 'var(--text-secondary)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+        {note.summary_md}
+      </div>
+      {note.next_steps_md && (
+        <div style={{
+          marginTop: 10, padding: '8px 12px', borderRadius: 6,
+          background: 'rgba(0,217,255,0.05)', border: '1px solid rgba(0,217,255,0.18)',
+          fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5,
+        }}>
+          <div style={{ fontSize: 9, letterSpacing: '0.14em', color: 'var(--cyan)', fontWeight: 700, marginBottom: 4 }}>
+            PRÓXIMOS PASSOS
+          </div>
+          {note.next_steps_md}
+        </div>
+      )}
     </div>
   )
 }
@@ -478,16 +577,56 @@ function PlanEditor({ draft, setDraft, onSave, onCancel }) {
     }
   }
 
+  const extraRules = draft.extra_rules || []
+  function updateRule(i, val) {
+    const next = [...extraRules]; next[i] = val
+    setDraft({ ...draft, extra_rules: next })
+  }
+  function addRule() {
+    setDraft({ ...draft, extra_rules: [...extraRules, ''] })
+  }
+  function removeRule(i) {
+    setDraft({ ...draft, extra_rules: extraRules.filter((_, j) => j !== i) })
+  }
+
   return (
     <div className="card" style={{ padding: 18 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 14 }}>
-        <Field label="stop diário (R$)"><input className="input" type="number" {...f('stop_diario_brl')} /></Field>
-        <Field label="stop mensal (R$)"><input className="input" type="number" {...f('stop_mensal_brl')} /></Field>
-        <Field label="stop/trade (R$)"><input className="input" type="number" {...f('stop_por_trade_brl')} /></Field>
-        <Field label="contratos máx"><input className="input" type="number" {...f('contratos_maximos')} /></Field>
-        <Field label="horário limite"><input className="input" type="time" {...f('horario_limite')} /></Field>
+      {/* Título */}
+      <Field label="título do plano">
+        <input className="input" placeholder="ex: 14 dias de disciplina" {...f('title')} />
+      </Field>
+
+      {/* Período */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <Field label="começa em"><input className="input" type="date" {...f('starts_at')} /></Field>
+        <Field label="termina em"><input className="input" type="date" {...f('ends_at')} /></Field>
       </div>
 
+      {/* Métricas principais — MEN + trades/dia + stops seguidos */}
+      <div style={{
+        padding: 14, borderRadius: 8, marginBottom: 14,
+        background: 'rgba(0,217,255,0.04)', border: '1px solid rgba(0,217,255,0.18)',
+      }}>
+        <div style={{ fontSize: 10, letterSpacing: '0.16em', color: 'var(--cyan)', fontWeight: 700, marginBottom: 10 }}>
+          LIMITES OPERACIONAIS
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+          <Field label="MEN máximo (pts)">
+            <input className="input" type="number" min="0" placeholder="ex: 300" {...f('men_max_pts')} />
+          </Field>
+          <Field label="trades máx por dia">
+            <input className="input" type="number" min="0" placeholder="ex: 3" {...f('max_trades_per_day')} />
+          </Field>
+          <Field label="stops seguidos máx">
+            <input className="input" type="number" min="0" placeholder="ex: 2" {...f('max_consecutive_stops')} />
+          </Field>
+          <Field label="contratos máx/trade">
+            <input className="input" type="number" min="0" {...f('contratos_maximos')} />
+          </Field>
+        </div>
+      </div>
+
+      {/* Setups + ativos */}
       <Field label="setups permitidos">
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
           {SETUP_ALL.map(s => {
@@ -512,6 +651,27 @@ function PlanEditor({ draft, setDraft, onSave, onCancel }) {
         </div>
       </Field>
 
+      {/* Outras regras (array) */}
+      <Field label="outras regras (uma por linha)">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {extraRules.map((r, i) => (
+            <div key={i} style={{ display: 'flex', gap: 6 }}>
+              <input className="input" value={r}
+                onChange={e => updateRule(i, e.target.value)}
+                placeholder="ex: Não operar entre 11h e 13h"
+                style={{ flex: 1 }} />
+              <button type="button" onClick={() => removeRule(i)} className="btn btn-ghost" style={{ padding: 6 }}>
+                <IX size={12} stroke={1.8} />
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={addRule} className="btn btn-ghost" style={{ fontSize: 11, alignSelf: 'flex-start' }}>
+            <IPlus size={11} stroke={2} /> adicionar regra
+          </button>
+        </div>
+      </Field>
+
+      {/* Flags */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
           <input type="checkbox" checked={!!draft.melhor_de_3} onChange={e => setDraft({ ...draft, melhor_de_3: e.target.checked })} />
@@ -523,13 +683,34 @@ function PlanEditor({ draft, setDraft, onSave, onCancel }) {
         </label>
       </div>
 
-      <Field label="objetivos da semana">
+      {/* Legacy stops em R$ (opcional) */}
+      <details style={{ marginBottom: 14 }}>
+        <summary style={{ fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer', padding: '6px 0' }}>
+          + stops em R$ (opcional)
+        </summary>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 8 }}>
+          <Field label="stop diário (R$)"><input className="input" type="number" {...f('stop_diario_brl')} /></Field>
+          <Field label="stop mensal (R$)"><input className="input" type="number" {...f('stop_mensal_brl')} /></Field>
+          <Field label="stop/trade (R$)"><input className="input" type="number" {...f('stop_por_trade_brl')} /></Field>
+          <Field label="horário limite"><input className="input" type="time" {...f('horario_limite')} /></Field>
+        </div>
+      </details>
+
+      <Field label="objetivos">
         <textarea className="input" rows={2} style={{ resize: 'vertical' }} {...f('objetivos_semana')} />
       </Field>
 
       <Field label="observações">
         <textarea className="input" rows={3} style={{ resize: 'vertical' }} {...f('observacoes')} />
       </Field>
+
+      <div style={{
+        padding: '8px 10px', borderRadius: 6, fontSize: 10.5,
+        background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.2)',
+        color: 'var(--text-muted)', lineHeight: 1.5, marginBottom: 12,
+      }}>
+        ⚠️ Ao salvar, o plano ativo anterior do aluno será arquivado automaticamente.
+      </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
         <button onClick={onSave} className="btn btn-primary">salvar plano</button>
