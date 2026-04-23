@@ -92,13 +92,19 @@ export default function Login() {
         </form>
 
         <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-          <button
-            type="button"
-            onClick={() => { setMode(isTrial ? 'login' : 'trial'); setErr(null); setMsg(null) }}
-            style={{ background: 'transparent', border: 'none', color: 'var(--amber)', fontSize: 11, letterSpacing: 0.5, cursor: 'pointer', padding: 4 }}
-          >
-            {isTrial ? '← já sou mentorado' : 'criar conta de teste →'}
-          </button>
+          {isTrial ? (
+            <button
+              type="button"
+              onClick={() => { setMode('login'); setErr(null); setMsg(null) }}
+              style={{ background: 'transparent', border: 'none', color: 'var(--amber)', fontSize: 11, letterSpacing: 0.5, cursor: 'pointer', padding: 4 }}
+            >
+              ← já sou mentorado
+            </button>
+          ) : (
+            <a href="/signup" style={{ color: 'var(--cyan)', fontSize: 11.5, letterSpacing: 0.5, textDecoration: 'none' }}>
+              primeiro acesso? <span style={{ fontWeight: 600 }}>criar conta →</span>
+            </a>
+          )}
         </div>
       </div>
 

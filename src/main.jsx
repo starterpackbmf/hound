@@ -35,6 +35,7 @@ import Evolucao from './pages/diary/Evolucao'
 import { AuthProvider } from './auth/AuthContext'
 import ProtectedRoute from './auth/ProtectedRoute'
 import Login from './pages/Login'
+import Signup from './pages/Signup'
 import MemberLayout from './pages/member/MemberLayout'
 import Inicio from './pages/member/Inicio'
 import Estudo from './pages/member/Estudo'
@@ -135,6 +136,8 @@ createRoot(document.getElementById('root')).render(
 
           <Route path="/p/:id" element={<Perfil />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/cadastro" element={<Signup />} />
           <Route
             path="/app"
             element={
