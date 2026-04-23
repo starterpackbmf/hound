@@ -29,6 +29,16 @@ import './styles/diary-tokens.css'
 
 import App from './App.jsx'
 import Vitrine from './pages/Vitrine'
+import { useAuth } from './auth/AuthContext'
+
+// Raiz: se logado → /app/inicio, senão → /login
+// (Hound IA de abertura continua acessível em /hound)
+function RootRedirect() {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  return <Navigate to={user ? '/app/inicio' : '/login'} replace />
+}
+
 import Perfil from './pages/Perfil'
 import DiaryLayout from './pages/diary/DiaryLayout'
 import Evolucao from './pages/diary/Evolucao'
@@ -90,7 +100,8 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<App />} />
+          <Route path="/" element={<RootRedirect />} />
+          <Route path="/hound" element={<App />} />
           <Route path="/matilha" element={<Vitrine />} />
           <Route path="/calc" element={<CalcRiscoRetorno />} />
 

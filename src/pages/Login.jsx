@@ -109,8 +109,8 @@ export default function Login() {
       </div>
 
       <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', padding: '0 24px' }}>
-        <a href="/" style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-          ← voltar pro Hound · v2.4.0
+        <a href="/hound" style={{ fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+          ← Hound (pré-mercado)
         </a>
         <div style={{ opacity: 0.75 }}>
           <Hound size={32} />
