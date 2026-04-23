@@ -99,7 +99,7 @@ function CursosTab() {
                 <input className="input" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} />
               </Field>
               <Field label="capa">
-                <CoverPicker value={draft.cover_url} slug={draft.slug} onChange={url => setDraft({ ...draft, cover_url: url })} />
+                <CoverPicker value={draft.cover_url} slug={draft.slug} aspect="16/9" onChange={url => setDraft({ ...draft, cover_url: url })} />
               </Field>
             </div>
             <Field label="descrição">
@@ -412,7 +412,7 @@ function PandaTab() {
   )
 }
 
-function CoverPicker({ value, slug, onChange }) {
+function CoverPicker({ value, slug, onChange, aspect = '9/16' }) {
   const [uploading, setUploading] = useState(false)
   const [err, setErr] = useState(null)
   const inputRef = React.useRef(null)
@@ -436,7 +436,8 @@ function CoverPicker({ value, slug, onChange }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       {value && (
         <div style={{
-          width: 160, aspectRatio: '9/16',
+          width: aspect === '16/9' ? 280 : 160,
+          aspectRatio: aspect,
           background: `url(${value}) center/cover, var(--surface-2)`,
           borderRadius: 6, border: '1px solid var(--border)',
         }} />
