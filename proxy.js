@@ -431,6 +431,14 @@ app.post('/zoom-signature', (req, res) => {
   res.json({ signature: `${unsigned}.${signature}`, sdkKey })
 })
 
+// ─── ORÁCULO (chat streaming Claude com BM25) ───
+// Reusa os handlers de api/oraculo/* — código único entre dev e prod.
+const oraculoChat = require('./api/oraculo/chat.js')
+const oraculoQuota = require('./api/oraculo/quota.js')
+app.post('/oraculo/chat', (req, res) => oraculoChat(req, res))
+app.get('/oraculo/quota', (req, res) => oraculoQuota(req, res))
+
+
 // ─── ZOOM JOIN (gated) ───
 // POST /zoom/join       → valida gates, retorna { redirect_url }
 // GET  /zoom/go?t=...   → 302 pro Zoom com uname preenchido

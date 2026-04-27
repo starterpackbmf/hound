@@ -1,0 +1,1871 @@
+{
+  "blocks": [
+    {
+      "id": "n36",
+      "x": 748.0781103698436,
+      "y": 737.5266762572103,
+      "w": 240,
+      "h": 80,
+      "title": "<span style=\"font-size: 24px;\">Tradesystem startarter</span>",
+      "body": "",
+      "color": "#9d4bff"
+    },
+    {
+      "id": "n37",
+      "x": 286.080854490139,
+      "y": 474.1670636036354,
+      "w": 240,
+      "h": 80,
+      "title": "leitura",
+      "body": "",
+      "color": "#ff3b9a"
+    },
+    {
+      "id": "n39",
+      "x": 329.79533311134327,
+      "y": -19.69326055909862,
+      "w": 240,
+      "h": 80,
+      "title": "price action",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n41",
+      "x": -777.456597721058,
+      "y": -199.412614714032,
+      "w": 240,
+      "h": 80,
+      "title": "fibonacci",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n47",
+      "x": -405.1122028510706,
+      "y": 306.95536522789126,
+      "w": 240,
+      "h": 80,
+      "title": "ferramentas e indicadores",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n49",
+      "x": 1154.4503355945883,
+      "y": 269.1782252429431,
+      "w": 240,
+      "h": 80,
+      "title": "fundamentos de mercado",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n51",
+      "x": -405.1122028510706,
+      "y": 498.0544490858846,
+      "w": 240,
+      "h": 80,
+      "title": "estruturas gráficas",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n53",
+      "x": 148.7135399394545,
+      "y": 754.5820400701432,
+      "w": 240,
+      "h": 80,
+      "title": "leitura de fluxo",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n55",
+      "x": -465.38414428711394,
+      "y": 786.0421862739599,
+      "w": 240,
+      "h": 80,
+      "title": "médias móveis",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n57",
+      "x": -564.8257812399881,
+      "y": 125.94273480042045,
+      "w": 240,
+      "h": 80,
+      "title": "vwap + VWAP bands",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n59",
+      "x": -842.0201889296279,
+      "y": 224.50535727303128,
+      "w": 240,
+      "h": 80,
+      "title": "volume financeiro",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n61",
+      "x": -960.8940437521194,
+      "y": 401.66518359046194,
+      "w": 240,
+      "h": 80,
+      "title": "frequencia",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n64",
+      "x": -879.6416166206526,
+      "y": -483.54214322663654,
+      "w": 240,
+      "h": 80,
+      "title": "retração de fibo",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n66",
+      "x": -348.0990527427805,
+      "y": -73.0337633311286,
+      "w": 240,
+      "h": 80,
+      "title": "expansão de fibo",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n68",
+      "x": -340.83616249097713,
+      "y": -389.93266908239684,
+      "w": 240,
+      "h": 80,
+      "title": "faixa de gaza",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n70",
+      "x": -283.8554245843744,
+      "y": -270.2573068472715,
+      "w": 240,
+      "h": 80,
+      "title": "fibogap",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n72",
+      "x": -546.0808652676932,
+      "y": -546.5636069351727,
+      "w": 240,
+      "h": 80,
+      "title": "fibored",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n76",
+      "x": 285.87336625688516,
+      "y": -401.89142827508516,
+      "w": 240,
+      "h": 80,
+      "title": "tendências",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n78",
+      "x": 288.9556095449173,
+      "y": -603.007802819183,
+      "w": 240,
+      "h": 80,
+      "title": "tendências de dow",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n80",
+      "x": -89.95282664978328,
+      "y": -651.6222973501073,
+      "w": 240,
+      "h": 80,
+      "title": "tendência primária",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n82",
+      "x": 289.7261703669254,
+      "y": -764.8255754408708,
+      "w": 240,
+      "h": 80,
+      "title": "tendência secundária",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n84",
+      "x": 677.1107756037144,
+      "y": -615.4059387157296,
+      "w": 240,
+      "h": 80,
+      "title": "tendência terciária",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n86",
+      "x": 690.980870399859,
+      "y": -429.7007806117925,
+      "w": 240,
+      "h": 80,
+      "title": "força expansiva",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n88",
+      "x": 693.2925528658832,
+      "y": -324.9045088186994,
+      "w": 240,
+      "h": 80,
+      "title": "força corretiva",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n90",
+      "x": 685.0238720570485,
+      "y": -603.007802819183,
+      "w": 240,
+      "h": 80,
+      "title": "o que define uma tendência",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n92",
+      "x": -209.38975406102907,
+      "y": -551.4493904890625,
+      "w": 240,
+      "h": 80,
+      "title": "quando termina uma tendência?",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n94",
+      "x": -201.1210732521945,
+      "y": -704.7218313242439,
+      "w": 240,
+      "h": 80,
+      "title": "teorias de elliot",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n96",
+      "x": 620.0892747751196,
+      "y": -252.47179154994387,
+      "w": 240,
+      "h": 80,
+      "title": "suportes e resistências",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n98",
+      "x": 974.5472528988167,
+      "y": -163.8572970190196,
+      "w": 240,
+      "h": 80,
+      "title": "troca de polaridade",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n100",
+      "x": 1144.070633740585,
+      "y": -38.25588303170947,
+      "w": 240,
+      "h": 80,
+      "title": "linhas de tendência",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n102",
+      "x": 868.2098594617077,
+      "y": 41.11188163511838,
+      "w": 240,
+      "h": 80,
+      "title": "pullback",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n104",
+      "x": 1015.3869764652428,
+      "y": -284.83534607428146,
+      "w": 240,
+      "h": 80,
+      "title": "consolidação",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n106",
+      "x": 16.48603981738447,
+      "y": -195.06777028280624,
+      "w": 240,
+      "h": 80,
+      "title": "dias de alargamento",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n108",
+      "x": -137.36774418361065,
+      "y": -90.54115367144314,
+      "w": 240,
+      "h": 80,
+      "title": "falsos rompimentos",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n110",
+      "x": -122.09981142015313,
+      "y": 31.602308436217115,
+      "w": 240,
+      "h": 80,
+      "title": "hierarquia do mercado",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n113",
+      "x": -866.1480016553089,
+      "y": 792.5504533295485,
+      "w": 240,
+      "h": 80,
+      "title": "tipos de média",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n115",
+      "x": -950.5096775725,
+      "y": 929.4853475719457,
+      "w": 240,
+      "h": 80,
+      "title": "pra que serve?",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n117",
+      "x": -669.1221236439605,
+      "y": 1092.9712789869645,
+      "w": 240,
+      "h": 80,
+      "title": "quais médias usar?",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n119",
+      "x": -16.0541424860574,
+      "y": 1022.4054543792865,
+      "w": 240,
+      "h": 80,
+      "title": "funções das médias",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n121",
+      "x": -515.0703676212638,
+      "y": 1321.6036470523954,
+      "w": 240,
+      "h": 80,
+      "title": "integração das médias",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n123",
+      "x": 46.30013971360558,
+      "y": 909.9232198230318,
+      "w": 240,
+      "h": 80,
+      "title": "trapzone",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n125",
+      "x": -298.664329398904,
+      "y": 1201.7856145902979,
+      "w": 240,
+      "h": 80,
+      "title": "teoria de dow + médias",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n127",
+      "x": 115.99021981911126,
+      "y": 1139.7782208727697,
+      "w": 240,
+      "h": 80,
+      "title": "caro ou barato?",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n129",
+      "x": 1091.4693737582884,
+      "y": 137.78835912930617,
+      "w": 240,
+      "h": 80,
+      "title": "o que operamos?",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n131",
+      "x": 748.0206536211074,
+      "y": 251.15978131051162,
+      "w": 240,
+      "h": 80,
+      "title": "iniciantes",
+      "body": "",
+      "color": "#00ff88"
+    },
+    {
+      "id": "n134",
+      "x": 643.5411076894081,
+      "y": -235.67044334995867,
+      "w": 240,
+      "h": 80,
+      "title": "o que é o trade e sua filosofia",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n136",
+      "x": 923.6352095488568,
+      "y": -333.48108209452806,
+      "w": 240,
+      "h": 80,
+      "title": "corretoras e plataformas",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n138",
+      "x": 1372.6749601489253,
+      "y": 45.53514304067825,
+      "w": 240,
+      "h": 80,
+      "title": "alavancagem",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n140",
+      "x": 1564.921454676164,
+      "y": 175.56539006692964,
+      "w": 240,
+      "h": 80,
+      "title": "como funciona o mercado",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n142",
+      "x": 1470.4452695251596,
+      "y": 707.9664805061198,
+      "w": 240,
+      "h": 80,
+      "title": "Alta performance emocional",
+      "body": "",
+      "color": "#ff3b5c"
+    },
+    {
+      "id": "n144",
+      "x": 1532.7287326400387,
+      "y": 492.35192457837024,
+      "w": 240,
+      "h": 80,
+      "title": "aulas da dr julia",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n148",
+      "x": 1662.1661584993294,
+      "y": 948.9890216674793,
+      "w": 240,
+      "h": 80,
+      "title": "gerenciamento de risco adaptável",
+      "body": "",
+      "color": "#00ff88"
+    },
+    {
+      "id": "n150",
+      "x": 2150.581944386674,
+      "y": 967.6588704335918,
+      "w": 240,
+      "h": 80,
+      "title": "gerenciamento starter",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n152",
+      "x": 1832.1681768357064,
+      "y": 693.4203948525889,
+      "w": 240,
+      "h": 80,
+      "title": "stops mensais, diários, por trade",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n154",
+      "x": 2148.744779872313,
+      "y": 821.6042915419075,
+      "w": 240,
+      "h": 80,
+      "title": "melhor de 3 e melhor de 5",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n156",
+      "x": 1981.8970847561122,
+      "y": 1062.7738058644159,
+      "w": 240,
+      "h": 80,
+      "title": "GR trino",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n158",
+      "x": 507.57256198156483,
+      "y": 1055.4251478069727,
+      "w": 240,
+      "h": 80,
+      "title": "As 4 estratégias",
+      "body": "",
+      "color": "#ffdd00"
+    },
+    {
+      "id": "n160",
+      "x": 71.58026551150601,
+      "y": 1065.947171951895,
+      "w": 240,
+      "h": 80,
+      "title": "TRM",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n162",
+      "x": 335.7976798888294,
+      "y": 1229.9557766712494,
+      "w": 240,
+      "h": 80,
+      "title": "FQ",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n164",
+      "x": 1303.9833789569748,
+      "y": 1292.4193701595168,
+      "w": 240,
+      "h": 80,
+      "title": "TC",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n166",
+      "x": 922.4374665364744,
+      "y": 1043.9011977795653,
+      "w": 240,
+      "h": 80,
+      "title": "TA",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n168",
+      "x": 77.09175905458841,
+      "y": 927.241251117654,
+      "w": 240,
+      "h": 80,
+      "title": "REGRAS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n172",
+      "x": -260.0279293306196,
+      "y": 1073.295830009338,
+      "w": 240,
+      "h": 80,
+      "title": "FILTROS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n174",
+      "x": -107.8775503293055,
+      "y": 1239.1415992430534,
+      "w": 240,
+      "h": 80,
+      "title": "ALVOS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n176",
+      "x": 66.06877196842362,
+      "y": 1399.3925313083814,
+      "w": 240,
+      "h": 80,
+      "title": "REGRAS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n179",
+      "x": 338.5534266603706,
+      "y": 1415.509392621691,
+      "w": 240,
+      "h": 80,
+      "title": "FILTROS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n181",
+      "x": 639.5141313249101,
+      "y": 1417.7641764519894,
+      "w": 240,
+      "h": 80,
+      "title": "ALVOS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n183",
+      "x": 959.8493082049561,
+      "y": 1419.6013409663503,
+      "w": 240,
+      "h": 80,
+      "title": "REGRAS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n185",
+      "x": 1305.8205434713354,
+      "y": 1446.7411893658245,
+      "w": 240,
+      "h": 80,
+      "title": "FILTROS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n187",
+      "x": 1616.8856529648594,
+      "y": 1293.755571732635,
+      "w": 240,
+      "h": 80,
+      "title": "ALVOS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n189",
+      "x": 978.8052599151117,
+      "y": 896.4270736894579,
+      "w": 240,
+      "h": 80,
+      "title": "REGRAS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n192",
+      "x": 1315.590672609687,
+      "y": 989.7048446059214,
+      "w": 240,
+      "h": 80,
+      "title": "FILTROS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "id": "n194",
+      "x": 851.1223261670357,
+      "y": 1238.223016985873,
+      "w": 240,
+      "h": 80,
+      "title": "ALVOS",
+      "body": "",
+      "color": "#00f0ff"
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n200",
+      "title": "Medo",
+      "x": 1900,
+      "y": 230
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n201",
+      "title": "Ansiedade",
+      "x": 2140,
+      "y": 230
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n202",
+      "title": "Frustração",
+      "x": 2380,
+      "y": 230
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n203",
+      "title": "Impulsividade",
+      "x": 2620,
+      "y": 230
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n204",
+      "title": "Controle emocional",
+      "x": 2860,
+      "y": 230
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n205",
+      "title": "Autossabotagem",
+      "x": 2620,
+      "y": 370
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n206",
+      "title": "Expectativas",
+      "x": 2860,
+      "y": 370
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n207",
+      "title": "Respiração",
+      "x": 1900,
+      "y": 370
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n208",
+      "title": "Autoavaliação",
+      "x": 2140,
+      "y": 370
+    },
+    {
+      "w": 240,
+      "h": 80,
+      "color": "#00f0ff",
+      "body": "",
+      "id": "n209",
+      "title": "Paciência",
+      "x": 2380,
+      "y": 370
+    }
+  ],
+  "notes": [],
+  "strokes": [],
+  "edges": [
+    {
+      "id": "n38",
+      "from": {
+        "id": "n36",
+        "port": "left"
+      },
+      "to": {
+        "id": "n37",
+        "port": "right"
+      }
+    },
+    {
+      "id": "n40",
+      "from": {
+        "id": "n37",
+        "port": "top"
+      },
+      "to": {
+        "id": "n39",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n42",
+      "from": {
+        "id": "n37",
+        "port": "top"
+      },
+      "to": {
+        "id": "n41",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n48",
+      "from": {
+        "id": "n37",
+        "port": "left"
+      },
+      "to": {
+        "id": "n47",
+        "port": "right"
+      }
+    },
+    {
+      "id": "n52",
+      "from": {
+        "id": "n37",
+        "port": "left"
+      },
+      "to": {
+        "id": "n51",
+        "port": "right"
+      }
+    },
+    {
+      "id": "n54",
+      "from": {
+        "id": "n37",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n53",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n56",
+      "from": {
+        "id": "n37",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n55",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n58",
+      "from": {
+        "id": "n47",
+        "port": "top"
+      },
+      "to": {
+        "id": "n57",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n60",
+      "from": {
+        "id": "n47",
+        "port": "left"
+      },
+      "to": {
+        "id": "n59",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n63",
+      "from": {
+        "id": "n61",
+        "port": "right"
+      },
+      "to": {
+        "id": "n47",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "backward"
+    },
+    {
+      "id": "n65",
+      "from": {
+        "id": "n41",
+        "port": "top"
+      },
+      "to": {
+        "id": "n64",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n69",
+      "from": {
+        "id": "n41",
+        "port": "right"
+      },
+      "to": {
+        "id": "n68",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n71",
+      "from": {
+        "id": "n41",
+        "port": "right"
+      },
+      "to": {
+        "id": "n70",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n73",
+      "from": {
+        "id": "n41",
+        "port": "top"
+      },
+      "to": {
+        "id": "n72",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n77",
+      "from": {
+        "id": "n39",
+        "port": "top"
+      },
+      "to": {
+        "id": "n76",
+        "port": "bottom"
+      },
+      "collapsed": false,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n79",
+      "from": {
+        "id": "n76",
+        "port": "top"
+      },
+      "to": {
+        "id": "n78",
+        "port": "bottom"
+      },
+      "collapsed": false,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n81",
+      "from": {
+        "id": "n78",
+        "port": "left"
+      },
+      "to": {
+        "id": "n80",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n83",
+      "from": {
+        "id": "n78",
+        "port": "top"
+      },
+      "to": {
+        "id": "n82",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n85",
+      "from": {
+        "id": "n78",
+        "port": "right"
+      },
+      "to": {
+        "id": "n84",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n87",
+      "from": {
+        "id": "n76",
+        "port": "right"
+      },
+      "to": {
+        "id": "n86",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n89",
+      "from": {
+        "id": "n76",
+        "port": "right"
+      },
+      "to": {
+        "id": "n88",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n91",
+      "from": {
+        "id": "n76",
+        "port": "top"
+      },
+      "to": {
+        "id": "n90",
+        "port": "bottom"
+      },
+      "collapsed": false,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n93",
+      "from": {
+        "id": "n76",
+        "port": "left"
+      },
+      "to": {
+        "id": "n92",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n95",
+      "from": {
+        "id": "n92",
+        "port": "top"
+      },
+      "to": {
+        "id": "n94",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n97",
+      "from": {
+        "id": "n39",
+        "port": "right"
+      },
+      "to": {
+        "id": "n96",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n99",
+      "from": {
+        "id": "n39",
+        "port": "right"
+      },
+      "to": {
+        "id": "n98",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n101",
+      "from": {
+        "id": "n39",
+        "port": "right"
+      },
+      "to": {
+        "id": "n100",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n103",
+      "from": {
+        "id": "n39",
+        "port": "right"
+      },
+      "to": {
+        "id": "n102",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n105",
+      "from": {
+        "id": "n39",
+        "port": "right"
+      },
+      "to": {
+        "id": "n104",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n107",
+      "from": {
+        "id": "n39",
+        "port": "left"
+      },
+      "to": {
+        "id": "n106",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n109",
+      "from": {
+        "id": "n39",
+        "port": "left"
+      },
+      "to": {
+        "id": "n108",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n111",
+      "from": {
+        "id": "n39",
+        "port": "left"
+      },
+      "to": {
+        "id": "n110",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n112",
+      "from": {
+        "id": "n41",
+        "port": "right"
+      },
+      "to": {
+        "id": "n66",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n114",
+      "from": {
+        "id": "n55",
+        "port": "left"
+      },
+      "to": {
+        "id": "n113",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n116",
+      "from": {
+        "id": "n55",
+        "port": "left"
+      },
+      "to": {
+        "id": "n115",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n118",
+      "from": {
+        "id": "n55",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n117",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n120",
+      "from": {
+        "id": "n55",
+        "port": "right"
+      },
+      "to": {
+        "id": "n119",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n122",
+      "from": {
+        "id": "n55",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n121",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n124",
+      "from": {
+        "id": "n55",
+        "port": "right"
+      },
+      "to": {
+        "id": "n123",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n126",
+      "from": {
+        "id": "n55",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n125",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n128",
+      "from": {
+        "id": "n55",
+        "port": "right"
+      },
+      "to": {
+        "id": "n127",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n130",
+      "from": {
+        "id": "n49",
+        "port": "top"
+      },
+      "to": {
+        "id": "n129",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n132",
+      "from": {
+        "id": "n36",
+        "port": "top"
+      },
+      "to": {
+        "id": "n131",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n133",
+      "from": {
+        "id": "n36",
+        "port": "top"
+      },
+      "to": {
+        "id": "n49",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n135",
+      "from": {
+        "id": "n131",
+        "port": "top"
+      },
+      "to": {
+        "id": "n134",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n137",
+      "from": {
+        "id": "n131",
+        "port": "top"
+      },
+      "to": {
+        "id": "n136",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n139",
+      "from": {
+        "id": "n49",
+        "port": "top"
+      },
+      "to": {
+        "id": "n138",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n141",
+      "from": {
+        "id": "n49",
+        "port": "right"
+      },
+      "to": {
+        "id": "n140",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n143",
+      "from": {
+        "id": "n36",
+        "port": "right"
+      },
+      "to": {
+        "id": "n142",
+        "port": "left"
+      }
+    },
+    {
+      "id": "n145",
+      "from": {
+        "id": "n142",
+        "port": "top"
+      },
+      "to": {
+        "id": "n144",
+        "port": "bottom"
+      }
+    },
+    {
+      "id": "n149",
+      "from": {
+        "id": "n36",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n148",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n151",
+      "from": {
+        "id": "n148",
+        "port": "right"
+      },
+      "to": {
+        "id": "n150",
+        "port": "left"
+      }
+    },
+    {
+      "id": "n153",
+      "from": {
+        "id": "n150",
+        "port": "top"
+      },
+      "to": {
+        "id": "n152",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n155",
+      "from": {
+        "id": "n150",
+        "port": "right"
+      },
+      "to": {
+        "id": "n154",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n157",
+      "from": {
+        "id": "n150",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n156",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n159",
+      "from": {
+        "id": "n36",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n158",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n161",
+      "from": {
+        "id": "n158",
+        "port": "left"
+      },
+      "to": {
+        "id": "n160",
+        "port": "right"
+      }
+    },
+    {
+      "id": "n163",
+      "from": {
+        "id": "n158",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n162",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n165",
+      "from": {
+        "id": "n158",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n164",
+        "port": "top"
+      }
+    },
+    {
+      "id": "n167",
+      "from": {
+        "id": "n158",
+        "port": "right"
+      },
+      "to": {
+        "id": "n166",
+        "port": "left"
+      }
+    },
+    {
+      "id": "n171",
+      "from": {
+        "id": "n168",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n160",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "backward"
+    },
+    {
+      "id": "n173",
+      "from": {
+        "id": "n160",
+        "port": "left"
+      },
+      "to": {
+        "id": "n172",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n175",
+      "from": {
+        "id": "n160",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n174",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n178",
+      "from": {
+        "id": "n176",
+        "port": "top"
+      },
+      "to": {
+        "id": "n162",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "backward"
+    },
+    {
+      "id": "n180",
+      "from": {
+        "id": "n162",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n179",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n182",
+      "from": {
+        "id": "n162",
+        "port": "right"
+      },
+      "to": {
+        "id": "n181",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n184",
+      "from": {
+        "id": "n164",
+        "port": "left"
+      },
+      "to": {
+        "id": "n183",
+        "port": "right"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n186",
+      "from": {
+        "id": "n164",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n185",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n188",
+      "from": {
+        "id": "n164",
+        "port": "right"
+      },
+      "to": {
+        "id": "n187",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n191",
+      "from": {
+        "id": "n166",
+        "port": "top"
+      },
+      "to": {
+        "id": "n189",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n193",
+      "from": {
+        "id": "n166",
+        "port": "right"
+      },
+      "to": {
+        "id": "n192",
+        "port": "left"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n195",
+      "from": {
+        "id": "n166",
+        "port": "bottom"
+      },
+      "to": {
+        "id": "n194",
+        "port": "top"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n210",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n200",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n211",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n201",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n212",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n202",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n213",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n203",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n214",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n204",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n215",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n205",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n216",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n206",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n217",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n207",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n218",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n208",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    },
+    {
+      "id": "n219",
+      "from": {
+        "id": "n144",
+        "port": "top"
+      },
+      "to": {
+        "id": "n209",
+        "port": "bottom"
+      },
+      "collapsed": true,
+      "collapseDir": "forward"
+    }
+  ],
+  "view": {
+    "scale": 0.8950374517998227,
+    "x": 108.4419755474421,
+    "y": -371.8897932534736
+  }
+}
