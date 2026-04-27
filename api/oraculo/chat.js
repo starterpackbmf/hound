@@ -6,7 +6,7 @@ const { search, formatThemePath } = require('./_lib/search')
 const { getCerebro } = require('./_lib/cerebro')
 const { createClient } = require('@supabase/supabase-js')
 
-const QUOTA_LIMIT = parseInt(process.env.ORACULO_DAILY_LIMIT || '20', 10)
+const QUOTA_LIMIT = parseInt(process.env.ORACULO_DAILY_LIMIT || '5', 10)
 
 // Valida JWT do aluno + consome 1 da cota diária via RPC.
 // Retorna { ok, status, body } onde body tem o resultado da RPC.

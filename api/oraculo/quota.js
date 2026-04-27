@@ -3,7 +3,7 @@
 
 const { createClient } = require('@supabase/supabase-js')
 
-const QUOTA_LIMIT = parseInt(process.env.ORACULO_DAILY_LIMIT || '20', 10)
+const QUOTA_LIMIT = parseInt(process.env.ORACULO_DAILY_LIMIT || '5', 10)
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
