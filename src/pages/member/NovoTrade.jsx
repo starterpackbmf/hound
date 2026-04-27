@@ -36,8 +36,9 @@ function formatTime(v) {
   return digits.slice(0, 2) + ':' + digits.slice(2)
 }
 
-export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate } = {}) {
-  const { id } = useParams()
+export default function NovoTrade({ modal = false, onClose, onSaved, defaultDate, tradeId: tradeIdProp } = {}) {
+  const { id: routeId } = useParams()
+  const id = tradeIdProp || routeId
   const [params] = useSearchParams()
   const nav = useNavigate()
   const isEdit = !!id
@@ -626,6 +627,7 @@ function PrintUploader({ value, onChange }) {
   const [uploading, setUploading] = useState(false)
   const [err, setErr] = useState(null)
   const [dragOver, setDragOver] = useState(false)
+  const [justPasted, setJustPasted] = useState(false)
   const fileRef = React.useRef(null)
 
   async function handleFile(f) {
@@ -647,6 +649,34 @@ function PrintUploader({ value, onChange }) {
     const f = e.dataTransfer.files?.[0]
     if (f) handleFile(f)
   }
+
+  // Ctrl+V global: cola imagem do clipboard quando o modal/página está aberta
+  // e nenhum input de texto tá focado.
+  React.useEffect(() => {
+    if (value) return // já tem print, não escuta paste
+    function onPaste(e) {
+      // ignora se o foco tá num input/textarea (deixa o paste normal acontecer)
+      const tag = (document.activeElement?.tagName || '').toLowerCase()
+      const editable = document.activeElement?.isContentEditable
+      if (['input', 'textarea', 'select'].includes(tag) || editable) return
+
+      const items = e.clipboardData?.items || []
+      for (const it of items) {
+        if (it.type?.startsWith('image/')) {
+          const file = it.getAsFile()
+          if (file) {
+            e.preventDefault()
+            setJustPasted(true)
+            setTimeout(() => setJustPasted(false), 600)
+            handleFile(file)
+            return
+          }
+        }
+      }
+    }
+    window.addEventListener('paste', onPaste)
+    return () => window.removeEventListener('paste', onPaste)
+  }, [value])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -671,11 +701,11 @@ function PrintUploader({ value, onChange }) {
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
             padding: '12px 16px',
             borderRadius: 8,
-            border: `1.5px dashed ${dragOver ? 'var(--ink-green)' : 'rgba(24,209,138,0.3)'}`,
-            background: dragOver ? 'rgba(24,209,138,0.06)' : 'rgba(24,209,138,0.02)',
+            border: `1.5px dashed ${dragOver || justPasted ? 'var(--ink-green)' : 'rgba(24,209,138,0.3)'}`,
+            background: dragOver || justPasted ? 'rgba(24,209,138,0.12)' : 'rgba(24,209,138,0.02)',
             color: 'var(--ink-text, var(--text-primary))',
             cursor: uploading ? 'wait' : 'pointer',
-            transition: 'border-color .15s, background .15s',
+            transition: 'border-color .25s, background .25s',
             width: '100%',
           }}
         >
@@ -685,10 +715,10 @@ function PrintUploader({ value, onChange }) {
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
           <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-green)' }}>
-            {uploading ? 'enviando…' : 'Upload (jpg/png até 5MB)'}
+            {uploading ? 'enviando…' : justPasted ? 'colado!' : 'Upload, arraste ou cole (Ctrl+V)'}
           </div>
           <div style={{ fontSize: 11, color: 'var(--ink-muted, var(--text-muted))' }}>
-            · ou cole um link
+            · jpg/png até 5MB
           </div>
           <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={onFile} style={{ display: 'none' }} disabled={uploading} />
         </button>

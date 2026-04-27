@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../auth/AuthContext'
 import { getMyProfile } from '../../lib/profile'
 import { supabase } from '../../lib/supabase'
@@ -580,19 +580,32 @@ function fmtAxis(v) {
 
 function EquityCard({ data }) {
   const [hover, setHover] = useState(null)
-  const ref = useRef(null)
-  const [size, setSize] = useState({ w: 480, h: 260 })
+  const ref = useRef(null)         // SVG (pra mouse coords)
+  const wrapRef = useRef(null)     // div pai (mede largura real)
+  const [size, setSize] = useState({ w: 800, h: 260 })
 
-  useEffect(() => {
-    if (!ref.current) return
-    const ro = new ResizeObserver(entries => {
-      for (const e of entries) setSize({ w: e.contentRect.width, h: 260 })
-    })
-    ro.observe(ref.current)
-    return () => ro.disconnect()
+  useLayoutEffect(() => {
+    if (!wrapRef.current) return
+    const measure = () => {
+      const el = wrapRef.current
+      if (!el) return
+      const w = el.getBoundingClientRect().width || el.offsetWidth || el.clientWidth || 0
+      if (w > 0) setSize(s => (s.w === w ? s : { w, h: 260 }))
+    }
+    measure()
+    // Fallback: tenta de novo no próximo frame caso a primeira leitura veio 0
+    const raf = requestAnimationFrame(measure)
+    const ro = new ResizeObserver(measure)
+    ro.observe(wrapRef.current)
+    window.addEventListener('resize', measure)
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
   }, [])
 
-  const pad = { l: 50, r: 12, t: 20, b: 30 }
+  const pad = { l: 50, r: 4, t: 20, b: 30 }
   if (data.length < 2) {
     return (
       <div className="ink-card" style={{ padding: 20, minHeight: 280 }}>
@@ -719,7 +732,12 @@ function EquityCard({ data }) {
   return (
     <div className="ink-card ink-fade-up" style={{ padding: 18, position: 'relative' }}>
       <div style={{ fontSize: 13, fontWeight: 500, color: TEXT, marginBottom: 12 }}>Curva de Capital</div>
-      <svg ref={ref} width="100%" height={size.h} onMouseMove={onMove} onMouseLeave={() => setHover(null)} style={{ display: 'block', cursor: 'crosshair' }}>
+      <div ref={wrapRef} style={{ width: '100%' }}>
+
+      <svg ref={ref} width="100%" height={size.h}
+        viewBox={`0 0 ${size.w} ${size.h}`} preserveAspectRatio="none"
+        onMouseMove={onMove} onMouseLeave={() => setHover(null)}
+        style={{ display: 'block', cursor: 'crosshair' }}>
         <defs>
           <linearGradient id="eq-fill-g" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={GREEN} stopOpacity="0.28" />
@@ -836,21 +854,36 @@ function EquityCard({ data }) {
           )}
         </g>
       </svg>
+      </div>
     </div>
   )
 }
 
 function DailyCard({ data }) {
   const ref = useRef(null)
-  const [size, setSize] = useState({ w: 480, h: 260 })
+  const wrapRef = useRef(null)
+  const [size, setSize] = useState({ w: 800, h: 260 })
+  const [hover, setHover] = useState(null)
 
-  useEffect(() => {
-    if (!ref.current) return
-    const ro = new ResizeObserver(entries => {
-      for (const e of entries) setSize({ w: e.contentRect.width, h: 260 })
-    })
-    ro.observe(ref.current)
-    return () => ro.disconnect()
+  useLayoutEffect(() => {
+    if (!wrapRef.current) return
+    const measure = () => {
+      const el = wrapRef.current
+      if (!el) return
+      const w = el.getBoundingClientRect().width || el.offsetWidth || el.clientWidth || 0
+      if (w > 0) setSize(s => (s.w === w ? s : { w, h: 260 }))
+    }
+    measure()
+    // Fallback: tenta de novo no próximo frame caso a primeira leitura veio 0
+    const raf = requestAnimationFrame(measure)
+    const ro = new ResizeObserver(measure)
+    ro.observe(wrapRef.current)
+    window.addEventListener('resize', measure)
+    return () => {
+      cancelAnimationFrame(raf)
+      ro.disconnect()
+      window.removeEventListener('resize', measure)
+    }
   }, [])
 
   if (data.length === 0) {
@@ -862,7 +895,7 @@ function DailyCard({ data }) {
     )
   }
 
-  const pad = { l: 50, r: 12, t: 20, b: 30 }
+  const pad = { l: 50, r: 4, t: 20, b: 30 }
   const vals = data.map(d => d.value)
   const minRaw = Math.min(0, ...vals), maxRaw = Math.max(0, ...vals)
   const ticks = niceTicks(minRaw, maxRaw, 5)
@@ -873,10 +906,24 @@ function DailyCard({ data }) {
   const slot = w / data.length
   const barW = Math.max(3, slot * 0.7)
 
+  function onMove(e) {
+    const rect = ref.current.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    if (x < pad.l || x > pad.l + w) { setHover(null); return }
+    const i = Math.max(0, Math.min(data.length - 1, Math.floor((x - pad.l) / slot)))
+    const cx = pad.l + slot * (i + 0.5)
+    setHover({ i, x: cx, value: data[i].value, date: data[i].date })
+  }
+
   return (
     <div className="ink-card ink-fade-up" style={{ padding: 18, position: 'relative' }}>
       <div style={{ fontSize: 13, fontWeight: 500, color: TEXT, marginBottom: 12 }}>Resultado Diário</div>
-      <svg ref={ref} width="100%" height={size.h} style={{ display: 'block' }}>
+      <div ref={wrapRef} style={{ width: '100%' }}>
+
+      <svg ref={ref} width="100%" height={size.h}
+        viewBox={`0 0 ${size.w} ${size.h}`} preserveAspectRatio="none"
+        onMouseMove={onMove} onMouseLeave={() => setHover(null)}
+        style={{ display: 'block', cursor: 'crosshair' }}>
         {/* ticks */}
         {ticks.map((t, i) => {
           const y = yScale(t)
@@ -901,6 +948,7 @@ function DailyCard({ data }) {
           const yVal = yScale(d.value)
           const y = Math.min(yVal, baseY)
           const barH = Math.abs(yVal - baseY)
+          const isHovered = hover?.i === i
           return (
             <g key={d.date}
               className="ink-bar-grow"
@@ -910,9 +958,9 @@ function DailyCard({ data }) {
                 animationDelay: `${Math.min(i * 30, 900)}ms`,
               }}>
               <rect x={cx - barW / 2} y={y} width={barW} height={Math.max(barH, 1)}
-                fill={up ? GREEN : RED} rx="2" opacity="0.9">
-                <title>{`${d.date}: ${up ? '+' : '−'}R$ ${Math.abs(d.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`}</title>
-              </rect>
+                fill={up ? GREEN : RED} rx="2"
+                opacity={hover && !isHovered ? 0.45 : 0.9}
+                style={{ transition: 'opacity .12s ease' }} />
             </g>
           )
         })}
@@ -933,7 +981,45 @@ function DailyCard({ data }) {
           }
           return labels
         })()}
+
+        {/* hover crosshair + tooltip */}
+        <g style={{
+          opacity: hover ? 1 : 0,
+          transition: 'opacity .12s ease',
+          pointerEvents: 'none',
+        }}>
+          {hover && (() => {
+            const up = hover.value >= 0
+            const yVal = yScale(hover.value)
+            const tooltipW = 150
+            // Posiciona tooltip à esquerda da barra se tiver perto da borda direita
+            const tx = Math.min(hover.x + 12, pad.l + w - tooltipW - 4)
+            const ty = up
+              ? Math.max(yVal - 50, pad.t + 4)         // bar positiva → tooltip acima
+              : Math.min(yVal + 8, pad.t + h - 50)     // bar negativa → tooltip abaixo
+            return (
+              <>
+                <line
+                  x1={hover.x} y1={pad.t} x2={hover.x} y2={pad.t + h}
+                  stroke="rgba(255,255,255,0.14)"
+                  style={{ transition: 'x1 .08s linear, x2 .08s linear' }}
+                />
+                <g transform={`translate(${tx}, ${ty})`}
+                  style={{ transition: 'transform .1s ease-out' }}>
+                  <rect width={tooltipW} height="42" rx="6" fill="rgba(14,16,19,0.96)" stroke="rgba(255,255,255,0.1)" />
+                  <text x="10" y="15" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 9, fill: DIM, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                    {new Date(hover.date + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                  </text>
+                  <text x="10" y="32" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 13, fill: up ? GREEN : RED, fontWeight: 500 }}>
+                    {up ? '+' : '−'}R$ {Math.abs(hover.value).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                  </text>
+                </g>
+              </>
+            )
+          })()}
+        </g>
       </svg>
+      </div>
     </div>
   )
 }
